@@ -1,10 +1,10 @@
-import { readdirSync, statSync } from 'fs'
+import { readdirSync } from 'fs'
 import { join, extname } from 'path'
 import { NextResponse } from 'next/server'
 import { sql } from '@vercel/postgres'
 import { put } from '@vercel/blob'
 
-const PHOTO_DIR   = join(process.cwd(), 'public', 'photoplayers')
+const PHOTO_DIR = join(process.cwd(), 'public', 'photoplayers')
 const ALLOWED_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.gif']
 
 function normalizeName(s) {
@@ -13,7 +13,7 @@ function normalizeName(s) {
     .replace(/[^a-z0-9 ]/g, '').trim().replace(/\s+/g, ' ')
 }
 
-async function ensureTable() {
+async function ensureTables() {
   await sql`
     CREATE TABLE IF NOT EXISTS player_photos (
       id             SERIAL PRIMARY KEY,
@@ -24,39 +24,56 @@ async function ensureTable() {
       updated_at     TIMESTAMP DEFAULT NOW()
     )
   `
+  await sql`
+    CREATE TABLE IF NOT EXISTS player_photo_hidden (
+      filename       TEXT PRIMARY KEY,
+      hidden_at      TIMESTAMPTZ DEFAULT NOW()
+    )
+  `
 }
 
-// ─── GET: filesystem (fotos existentes) + postgres (fotos novas) ──────────────
+// GET: fotos enviadas + fotos locais ainda não removidas da galeria.
 export async function GET() {
   const photos = []
-  const seen   = new Set() // evitar duplicatas por canonical_name
+  const seen = new Set()
+  const hiddenLocalFiles = new Set()
 
-  // 1. Fotos do Vercel Blob (salvas via POST)
   try {
-    await ensureTable()
-    const result = await sql`SELECT * FROM player_photos ORDER BY created_at DESC`
-    for (const row of result.rows) {
+    await ensureTables()
+    const [dbPhotos, hidden] = await Promise.all([
+      sql`SELECT * FROM player_photos ORDER BY created_at DESC`,
+      sql`SELECT filename FROM player_photo_hidden`,
+    ])
+
+    for (const row of hidden.rows) {
+      hiddenLocalFiles.add(String(row.filename || '').toLowerCase())
+    }
+
+    for (const row of dbPhotos.rows) {
       const key = normalizeName(row.canonical_name)
       seen.add(key)
       photos.push({
-        id:             row.id,
+        id: row.id,
         canonical_name: row.canonical_name,
-        filename:       row.filename || '',
-        url:            row.url,
-        source:         'db',
+        filename: row.filename || '',
+        url: row.url,
+        source: 'db',
       })
     }
   } catch (err) {
     console.warn('[API/photos GET] Postgres indisponível:', err.message)
   }
 
-  // 2. Fotos do filesystem public/photoplayers (as 30 originais)
+  // As fotos empacotadas em public/photoplayers não podem ser apagadas do
+  // filesystem da Vercel em runtime. A tabela player_photo_hidden funciona
+  // como exclusão persistente e vale para qualquer computador/dispositivo.
   try {
     const files = readdirSync(PHOTO_DIR)
     for (const filename of files) {
       const ext = extname(filename).toLowerCase()
       if (!ALLOWED_EXTS.includes(ext)) continue
-      if (['guarani.png','confianca.png'].includes(filename.toLowerCase())) continue
+      if (['guarani.png', 'confianca.png'].includes(filename.toLowerCase())) continue
+      if (hiddenLocalFiles.has(filename.toLowerCase())) continue
 
       let nameWithoutExt = filename.replace(/\.[^.]+$/, '')
       nameWithoutExt = nameWithoutExt.replace(/^(?:GUA|CON|ADC)_/i, '')
@@ -64,18 +81,15 @@ export async function GET() {
       nameWithoutExt = nameWithoutExt.replace(/_\d+$/, '')
       nameWithoutExt = nameWithoutExt.replace(/[_-]/g, ' ')
       const canonicalName = normalizeName(nameWithoutExt)
-      if (!canonicalName) continue
+      if (!canonicalName || seen.has(canonicalName)) continue
 
-      // Só adiciona se não veio do banco (evita duplicata)
-      if (seen.has(canonicalName)) continue
       seen.add(canonicalName)
-
       photos.push({
-        id:             filename, // filename como id para fotos locais
+        id: filename,
         canonical_name: canonicalName,
-        filename:       filename,
-        url:            `/photoplayers/${filename}`,
-        source:         'local',
+        filename,
+        url: `/photoplayers/${filename}`,
+        source: 'local',
       })
     }
   } catch (err) {
@@ -85,26 +99,23 @@ export async function GET() {
   return NextResponse.json({ photos })
 }
 
-// ─── POST: upload para Vercel Blob + salva no Postgres ────────────────────────
+// POST: upload para Vercel Blob + salva no Postgres.
 export async function POST(request) {
   try {
-    await ensureTable()
+    await ensureTables()
 
-    const formData      = await request.formData()
-    const file          = formData.get('file')
+    const formData = await request.formData()
+    const file = formData.get('file')
     const canonicalName = (formData.get('canonical_name') || '').trim()
 
-    if (!file)          return NextResponse.json({ error: 'Nenhum arquivo enviado.' }, { status: 400 })
+    if (!file) return NextResponse.json({ error: 'Nenhum arquivo enviado.' }, { status: 400 })
     if (!canonicalName) return NextResponse.json({ error: 'Nome do atleta é obrigatório.' }, { status: 400 })
 
-    // Upload para Vercel Blob
     const safeName = canonicalName.replace(/\s+/g, '_').toLowerCase()
-    const ext      = file.name.split('.').pop().toLowerCase() || 'jpg'
+    const ext = file.name.split('.').pop().toLowerCase() || 'jpg'
     const blobPath = `confianca/photos/${Date.now()}_${safeName}.${ext}`
-
     const blob = await put(blobPath, file, { access: 'public' })
 
-    // Upsert no Postgres (atualiza se já existe o mesmo canonical_name)
     const result = await sql`
       INSERT INTO player_photos (canonical_name, url, filename)
       VALUES (${canonicalName}, ${blob.url}, ${file.name})

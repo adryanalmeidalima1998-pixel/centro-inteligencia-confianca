@@ -63,7 +63,16 @@ export default function Sidebar({onClose,collapsed=false,onCollapsedChange}){
  const modules=session?.user?.modules||[]; const canSwitch=modules.includes('corpo-tecnico')&&modules.includes('scouting')
  const role=session?.user?.role
  const isActive=(item)=>item.exact?pathname===item.href:(pathname===item.href||pathname.startsWith(item.href+'/'))
- useEffect(()=>{ if(navRef.current) navRef.current.scrollTop=0 },[pathname,isCorpo])
+ const scrollKey=`cic-sidebar-scroll:${isCorpo?'corpo-tecnico':'scouting'}`
+ useEffect(()=>{
+  const el=navRef.current
+  if(!el) return
+  const saved=Number(sessionStorage.getItem(scrollKey)||0)
+  requestAnimationFrame(()=>{ el.scrollTop=Number.isFinite(saved)?saved:0 })
+  const remember=()=>sessionStorage.setItem(scrollKey,String(el.scrollTop))
+  el.addEventListener('scroll',remember,{passive:true})
+  return()=>{ remember(); el.removeEventListener('scroll',remember) }
+ },[scrollKey])
  return <aside className={`h-dvh shrink-0 overflow-hidden bg-[#06172e] text-white border-r border-white/8 flex flex-col transition-[width] duration-200 ${collapsed?'w-[74px]':'w-[270px]'}`}>
   <div className={`h-[76px] flex items-center ${collapsed?'justify-center px-2':'gap-3 px-4'} border-b border-white/8`}>
     <img src="/confianca.png" alt="Confiança" className="w-11 h-11 object-contain shrink-0"/>
