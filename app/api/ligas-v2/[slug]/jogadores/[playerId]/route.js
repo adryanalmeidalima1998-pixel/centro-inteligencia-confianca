@@ -8,8 +8,8 @@ import {
 import { decodePlayerKey } from '@/data/player-route'
 import { getLeague } from '@/data/leagues'
 import { enrichPlayersWithFoot } from '@/data/player-foot'
-import {
 import { ensureLigaJogadoresSchema } from '@/lib/league-dataset-schema'
+import {
   attachCanonicalPlayers,
   ensurePlayerMaster,
   syncPlayerSourceBatch,
