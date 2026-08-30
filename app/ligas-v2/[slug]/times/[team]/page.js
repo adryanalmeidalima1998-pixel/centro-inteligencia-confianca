@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -116,7 +116,7 @@ function Leaders({ leaders, slug }) {
   </div>
 }
 
-export default function TimePage() {
+function TimePageInner() {
   const params=useParams()
   const searchParams=useSearchParams()
   const sourcePreference=searchParams.get('source') || 'auto'
@@ -212,4 +212,13 @@ export default function TimePage() {
 
     {data.methodology&&<p style={{fontSize:9,color:'#94a3b8',lineHeight:1.5,marginTop:16}}>{data.methodology}</p>}
   </div></AppShell>
+}
+
+
+export default function TimePage() {
+  return (
+    <Suspense fallback={<AppShell><div style={{padding:60,textAlign:'center',color:'#94a3b8'}}>Carregando perfil estatístico da equipe...</div></AppShell>}>
+      <TimePageInner />
+    </Suspense>
+  )
 }
