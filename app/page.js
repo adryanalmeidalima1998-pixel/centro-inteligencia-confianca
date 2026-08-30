@@ -25,11 +25,11 @@ export default function Home(){
   const allowed=session?.user?.modules || []
   return <main className="min-h-screen bg-[#071b36] text-white overflow-hidden relative">
     <div className="absolute inset-0 opacity-[0.045] bg-[radial-gradient(circle_at_15%_20%,#35b7ff_0,transparent_28%),radial-gradient(circle_at_85%_70%,#35b7ff_0,transparent_30%)]" />
-    <img src="/confianca.svg" alt="" className="pointer-events-none absolute -right-32 top-16 w-[650px] opacity-[0.055] rotate-[-8deg]" />
+    <img src="/confianca.png" alt="" className="pointer-events-none absolute -right-32 top-16 w-[650px] opacity-[0.055] rotate-[-8deg]" />
     <div className="relative max-w-7xl mx-auto px-6 py-8 lg:py-12">
       <header className="flex items-center justify-between gap-4 border-b border-white/10 pb-7">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-white p-2 shadow-2xl shadow-sky-900/30"><img src="/confianca.svg" className="w-full h-full object-contain" alt="Escudo do Confiança"/></div>
+          <div className="w-16 h-16 rounded-2xl bg-white p-2 shadow-2xl shadow-sky-900/30"><img src="/confianca.png" className="w-full h-full object-contain" alt="Escudo do Confiança"/></div>
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.35em] text-sky-300">Associação Desportiva Confiança</p>
             <h1 className="mt-1 text-2xl md:text-3xl font-black tracking-tight">Centro de Inteligência</h1>
