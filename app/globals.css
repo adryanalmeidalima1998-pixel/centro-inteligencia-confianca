@@ -241,3 +241,72 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* ─────────────────────────────────────────────
+   ESCALA DA INTERFACE — desktop/notebook
+   Permite ajustar a densidade visual sem depender
+   do zoom do navegador. Preferência salva localmente.
+   ───────────────────────────────────────────── */
+:root { --cic-ui-scale: 1; }
+
+#cic-app-root {
+  width: calc(100% / var(--cic-ui-scale));
+  min-height: calc(100vh / var(--cic-ui-scale));
+  zoom: var(--cic-ui-scale);
+}
+
+.cic-scale-control {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 4px 6px 4px 9px;
+  border: 1px solid rgba(148,163,184,.35);
+  border-radius: 12px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 8px 28px rgba(15,23,42,.14);
+  backdrop-filter: blur(10px);
+  color: #475569;
+  font: 700 10px/1 'Inter', sans-serif;
+}
+
+.cic-scale-control > span {
+  min-width: 34px;
+  text-align: center;
+  color: #0f172a;
+}
+
+.cic-scale-control button {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #334155;
+  cursor: pointer;
+}
+
+.cic-scale-control button:hover:not(:disabled) {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.cic-scale-control button:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+@media (max-width: 767px) {
+  #cic-app-root {
+    width: 100%;
+    min-height: 100vh;
+    zoom: 1;
+  }
+  .cic-scale-control { display: none; }
+}
