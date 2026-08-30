@@ -1,9 +1,47 @@
 import { sql } from '@vercel/postgres'
 import { ensureTreinadoresSchema } from '@/lib/treinadores-schema'
 import { scrapeTransfermarktTrainer } from '@/lib/transfermarkt-trainer'
+import { generateAutomaticCoachReport } from '@/lib/treinador-ai'
 
-export const maxDuration = 45
+export const maxDuration = 60
 export const dynamic = 'force-dynamic'
+
+function hasText(value) { return typeof value === 'string' && value.trim().length > 12 }
+function mergeAutoReport(base, existing={}, auto={}) {
+  const preserveKeys = ['analista','coordenador','clube_solicitante','cargo_avaliado','data_relatorio','jogos_analisados','fontes_coladas']
+  const out = { ...base, ...existing }
+  // O resumo inicial antigo é substituído pelo resumo automático; textos realmente editados são preservados.
+  const looksInitial = /jogo\(s\) registrados no histórico importado/i.test(existing.resumo_executivo || '')
+  if (!hasText(existing.resumo_executivo) || looksInitial) out.resumo_executivo = auto.resumo_executivo || base.resumo_executivo
+  const scalar = ['titulos_principais','filosofia_declarada','fonte_filosofia','coerencia_discurso_dados','referencias_externas','sintese_final']
+  for (const key of scalar) if (!hasText(existing[key]) && hasText(auto[key])) out[key] = auto[key]
+  if ((!existing.pontos_fortes || !existing.pontos_fortes.length) && auto.pontos_fortes?.length) out.pontos_fortes = auto.pontos_fortes
+  if ((!existing.pontos_melhoria || !existing.pontos_melhoria.length) && auto.pontos_melhoria?.length) out.pontos_melhoria = auto.pontos_melhoria
+  if ((!existing.justificativas_recomendacao || !existing.justificativas_recomendacao.length) && auto.justificativas_recomendacao?.length) out.justificativas_recomendacao = auto.justificativas_recomendacao
+  if ((!existing.sistemas_taticos || !existing.sistemas_taticos.length) && auto.sistemas_taticos?.length) out.sistemas_taticos = auto.sistemas_taticos
+  const model = { ...(base.modelo_jogo || {}), ...(existing.modelo_jogo || {}) }
+  for (const [key,value] of Object.entries(auto.modelo_jogo || {})) if (!hasText(model[key]) && hasText(value)) model[key] = value
+  out.modelo_jogo = model
+  if (auto.perfis_jogadores?.length) {
+    const byPos = new Map((existing.perfis_jogadores || base.perfis_jogadores || []).map(x=>[x.posicao,x]))
+    for (const item of auto.perfis_jogadores) {
+      const cur = byPos.get(item.posicao) || {}
+      if (!hasText(cur.perfil) && !hasText(cur.observacao)) byPos.set(item.posicao,{...cur,...item})
+    }
+    out.perfis_jogadores = [...byPos.values()]
+  }
+  if (auto.adaptabilidade?.length) {
+    const byKey = new Map((existing.adaptabilidade || base.adaptabilidade || []).map(x=>[x.criterio,x]))
+    for (const item of auto.adaptabilidade) {
+      const cur = byKey.get(item.criterio) || {}
+      if (!Number(cur.nota) && !hasText(cur.justificativa)) byKey.set(item.criterio,{...cur,...item})
+    }
+    out.adaptabilidade = [...byKey.values()]
+  }
+  if ((!existing.recomendacao || existing.recomendacao === 'Em análise') && auto.recomendacao) out.recomendacao = auto.recomendacao
+  for (const key of preserveKeys) if (existing[key] != null) out[key] = existing[key]
+  return out
+}
 
 function initialReport(data) {
   const m = data.metricas || {}
@@ -52,10 +90,17 @@ export async function POST(request) {
     await ensureTreinadoresSchema()
     const { url } = await request.json()
     const d = await scrapeTransfermarktTrainer(url)
+    const existingRow = await sql`SELECT relatorio_json FROM treinadores WHERE transfermarkt_id = ${d.transfermarkt_id} OR nome = ${d.nome} LIMIT 1`
+    const existingReport = existingRow.rows[0]?.relatorio_json || {}
+    let automatic = {}
+    if (process.env.OPENAI_API_KEY) {
+      try { automatic = await generateAutomaticCoachReport(d) } catch (err) { d.aviso_relatorio = err.message }
+    }
+    const finalReport = mergeAutoReport(initialReport(d), existingReport, automatic)
     const career = JSON.stringify(d.carreira || [])
     const games = JSON.stringify(d.jogos || [])
     const metrics = JSON.stringify(d.metricas || {})
-    const report = JSON.stringify(initialReport(d))
+    const report = JSON.stringify(finalReport)
     const historico = (d.carreira || []).map(x => `${x.clube} (${x.entrada || '—'}–${x.saida || 'atual'})`).join(' · ')
 
     const row = await sql`
@@ -69,7 +114,7 @@ export async function POST(request) {
         ${d.nome}, ${d.data_nascimento}, ${d.idade}, ${d.nacionalidade}, ${historico}, ${d.sistemas_jogo || []},
         ${d.clube_atual}, ${d.cargo_atual}, ${d.cidade_nascimento}, ${d.licenca}, ${d.formacao_preferida}, ${d.media_tempo_cargo},
         ${d.agente}, ${d.foto_url}, ${d.transfermarkt_id}, ${d.transfermarkt_url}, ${d.performance_url},
-        ${career}::jsonb, ${games}::jsonb, ${metrics}::jsonb, ${report}::jsonb, 'Em análise',
+        ${career}::jsonb, ${games}::jsonb, ${metrics}::jsonb, ${report}::jsonb, ${finalReport.recomendacao || 'Em análise'},
         NOW(), NOW()
       )
       ON CONFLICT (nome) DO UPDATE SET
@@ -92,6 +137,8 @@ export async function POST(request) {
         carreira_json = EXCLUDED.carreira_json,
         jogos_json = EXCLUDED.jogos_json,
         metricas_json = EXCLUDED.metricas_json,
+        relatorio_json = EXCLUDED.relatorio_json,
+        recomendacao = EXCLUDED.recomendacao,
         fonte_atualizada_em = NOW(),
         atualizado_em = NOW()
       RETURNING id, nome

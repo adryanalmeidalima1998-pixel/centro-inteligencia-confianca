@@ -133,9 +133,17 @@ export async function exportCoachReportPdf(coach) {
     section('3. HISTÓRICO DE CLUBES E EVOLUÇÃO')
     dataTable(['Clube','Cargo','Entrada','Saída','Jogos','PPJ'], career.map(c=>[c.clube,c.cargo,c.entrada||'—',c.saida||'Atual',c.jogos||0,Number(c.ppj||0).toFixed(2).replace('.',',')]), {fontSize:6.6})
   }
+  if ((metrics.esquemas_base||[]).length) {
+    section('Esquemas-base mais utilizados')
+    dataTable(['Sistema','Jogos','Frequência'], metrics.esquemas_base.slice(0,12).map(f=>[f.formacao,f.jogos,`${Number(f.percentual||0).toFixed(1).replace('.',',')}%`]))
+  }
   if ((metrics.formacoes||[]).length) {
-    section('Sistemas utilizados no histórico detalhado')
-    dataTable(['Sistema','Jogos','Frequência'], metrics.formacoes.slice(0,12).map(f=>[f.formacao,f.jogos,`${f.percentual}%`]))
+    section('Variações táticas registradas')
+    dataTable(['Variação','Jogos','Frequência'], metrics.formacoes.slice(0,14).map(f=>[f.formacao,f.jogos,`${Number(f.percentual||0).toFixed(1).replace('.',',')}%`]))
+  }
+  if ((report.sistemas_taticos||[]).length) {
+    section('Leitura dos sistemas táticos')
+    dataTable(['Sistema','Frequência','Contexto','Evidência'], report.sistemas_taticos.map(x=>[x.sistema,x.frequencia||'—',x.contexto||'—',x.evidencia||'—']),{fontSize:6.4})
   }
   if ((metrics.evolucao_tatica||[]).length) {
     section('Evolução tática por temporada')
