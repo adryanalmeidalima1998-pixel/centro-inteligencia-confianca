@@ -7,6 +7,21 @@ const STATIC_KEYS = new Set([
 
 const IDENTITY_KEYS = new Set(['nome','idade','pais','nacionalidade','posicao','equipa','time','clube'])
 
+const OBJECTIVE_CUMULATIVE_KEYS = new Set([
+  'gols','assistencias','gols_sem_penalti','gols_cabeca',
+  'amarelos','vermelhos','gols_sofridos','clean_sheets','penaltis_marcados',
+])
+
+const DERIVED_RATE_FROM_TOTAL = {
+  gols_90:'gols',
+  assistencias_90:'assistencias',
+  gols_sem_penalti_90:'gols_sem_penalti',
+  gols_cabeca_90:'gols_cabeca',
+  amarelos_90:'amarelos',
+  vermelhos_90:'vermelhos',
+  gols_sofridos_90:'gols_sofridos',
+}
+
 function normalize(value) {
   return String(value || '')
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -165,10 +180,25 @@ export function compareProviderFreshness(sportsbase, wyscout) {
     primary = wm > sm ? 'wyscout' : 'sportsbase'
     staleFactor = gap >= 270 ? .48 : gap >= 180 ? .58 : gap >= 90 ? .70 : .84
     reason = `${Math.round(gap)} minutos de diferença`
-  } else if (su && wu && su !== wu) {
-    primary = wu > su ? 'wyscout' : 'sportsbase'
-    staleFactor = .92
-    reason = 'upload mais recente'
+  } else {
+    const cumulativeSignals = ['gols','assistencias']
+      .map(key => ({ sportsbase:numeric(sportsbase[key]), wyscout:numeric(wyscout[key]) }))
+      .filter(item => item.sportsbase !== null && item.wyscout !== null && item.sportsbase !== item.wyscout)
+    const sportsbaseAhead = cumulativeSignals.filter(item => item.sportsbase > item.wyscout).length
+    const wyscoutAhead = cumulativeSignals.filter(item => item.wyscout > item.sportsbase).length
+    if (wyscoutAhead > 0 && sportsbaseAhead === 0) {
+      primary = 'wyscout'
+      staleFactor = .86
+      reason = 'eventos acumulados mais completos no Wyscout'
+    } else if (sportsbaseAhead > 0 && wyscoutAhead === 0) {
+      primary = 'sportsbase'
+      staleFactor = .86
+      reason = 'eventos acumulados mais completos no Sportsbase'
+    } else if (su && wu && su !== wu) {
+      primary = wu > su ? 'wyscout' : 'sportsbase'
+      staleFactor = .94
+      reason = 'upload mais recente sem diferença de amostra'
+    }
   }
 
   if (!primary) {
@@ -181,6 +211,34 @@ export function compareProviderFreshness(sportsbase, wyscout) {
     sportsbase:primary === 'sportsbase' ? 1 : staleFactor,
     wyscout:primary === 'wyscout' ? 1 : staleFactor,
     reason,
+  }
+}
+
+
+function chooseObjectiveCumulative(key, sportsbase, wyscout, freshness) {
+  const sb = numeric(sportsbase?.[key])
+  const wy = numeric(wyscout?.[key])
+  if (sb !== null && wy !== null) {
+    if (wy > sb) return { value:wyscout[key], source:'wyscout' }
+    if (sb > wy) return { value:sportsbase[key], source:'sportsbase' }
+    const source = freshness.primary === 'wyscout' ? 'wyscout' : 'sportsbase'
+    return { value:source === 'wyscout' ? wyscout[key] : sportsbase[key], source }
+  }
+  if (wy !== null) return { value:wyscout[key], source:'wyscout' }
+  if (sb !== null) return { value:sportsbase[key], source:'sportsbase' }
+  return { value:null, source:null }
+}
+
+function recomputeObjectiveRates(fused, fieldSources) {
+  const minutes = numeric(fused.minutos)
+  if (!(minutes > 0)) return
+  for (const [rateKey,totalKey] of Object.entries(DERIVED_RATE_FROM_TOTAL)) {
+    const total = numeric(fused[totalKey])
+    if (total === null) continue
+    fused[rateKey] = Math.round((total * 90 / minutes) * 10000) / 10000
+    const totalSource = fieldSources[totalKey]
+    const minuteSource = fieldSources.minutos
+    fieldSources[rateKey] = totalSource && minuteSource && totalSource === minuteSource ? totalSource : 'combined'
   }
 }
 
@@ -219,6 +277,7 @@ export function fusePlayerRecords(sportsbase, wyscout, matchQuality = 0) {
     if (key.startsWith('_') && !['_canonical_id','_video_url','_ogol_url'].includes(key)) continue
     let selected
     if (STATIC_KEYS.has(key) || IDENTITY_KEYS.has(key)) selected = preferredStaticValue(key, sportsbase, wyscout, freshness)
+    else if (OBJECTIVE_CUMULATIVE_KEYS.has(key)) selected = chooseObjectiveCumulative(key, sportsbase, wyscout, freshness)
     else if (hasProviderValue(primary?.[key])) selected = { value:primary[key], source:primarySource }
     else if (hasProviderValue(secondary?.[key])) {
       selected = { value:secondary[key], source:secondarySource }
@@ -240,6 +299,8 @@ export function fusePlayerRecords(sportsbase, wyscout, matchQuality = 0) {
     }
   }
 
+  recomputeObjectiveRates(fused, fieldSources)
+
   const sbFields = Object.keys(sportsbase).filter(key=>!key.startsWith('_') && hasProviderValue(sportsbase[key])).length
   const wyFields = Object.keys(wyscout).filter(key=>!key.startsWith('_') && hasProviderValue(wyscout[key])).length
   const fusedFields = Object.keys(fused).filter(key=>!key.startsWith('_') && hasProviderValue(fused[key])).length
@@ -247,7 +308,7 @@ export function fusePlayerRecords(sportsbase, wyscout, matchQuality = 0) {
   return {
     ...fused,
     _fonte:'combined',
-    _modelo:'cic-player-data-fusion-v8',
+    _modelo:'cic-player-data-fusion-v9',
     _source_coverage:2,
     _fresh_source:freshness.primary,
     _freshness_reason:freshness.reason,

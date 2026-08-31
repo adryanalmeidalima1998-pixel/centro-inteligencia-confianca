@@ -10,6 +10,7 @@ import { enrichPlayersWithFoot, matchesPlayerFoot } from '@/data/player-foot'
 import { attachCanonicalPlayers } from '@/app/lib/playerMaster'
 import { evaluateGuaraniMarketContext, getGuaraniLeagueMarketPolicy } from '@/data/guarani-market-context'
 import { ensureLigaJogadoresSchema } from '@/lib/league-dataset-schema'
+import { mergeProviderDatasets } from '@/data/provider-data-fusion'
 
 const SPORTSBASE_DATA_KEYS = [...new Set([
   ...Object.keys(SPORTSBASE_METRIC_INDEX),
@@ -139,8 +140,10 @@ export async function GET(req) {
       const selected = liga ? availableLeagues.filter(item => item === liga) : availableLeagues
       const total = selected.reduce((sum, slugValue) => {
         const sources = byMetaLeague.get(slugValue) || {}
-        const source = sourceFilter ? sources[sourceFilter] : (sources.sportsbase || sources.wyscout)
-        return sum + (parseInt(source?.player_count) || 0)
+        if (sourceFilter) return sum + (parseInt(sources[sourceFilter]?.player_count) || 0)
+        const sportsbaseCount = parseInt(sources.sportsbase?.player_count) || 0
+        const wyscoutCount = parseInt(sources.wyscout?.player_count) || 0
+        return sum + Math.max(sportsbaseCount, wyscoutCount)
       }, 0)
       return NextResponse.json({ jogadores:[], total, page:1, pages:1, ligas:availableLeagues })
     }
@@ -150,13 +153,45 @@ export async function GET(req) {
     let players = []
     for (const leagueSlug of selectedLeagues) {
       const sources = byLeague.get(leagueSlug) || {}
-      const selectedSource = sourceFilter ? sources[sourceFilter] : (sources.sportsbase || sources.wyscout)
+
+      if (sourceFilter) {
+        const selectedSource = sources[sourceFilter]
+        if (!selectedSource) continue
+        const base = selectedSource.fonte === 'sportsbase'
+          ? enrichPlayersWithFoot(selectedSource.data || [], sources.wyscout?.data || [], 'wyscout')
+          : (selectedSource.data || [])
+        players.push(...base.map(player => ({
+          ...player,
+          _liga:leagueSlug,
+          _fonte:selectedSource.fonte,
+          _source_upload_at:selectedSource.upload_at,
+          _upload_at:selectedSource.upload_at,
+        })))
+        continue
+      }
+
+      if (sources.sportsbase && sources.wyscout) {
+        const sportsbasePlayers = enrichPlayersWithFoot(sources.sportsbase.data || [], sources.wyscout.data || [], 'wyscout')
+          .map(player => ({ ...player, _liga:leagueSlug, _fonte:'sportsbase', _source_upload_at:sources.sportsbase.upload_at }))
+        const wyscoutPlayers = (sources.wyscout.data || [])
+          .map(player => ({ ...player, _liga:leagueSlug, _fonte:'wyscout', _source_upload_at:sources.wyscout.upload_at }))
+        const merged = mergeProviderDatasets(sportsbasePlayers, wyscoutPlayers)
+        const uploadAt = [sources.sportsbase.upload_at, sources.wyscout.upload_at].filter(Boolean).sort().slice(-1)[0] || null
+        players.push(...merged.players.map(player => ({ ...player, _liga:leagueSlug, _upload_at:uploadAt })))
+        continue
+      }
+
+      const selectedSource = sources.sportsbase || sources.wyscout
       if (!selectedSource) continue
       const base = selectedSource.fonte === 'sportsbase'
-        ? enrichPlayersWithFoot(selectedSource.data || [], sources.wyscout?.data || [], 'wyscout')
+        ? enrichPlayersWithFoot(selectedSource.data || [], [], 'wyscout')
         : (selectedSource.data || [])
       players.push(...base.map(player => ({
-        ...player, _liga:leagueSlug, _fonte:selectedSource.fonte, _upload_at:selectedSource.upload_at,
+        ...player,
+        _liga:leagueSlug,
+        _fonte:selectedSource.fonte,
+        _source_upload_at:selectedSource.upload_at,
+        _upload_at:selectedSource.upload_at,
       })))
     }
 

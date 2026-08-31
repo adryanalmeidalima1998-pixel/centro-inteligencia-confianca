@@ -4,6 +4,7 @@ import { enrichPlayersWithFoot, matchesPlayerFoot } from '@/data/player-foot'
 import { getSportsbaseDatasetMeta } from '@/data/sportsbase-map'
 import { getWyscoutSerieDMeta } from '@/data/wyscout-seried'
 import { ensureLigaJogadoresSchema } from '@/lib/league-dataset-schema'
+import { mergeProviderDatasets } from '@/data/provider-data-fusion'
 
 export const runtime = 'nodejs'
 
@@ -46,31 +47,53 @@ export async function GET(request, { params }) {
     await ensureTable()
     const [sportsbase, wyscout] = await Promise.all([latest(slug, 'sportsbase'), latest(slug, 'wyscout')])
     const source = requested === 'wyscout'
-      ? 'wyscout'
+      ? (wyscout ? 'wyscout' : null)
       : requested === 'sportsbase'
-        ? 'sportsbase'
-        : sportsbase ? 'sportsbase' : wyscout ? 'wyscout' : null
+        ? (sportsbase ? 'sportsbase' : null)
+        : sportsbase && wyscout
+          ? 'combined'
+          : sportsbase
+            ? 'sportsbase'
+            : wyscout
+              ? 'wyscout'
+              : null
 
     if (!source) {
       return NextResponse.json({
-        jogadores: [], total: 0, total_upload: 0, fonte: null, upload_at: null,
-        available_sources: { sportsbase: false, wyscout: false }, source_uploads: {}, meta: null,
-      })
-    }
-
-    const selected = source === 'sportsbase' ? sportsbase : wyscout
-    if (!selected) {
-      return NextResponse.json({
-        jogadores: [], total: 0, total_upload: 0, fonte: source, upload_at: null,
+        jogadores: [], total: 0, total_upload: 0, fonte: requested === 'auto' ? null : requested, upload_at: null,
         available_sources: { sportsbase: Boolean(sportsbase), wyscout: Boolean(wyscout) },
         source_uploads: { sportsbase: sportsbase?.upload_at || null, wyscout: wyscout?.upload_at || null },
-        meta: source === 'sportsbase' ? getSportsbaseDatasetMeta([]) : getWyscoutSerieDMeta([]),
+        meta: null, fusion_quality: null,
       })
     }
 
-    const all = source === 'sportsbase'
-      ? enrichPlayersWithFoot(selected.data || [], wyscout?.data || [], 'wyscout')
-      : (selected.data || [])
+    let all = []
+    let meta = null
+    let uploadAt = null
+    let fusionQuality = null
+
+    if (source === 'combined') {
+      const sportsbasePlayers = enrichPlayersWithFoot(sportsbase?.data || [], wyscout?.data || [], 'wyscout')
+        .map(player => ({ ...player, _liga:slug, _fonte:'sportsbase', _source_upload_at:sportsbase?.upload_at || null }))
+      const wyscoutPlayers = (wyscout?.data || [])
+        .map(player => ({ ...player, _liga:slug, _fonte:'wyscout', _source_upload_at:wyscout?.upload_at || null }))
+      const merged = mergeProviderDatasets(sportsbasePlayers, wyscoutPlayers)
+      all = merged.players.map(player => ({ ...player, _liga:slug }))
+      fusionQuality = merged.quality
+      uploadAt = [sportsbase?.upload_at, wyscout?.upload_at].filter(Boolean).sort().slice(-1)[0] || null
+      meta = getSportsbaseDatasetMeta(all)
+    } else if (source === 'sportsbase') {
+      all = enrichPlayersWithFoot(sportsbase?.data || [], wyscout?.data || [], 'wyscout')
+        .map(player => ({ ...player, _liga:slug, _fonte:'sportsbase', _source_upload_at:sportsbase?.upload_at || null }))
+      uploadAt = sportsbase?.upload_at || null
+      meta = getSportsbaseDatasetMeta(all)
+    } else {
+      all = (wyscout?.data || [])
+        .map(player => ({ ...player, _liga:slug, _fonte:'wyscout', _source_upload_at:wyscout?.upload_at || null }))
+      uploadAt = wyscout?.upload_at || null
+      meta = getWyscoutSerieDMeta(all)
+    }
+
     let players = [...all]
     if (min > 0) players = players.filter(player => Number(player.minutos || 0) >= min)
     if (foot) players = players.filter(player => matchesPlayerFoot(player, foot))
@@ -81,10 +104,11 @@ export async function GET(request, { params }) {
       total: players.length,
       total_upload: all.length,
       fonte: source,
-      upload_at: selected.upload_at,
+      upload_at: uploadAt,
       available_sources: { sportsbase: Boolean(sportsbase), wyscout: Boolean(wyscout) },
       source_uploads: { sportsbase: sportsbase?.upload_at || null, wyscout: wyscout?.upload_at || null },
-      meta: source === 'sportsbase' ? getSportsbaseDatasetMeta(all) : getWyscoutSerieDMeta(all),
+      meta,
+      fusion_quality: fusionQuality,
     })
   } catch (error) {
     console.error('[league-dataset]', error)

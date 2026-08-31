@@ -637,8 +637,8 @@ export default function SportsbasePlayersTable({ slug, ligaNome = '', source = '
     <div>
       <div style={{ display:'flex', justifyContent:'space-between', gap:12, alignItems:'flex-start', marginBottom:12, flexWrap:'wrap' }}>
         <div>
-          <p style={{ fontSize:11, color:'#64748b' }}>🔄 Upload {uploadAt ? new Date(uploadAt).toLocaleDateString('pt-BR') : '—'} · {players.length} jogadores · maior amostra {meta?.maxMinutes || Math.max(...players.map(player=>player.minutos||0))} min</p>
-          <p style={{ fontSize:10, color:'#94a3b8', marginTop:3 }}>Percentis calculados apenas dentro do contexto posicional e da amostra elegível.</p>
+          <p style={{ fontSize:11, color:'#64748b' }}>{provider==='combined'?'🔀 Automático · Sportsbase + Wyscout':'🔄 Upload'} {uploadAt ? new Date(uploadAt).toLocaleDateString('pt-BR') : '—'} · {players.length} jogadores · maior amostra {meta?.maxMinutes || Math.max(...players.map(player=>player.minutos||0))} min</p>
+          <p style={{ fontSize:10, color:'#94a3b8', marginTop:3 }}>{provider==='combined'?'Cada atleta é cruzado entre as duas fontes; métricas objetivas divergentes usam o valor acumulado mais completo e campos ausentes são complementados pela outra base.':'Percentis calculados apenas dentro do contexto posicional e da amostra elegível.'}</p>
         </div>
         <div style={{ display:'flex', gap:7, flexWrap:'wrap', justifyContent:'flex-end' }}>
           <div style={{ display:'flex', gap:5, background:'#fff', border:'1px solid #dbe7f2', borderRadius:9, padding:3 }}>
@@ -663,7 +663,7 @@ export default function SportsbasePlayersTable({ slug, ligaNome = '', source = '
           <button onClick={()=>changeMetricScope('core')} style={{border:'none',borderRadius:7,padding:'6px 10px',fontSize:9.5,fontWeight:900,cursor:'pointer',background:metricScope==='core'?GFC:'transparent',color:metricScope==='core'?'#fff':'#64748b'}}>12 centrais</button>
           <button onClick={()=>changeMetricScope('all')} style={{border:'none',borderRadius:7,padding:'6px 10px',fontSize:9.5,fontWeight:900,cursor:'pointer',background:metricScope==='all'?GFC:'transparent',color:metricScope==='all'?'#fff':'#64748b'}}>Catálogo completo</button>
         </div>
-        <p style={{fontSize:9.5,color:'#94a3b8'}}>{metricScope==='core'?'Triagem rápida: 12 indicadores centrais':'Todas as métricas Sportsbase organizadas por natureza e unidade'}</p>
+        <p style={{fontSize:9.5,color:'#94a3b8'}}>{metricScope==='core'?'Triagem rápida: 12 indicadores centrais':provider==='combined'?'Catálogo unificado: Sportsbase como estrutura e Wyscout complementando/corrigindo campos equivalentes':'Todas as métricas Sportsbase organizadas por natureza e unidade'}</p>
       </div>
 
       <div style={{ display:'flex', gap:6, marginBottom:13, flexWrap:'wrap' }}>
@@ -745,7 +745,7 @@ export default function SportsbasePlayersTable({ slug, ligaNome = '', source = '
                     <td style={{ padding:'9px 10px' }}><PositionBadge posicao={player.posicao}/></td>
                     <td style={{ padding:'9px 10px', textAlign:'center' }}><FootBadge value={player.pe} showUnknown/></td>
                     <td style={{ padding:'9px 10px', textAlign:'center', fontSize:10.5, color:'#475569' }}>{player.idade || '—'}</td>
-                    <td style={{ padding:'9px 10px', textAlign:'center', fontSize:index===0?15:13, fontWeight:900, color:index===0?metricGroup.cor:'#10233b' }}>{formatSportsbaseMetric(player[metric.key],metric)}</td>
+                    <td style={{ padding:'9px 10px', textAlign:'center' }}><div style={{fontSize:index===0?15:13,fontWeight:900,color:index===0?metricGroup.cor:'#10233b'}}>{formatSportsbaseMetric(player[metric.key],metric)}</div>{provider==='combined'&&player._field_sources?.[metric.key]&&<span title={`Fonte desta métrica: ${player._field_sources[metric.key]}`} style={{display:'inline-block',marginTop:2,fontSize:7.5,fontWeight:900,letterSpacing:.3,color:player._field_sources[metric.key]==='wyscout'?'#1d4ed8':player._field_sources[metric.key]==='sportsbase'?GFC:'#7c3aed',background:player._field_sources[metric.key]==='wyscout'?'#eff6ff':player._field_sources[metric.key]==='sportsbase'?'#ecfdf5':'#f5f3ff',borderRadius:99,padding:'2px 5px'}}>{player._field_sources[metric.key]==='wyscout'?'WY':player._field_sources[metric.key]==='sportsbase'?'SB':'MIX'}</span>}</td>
                     <td style={{ padding:'9px 10px', textAlign:'center' }}><span style={{ display:'inline-block', minWidth:38, borderRadius:99, padding:'3px 6px', background:player._percentile>=80?'#dcfce7':player._percentile<=20?'#fee2e2':'#f1f5f9', color:player._percentile>=80?'#15803d':player._percentile<=20?'#b91c1c':'#475569', fontSize:10, fontWeight:900 }}>P{player._percentile}</span></td>
                     <td style={{ padding:'9px 10px', textAlign:'center', fontSize:10, color:'#64748b' }}>{metric.denominatorKey ? `${player[metric.denominatorKey] || 0}` : <SampleBadge player={player} effectiveMinimum={effectiveMinimum}/>}</td>
                     <td style={{ padding:'9px 10px', textAlign:'center', fontSize:10, color:'#64748b' }}>{Math.round(player.minutos || 0)}</td>
