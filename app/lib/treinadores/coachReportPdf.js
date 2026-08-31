@@ -106,8 +106,10 @@ export async function exportCoachReportPdf(coach) {
     }
   }
 
-  const section = (title, subtitle='') => {
-    ensure(13)
+  const section = (title, subtitle='', firstContentMin=18) => {
+    // Nunca deixa um titulo de secao orfao no rodape.
+    // Se nao houver espaco para o titulo + o primeiro bloco, a secao comeca na pagina seguinte.
+    ensure(13 + firstContentMin)
     doc.setFillColor(...BLUE)
     doc.roundedRect(M, y, 18, 1.5, 0.7, 0.7, 'F')
     y += 6
@@ -202,6 +204,29 @@ export async function exportCoachReportPdf(coach) {
     }
   }
 
+
+  const startPageGroup = () => {
+    // Grupos editoriais comecam no topo de uma nova pagina. Isso evita que um
+    // assunto importante fique repartido entre o rodape e a pagina seguinte.
+    if (y > 33) newPage()
+  }
+
+  const compactLabelValueCard = (x, top, w, label, value, sub='') => {
+    const h = 15.5
+    cardBase(x, top, w, h, { fill: LIGHTER })
+    doc.setFont('helvetica','bold'); doc.setFontSize(5.3); doc.setTextColor(...MUTED)
+    doc.text(String(label).toUpperCase(), x + 2.7, top + 4.2)
+    doc.setFont('helvetica','bold'); doc.setFontSize(9.2); doc.setTextColor(...NAVY)
+    const lines = textLines(safe(value), w - 5.4, 9.2).slice(0, 1)
+    doc.text(lines, x + 2.7, top + 9.2)
+    if (sub) {
+      doc.setFont('helvetica','normal'); doc.setFontSize(5.2); doc.setTextColor(...MUTED)
+      const subLines = textLines(String(sub), w - 5.4, 5.2).slice(0, 1)
+      doc.text(subLines, x + 2.7, top + 13.3)
+    }
+    return h
+  }
+
   const drawStar = (cx, cy, r, filled) => {
     const pts=[]
     for(let i=0;i<10;i++){
@@ -275,15 +300,16 @@ export async function exportCoachReportPdf(coach) {
   }
   y+=3
 
-  section('IDENTIFICAÇÃO DO RELATÓRIO','Dados administrativos e de referência')
+  section('IDENTIFICAÇÃO DO RELATÓRIO','Dados administrativos e de referência',17)
+  // Identificacao em 3 colunas para manter toda a pagina executiva coesa.
   rowCards([
-    {title:'Scouting/Dados',body:report.analista||'Adryan Almeida',accent:BLUE,fill:LIGHTER,size:8.4},
-    {title:'Coordenação de Mercado',body:clean(report.coordenador)||'Anthony Emanoel',accent:BLUE,fill:LIGHTER,size:8.4},
-    {title:'Data do relatório',body:report.data_relatorio||new Date().toLocaleDateString('pt-BR'),accent:BLUE,fill:LIGHTER,size:8.4},
-    {title:'Clube solicitante',body:report.clube_solicitante||'Associação Desportiva Confiança - Aracaju / SE',accent:BLUE,fill:LIGHTER,size:8.2},
-    {title:'Cargo avaliado',body:report.cargo_avaliado||'Treinador Principal',accent:BLUE,fill:LIGHTER,size:8.4},
-    {title:'Fonte base',body:coach.transfermarkt_url?'Transfermarkt + Wyscout + observacao interna':'Base interna',accent:BLUE,fill:LIGHTER,size:8.2}
-  ],2,3)
+    {title:'Scouting/Dados',body:report.analista||'Adryan Almeida',accent:BLUE,fill:LIGHTER,size:7.8},
+    {title:'Coordenação de Mercado',body:clean(report.coordenador)||'Anthony Emanoel',accent:BLUE,fill:LIGHTER,size:7.8},
+    {title:'Data do relatório',body:report.data_relatorio||new Date().toLocaleDateString('pt-BR'),accent:BLUE,fill:LIGHTER,size:7.8},
+    {title:'Clube solicitante',body:report.clube_solicitante||'Associação Desportiva Confiança - Aracaju / SE',accent:BLUE,fill:LIGHTER,size:7.1},
+    {title:'Cargo avaliado',body:report.cargo_avaliado||'Treinador Principal',accent:BLUE,fill:LIGHTER,size:7.8},
+    {title:'Fonte base',body:coach.transfermarkt_url?'Transfermarkt + Wyscout + observacao interna':'Base interna',accent:BLUE,fill:LIGHTER,size:7.1}
+  ],3,3)
 
   if(Number(objective.nota||0)>0 || (objective.acessos_confirmados||[]).length){
     section('ADERÊNCIA AO OBJETIVO INSTITUCIONAL','Prioridade: retorno do Confiança à Série C')
@@ -307,7 +333,8 @@ export async function exportCoachReportPdf(coach) {
     }
   }
 
-  section('RESUMO EXECUTIVO','Síntese para abertura do relatório')
+  startPageGroup()
+  section('RESUMO EXECUTIVO','Síntese para abertura do relatório',20)
   const summary=report.resumo_executivo||coach.estilo_jogo
   if(summary){const h=textCardHeight('',summary,IW,8.6);ensure(h+4);textCard(M,y,IW,'',summary,{accent:BLUE,fill:LIGHTER,size:8.6});y+=h+5}
 
@@ -328,6 +355,7 @@ export async function exportCoachReportPdf(coach) {
     }),2,3)
   }
 
+  startPageGroup()
   if(wyscout?.resumo){
     section('LEITURA DOS JOGOS - WYSCOUT',`${wyscout.resumo.games||0} jogos importados`)
     const wk=[
@@ -338,17 +366,19 @@ export async function exportCoachReportPdf(coach) {
       ['Entradas área',Number(wyscout.resumo.boxEntries||0).toFixed(1).replace('.',','),'Média'],
       ['Remates',`${Number(wyscout.resumo.shots||0).toFixed(1).replace('.',',')}`,'Média por jogo']
     ]
-    const wkw=(IW-6)/3
-    for(let r=0;r<2;r++){
-      ensure(21)
-      for(let c=0;c<3;c++){const item=wk[r*3+c];labelValueCard(M+c*(wkw+3),y,wkw,item[0],item[1],item[2])}
-      y+=21
+    // Seis indicadores em uma unica faixa: evita que a leitura Wyscout seja repartida em duas paginas.
+    const wGap=2
+    const wkw=(IW-wGap*5)/6
+    ensure(18)
+    for(let c=0;c<6;c++){
+      const item=wk[c]
+      compactLabelValueCard(M+c*(wkw+wGap),y,wkw,item[0],item[1],item[2])
     }
-    y+=3
+    y+=18.5
     if(wyscout.ai?.sintese){const h=textCardHeight('Leitura consolidada',wyscout.ai.sintese,IW,8.1);ensure(h+4);textCard(M,y,IW,'Leitura consolidada',wyscout.ai.sintese,{accent:BLUE,fill:LIGHTER,size:8.1});y+=h+4}
   }
 
-  section('2. PERFIL DO TREINADOR','Dados públicos consolidados')
+  section('2. PERFIL DO TREINADOR','Dados públicos consolidados',17)
   rowCards([
     {title:'Nome completo',body:coach.nome,fill:LIGHTER},
     {title:'Nacionalidade',body:coach.nacionalidade,fill:LIGHTER},
@@ -360,23 +390,25 @@ export async function exportCoachReportPdf(coach) {
     {title:'Sistema preferencial',body:coach.formacao_preferida,fill:LIGHTER},
     {title:'Títulos principais',body:report.titulos_principais,fill:LIGHTER,size:7.6},
     {title:'Agente',body:coach.agente,fill:LIGHTER}
-  ].filter(x=>clean(x.body)),2,3,{accent:BLUE,size:8.2})
+  ].filter(x=>clean(x.body)),3,3,{accent:BLUE,size:7.7})
 
   if((metrics.maiores_vitorias||[]).length){
     section('MAIORES VITÓRIAS','Resultados de maior margem registrados')
-    rowCards((metrics.maiores_vitorias||[]).slice(0,6).map(g=>({title:`${g.mandante} ${g.placar} ${g.visitante}`,body:`${g.competicao} - ${g.data}`,accent:GREEN,fill:GREEN_BG,size:7.4})),2,3)
+    rowCards((metrics.maiores_vitorias||[]).slice(0,6).map(g=>({title:`${g.mandante} ${g.placar} ${g.visitante}`,body:`${g.competicao} - ${g.data}`,accent:GREEN,fill:GREEN_BG,size:7.1})),3,3)
   }
 
   if(career.length){
+    startPageGroup()
     section('3. HISTÓRICO DE CLUBES - ÚLTIMOS 10 ANOS','Passagens profissionais do período recente')
     rowCards(career.map(c=>({
       title:`${c.clube} - ${c.cargo||'Treinador'}`,
       body:`${c.entrada||'-'} a ${c.saida||'Atual'} | ${Number(c.jogos||0)} jogos | ${Number(c.ppj||0).toFixed(2).replace('.',',')} PPJ`,
       accent:BLUE,fill:WHITE,size:7.5
-    })),2,3)
+    })),3,3)
   }
 
   if((metrics.esquemas_base||[]).length){
+    startPageGroup()
     section('ESQUEMAS-BASE MAIS UTILIZADOS','Distribuição das formações registradas')
     const items=(metrics.esquemas_base||[]).slice(0,10)
     const max=Math.max(1,...items.map(x=>Number(x.jogos||0)))
@@ -399,6 +431,7 @@ export async function exportCoachReportPdf(coach) {
   }
 
   if((report.sistemas_taticos||[]).length){
+    startPageGroup()
     section('LEITURA DOS SISTEMAS TÁTICOS','Interpretação qualitativa das estruturas mais recorrentes')
     rowCards((report.sistemas_taticos||[]).map(x=>({
       title:x.sistema,
@@ -420,6 +453,7 @@ export async function exportCoachReportPdf(coach) {
   }
 
   if((report.pontos_fortes||[]).length){
+    startPageGroup()
     section('5. PONTOS FORTES','Síntese da avaliação do scouting')
     rowCards((report.pontos_fortes||[]).map(x=>({title:x.titulo,body:x.evidencia,accent:GREEN,fill:GREEN_BG,size:7.7})),2,3)
   }
@@ -434,6 +468,7 @@ export async function exportCoachReportPdf(coach) {
   }
 
   if((report.adaptabilidade||[]).length){
+    startPageGroup()
     section('7. ADAPTABILIDADE DO TREINADOR','Critérios complementares da decisão')
     for(const item of report.adaptabilidade){
       const h=Math.max(24,textCardHeight(item.criterio,item.justificativa,IW,7.8,5))
@@ -457,6 +492,7 @@ export async function exportCoachReportPdf(coach) {
     rowCards(refs,1,3)
   }
 
+  startPageGroup()
   section('9. CONSIDERAÇÕES FINAIS E RECOMENDAÇÃO','Encaminhamento para decisão')
   ensure(18)
   doc.setFillColor(...recColor);doc.roundedRect(M,y,IW,13,4,4,'F')
