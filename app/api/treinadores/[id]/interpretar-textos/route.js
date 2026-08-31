@@ -30,7 +30,7 @@ function mergeReport(current, analysis, sourceMeta) {
     ...current,
     ...analysis,
     analista: current.analista || 'Adryan Almeida',
-    coordenador: current.coordenador || '',
+    coordenador: current.coordenador || 'Anthony Emanoel',
     clube_solicitante: current.clube_solicitante || 'Associação Desportiva Confiança — Aracaju / SE',
     cargo_avaliado: current.cargo_avaliado || 'Treinador Principal',
     data_relatorio: current.data_relatorio || new Date().toLocaleDateString('pt-BR'),

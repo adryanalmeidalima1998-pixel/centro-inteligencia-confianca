@@ -54,6 +54,8 @@ export async function exportCoachReportPdf(coach) {
   const pageBottom = H - 18
 
   const report = coach.relatorio_json || {}
+  const objective = report.aderencia_objetivo || {}
+  const wyscout = report.wyscout_analise || null
   const metrics = coach.metricas_json || {}
   const career = coach.carreira_json || []
   const games = coach.jogos_json || []
@@ -278,10 +280,11 @@ export async function exportCoachReportPdf(coach) {
     ['PPJ carreira', Number(metrics.ppj_carreira || metrics.ppj_detalhado || 0).toFixed(2).replace('.', ','), 'Pontos por jogo'],
     ['Aproveitamento', pct(metrics.aproveitamento), `${metrics.vitorias || 0}V · ${metrics.empates || 0}E · ${metrics.derrotas || 0}D`],
     ['Gols', `${metrics.gols_pro || 0}:${metrics.gols_contra || 0}`, 'Pró x Contra'],
+    ['Fit Série C', Number(objective.nota || 0) > 0 ? `${objective.nota}/100` : '—', objective.nivel || 'Em análise'],
     ['Idade', coach.idade ? `${coach.idade}` : '—', coach.data_nascimento || '—']
   ]
   const gap = 2
-  const sw = (W - (M * 2) - (gap * 4)) / 5
+  const sw = (W - (M * 2) - (gap * 5)) / 6
   kpis.forEach(([label, value, sub], i) => statCard(M + (i * (sw + gap)), y, sw, 20, label, value, sub))
   y += 27
 
@@ -295,6 +298,17 @@ export async function exportCoachReportPdf(coach) {
     ['Formação preferida', coach.formacao_preferida || '—'],
     ['Fonte base', coach.transfermarkt_url ? 'Transfermarkt + observação interna' : 'Base interna']
   ])
+
+  if (Number(objective.nota || 0) > 0 || (objective.acessos_confirmados || []).length) {
+    section('ADERÊNCIA AO OBJETIVO INSTITUCIONAL', 'Prioridade: retorno do Confiança à Série C')
+    dataTable(['Nota','Nível','Objetivo'], [[`${objective.nota || 0}/100`, objective.nivel || 'Em análise', objective.objetivo || 'Retorno à Série C']], { fontSize:7.4, headFillColor:BLUE })
+    if ((objective.acessos_confirmados || []).length) {
+      dataTable(['Clube','Temporada','Movimento','Conquista / evidência'], (objective.acessos_confirmados || []).map(x=>[
+        x.clube, x.temporada, `${x.origem || '—'} → ${x.destino || '—'}`, [x.conquista,x.evidencia].filter(Boolean).join(' · ')
+      ]), { fontSize:6.6, headFillColor:GREEN })
+    }
+    if (objective.experiencia_serie_d) paragraph(objective.experiencia_serie_d, NAVY, 8)
+  }
 
   section('RESUMO EXECUTIVO', 'Síntese para abertura do relatório')
   paragraph(report.resumo_executivo || coach.estilo_jogo || 'Análise executiva pendente de preenchimento pelo departamento de scouting.', NAVY, 8.6)
@@ -314,6 +328,30 @@ export async function exportCoachReportPdf(coach) {
       ]),
       { fontSize: 6.8 }
     )
+  }
+
+  if (wyscout?.resumo) {
+    section('ANÁLISE QUANTITATIVA · WYSCOUT TEAM STATS', `${wyscout.resumo.games || 0} jogos importados`)
+    dataTable(['Jogos','V-E-D','xG/xGA','Posse','PPDA','Entradas área','Remates'], [[
+      wyscout.resumo.games || 0,
+      `${wyscout.resumo.wins || 0}-${wyscout.resumo.draws || 0}-${wyscout.resumo.losses || 0}`,
+      `${Number(wyscout.resumo.xg || 0).toFixed(2).replace('.',',')} / ${Number(wyscout.resumo.xga || 0).toFixed(2).replace('.',',')}`,
+      `${Number(wyscout.resumo.possession || 0).toFixed(1).replace('.',',')}%`,
+      Number(wyscout.resumo.ppda || 0).toFixed(2).replace('.',','),
+      Number(wyscout.resumo.boxEntries || 0).toFixed(1).replace('.',','),
+      `${Number(wyscout.resumo.shots || 0).toFixed(1).replace('.',',')} (${Number(wyscout.resumo.shotsOnTarget || 0).toFixed(1).replace('.',',')} alvo)`
+    ]], { fontSize:6.8, headFillColor:BLUE })
+    if (wyscout.ai?.sintese) paragraph(wyscout.ai.sintese, NAVY, 8.1)
+    ;(wyscout.insights || []).slice(0,6).forEach((insight,i)=>{
+      ensure(8); doc.setFont('helvetica','bold'); doc.setFontSize(7.8); doc.setTextColor(...BLUE); doc.text(`${i+1}.`,M,y); doc.setFont('helvetica','normal'); doc.setTextColor(...NAVY); const lines=doc.splitTextToSize(String(insight),W-(M*2)-6); doc.text(lines,M+5,y); y+=Math.max(4,lines.length*3.6)+1
+    })
+    const wsGames=(wyscout.jogos || []).filter(x=>x.game_id).slice(0,12)
+    if (wsGames.length) {
+      dataTable(['Data','Jogo','Sistema','xG','Posse','PPDA'], wsGames.map(g=>[
+        g.data,g.jogo,g.sistema || '—',`${Number(g.metricas?.xg || 0).toFixed(2).replace('.',',')} / ${Number(g.adversario_metricas?.xg || 0).toFixed(2).replace('.',',')}`,
+        `${Number(g.metricas?.possession || 0).toFixed(1).replace('.',',')}%`,Number(g.metricas?.ppda || 0).toFixed(2).replace('.',',')
+      ]), { fontSize:6.3, headFillColor:NAVY })
+    }
   }
 
   section('2. PERFIL DO TREINADOR', 'Dados públicos consolidados')
