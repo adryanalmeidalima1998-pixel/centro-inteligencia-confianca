@@ -1,32 +1,28 @@
 import { sql } from '@vercel/postgres'
 import { ensureTreinadoresSchema, safeJson } from '@/lib/treinadores-schema'
 import { analyzeCoachSourceTexts } from '@/lib/treinador-ai'
+import { sanitizeCoachReport } from '@/lib/treinador-report-sanitizer'
 
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
 
-const DEFAULT_POSITIONS = ['Goleiro','Zagueiro','Lateral / Ala','Volante','Meia','Ponta','Centroavante']
-const DEFAULT_ADAPT = ['Flexibilidade tática','Gestão de grupo','Trabalho com jovens','Reação a adversidades','Uso de dados/tecnologia','Adaptação ao elenco']
-
 function mergeProfiles(current=[], incoming=[]) {
   const map = new Map()
-  for (const pos of DEFAULT_POSITIONS) map.set(pos, { posicao:pos, perfil:'', observacao:'' })
-  for (const item of current || []) if (item?.posicao) map.set(item.posicao, { ...map.get(item.posicao), ...item })
-  for (const item of incoming || []) if (item?.posicao) map.set(item.posicao, { ...map.get(item.posicao), ...item })
+  for (const item of current || []) if (item?.posicao && item?.perfil) map.set(String(item.posicao).toLowerCase(), item)
+  for (const item of incoming || []) if (item?.posicao && item?.perfil) map.set(String(item.posicao).toLowerCase(), item)
   return [...map.values()]
 }
 
 function mergeAdapt(current=[], incoming=[]) {
   const map = new Map()
-  for (const criterio of DEFAULT_ADAPT) map.set(criterio, { criterio, nota:0, justificativa:'' })
-  for (const item of current || []) if (item?.criterio) map.set(item.criterio, { ...map.get(item.criterio), ...item })
-  for (const item of incoming || []) if (item?.criterio) map.set(item.criterio, { ...map.get(item.criterio), ...item })
+  for (const item of current || []) if (item?.criterio && Number(item?.nota)>0 && item?.justificativa) map.set(String(item.criterio).toLowerCase(), item)
+  for (const item of incoming || []) if (item?.criterio && Number(item?.nota)>0 && item?.justificativa) map.set(String(item.criterio).toLowerCase(), item)
   return [...map.values()]
 }
 
 function mergeReport(current, analysis, sourceMeta) {
   const history = Array.isArray(current.fontes_coladas) ? current.fontes_coladas : []
-  return {
+  return sanitizeCoachReport({
     ...current,
     ...analysis,
     analista: current.analista || 'Adryan Almeida',
@@ -39,7 +35,7 @@ function mergeReport(current, analysis, sourceMeta) {
     perfis_jogadores: mergeProfiles(current.perfis_jogadores, analysis.perfis_jogadores),
     adaptabilidade: mergeAdapt(current.adaptabilidade, analysis.adaptabilidade),
     fontes_coladas: [...history, sourceMeta].slice(-30)
-  }
+  })
 }
 
 export async function POST(request, { params }) {

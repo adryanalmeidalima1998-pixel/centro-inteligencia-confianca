@@ -2,11 +2,10 @@ import { sql } from '@vercel/postgres'
 import { ensureTreinadoresSchema, safeJson } from '@/lib/treinadores-schema'
 import { parseWyscoutTeamStats, matchWyscoutToCoachGames } from '@/lib/wyscout-trainer-teamstats'
 import { analyzeCoachWyscoutData } from '@/lib/treinador-ai'
+import { sanitizeCoachReport } from '@/lib/treinador-report-sanitizer'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
-
-const DEFAULT_ADAPT = ['Flexibilidade tática','Gestão de grupo','Trabalho com jovens','Reação a adversidades','Uso de dados/tecnologia','Adaptação ao elenco']
 
 function mergeNamed(current=[], incoming=[], key='titulo', limit=12) {
   const map=new Map()
@@ -16,9 +15,9 @@ function mergeNamed(current=[], incoming=[], key='titulo', limit=12) {
 }
 
 function mergeAdapt(current=[], incoming=[]) {
-  const map=new Map(DEFAULT_ADAPT.map(criterio=>[criterio,{criterio,nota:0,justificativa:''}]))
-  for (const item of current || []) if (item?.criterio) map.set(item.criterio,{...map.get(item.criterio),...item})
-  for (const item of incoming || []) if (item?.criterio) map.set(item.criterio,{...map.get(item.criterio),...item})
+  const map=new Map()
+  for (const item of current || []) if (item?.criterio && Number(item?.nota)>0 && item?.justificativa) map.set(String(item.criterio).toLowerCase(),item)
+  for (const item of incoming || []) if (item?.criterio && Number(item?.nota)>0 && item?.justificativa) map.set(String(item.criterio).toLowerCase(),item)
   return [...map.values()]
 }
 
@@ -37,7 +36,7 @@ function withImportedGames(current=[], imported=[]) {
 
 function mergeReport(current, analysis, wyscoutMeta) {
   const ai=analysis || {}
-  return {
+  return sanitizeCoachReport({
     ...current,
     resumo_executivo: ai.resumo_executivo || current.resumo_executivo || '',
     modelo_jogo:{...(current.modelo_jogo||{}),...(ai.modelo_jogo||{})},
@@ -52,7 +51,7 @@ function mergeReport(current, analysis, wyscoutMeta) {
     sintese_final:ai.sintese_final || current.sintese_final || '',
     jogos_analisados:withImportedGames(current.jogos_analisados,wyscoutMeta.jogos),
     wyscout_analise:wyscoutMeta
-  }
+  })
 }
 
 function safeFilename(name='wyscout-team-stats.xlsx') {

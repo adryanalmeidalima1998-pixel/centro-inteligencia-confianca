@@ -1,5 +1,6 @@
 import { sql } from '@vercel/postgres'
 import { ensureTreinadoresSchema } from '@/lib/treinadores-schema'
+import { sanitizeCoachReport } from '@/lib/treinador-report-sanitizer'
 
 export async function GET(request) {
   try {
@@ -27,7 +28,17 @@ export async function GET(request) {
       FROM treinadores
       ORDER BY atualizado_em DESC NULLS LAST, uploaded_at DESC
     `
-    return Response.json({ coaches: rows.rows, total: rows.rows.length })
+    const coaches = rows.rows.map(coach => {
+      const report = sanitizeCoachReport(coach.relatorio_json || {})
+      return {
+        ...coach,
+        relatorio_json: report,
+        estilo_jogo: report.resumo_executivo || coach.estilo_jogo,
+        forcas: (report.pontos_fortes || []).map(x=>x.titulo).filter(Boolean).join(' · ') || null,
+        fraquezas: (report.pontos_melhoria || []).map(x=>x.titulo).filter(Boolean).join(' · ') || null
+      }
+    })
+    return Response.json({ coaches, total: coaches.length })
   } catch (err) {
     return Response.json({ coaches: [], total: 0, error: err.message }, { status: 500 })
   }
@@ -41,7 +52,8 @@ export async function POST(request) {
     if (contentType.includes('application/json')) {
       const d = await request.json()
       if (!d?.nome) return Response.json({ error: 'Nome obrigatório.' }, { status: 400 })
-      const report = JSON.stringify(d.relatorio_json || {})
+      const sanitizedReport = sanitizeCoachReport(d.relatorio_json || {})
+      const report = JSON.stringify(sanitizedReport)
       const metrics = JSON.stringify(d.metricas_json || {})
       const career = JSON.stringify(d.carreira_json || [])
       const games = JSON.stringify(d.jogos_json || [])

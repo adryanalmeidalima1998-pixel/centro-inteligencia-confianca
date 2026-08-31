@@ -1,3 +1,5 @@
+import { sanitizeCoachReport } from '@/lib/treinador-report-sanitizer'
+
 const BLUE = [10, 102, 183]
 const NAVY = [6, 23, 46]
 const LIGHT = [239, 246, 252]
@@ -53,7 +55,7 @@ export async function exportCoachReportPdf(coach) {
   const M = 14
   const pageBottom = H - 18
 
-  const report = coach.relatorio_json || {}
+  const report = sanitizeCoachReport(coach.relatorio_json || {})
   const objective = report.aderencia_objetivo || {}
   const wyscout = report.wyscout_analise || null
   const metrics = coach.metricas_json || {}
