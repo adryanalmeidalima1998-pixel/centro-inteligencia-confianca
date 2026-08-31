@@ -494,10 +494,10 @@ export async function GET(request, { params }) {
     }
 
     const sportsbaseRaw = sportsbase
-      ? enrichPlayersWithFoot(sportsbase.data || [], wyscout?.data || [], 'wyscout').map(player => ({ ...player, _liga:slug, _fonte:'sportsbase' }))
+      ? enrichPlayersWithFoot(sportsbase.data || [], wyscout?.data || [], 'wyscout').map(player => ({ ...player, _liga:slug, _fonte:'sportsbase', _source_upload_at:sportsbase.upload_at }))
       : []
     const wyscoutRaw = wyscout
-      ? (wyscout.data || []).map(player => ({ ...player, _liga:slug, _fonte:'wyscout' }))
+      ? (wyscout.data || []).map(player => ({ ...player, _liga:slug, _fonte:'wyscout', _source_upload_at:wyscout.upload_at }))
       : []
 
     const [sportsbasePlayers, wyscoutPlayers] = await Promise.all([
@@ -528,7 +528,7 @@ export async function GET(request, { params }) {
       total_players:source === 'combined' ? new Set(players.map(player=>buildPlayerIdentity(player).identityKey || playerKey(player))).size : players.length,
       upload_at:source === 'combined' ? [sportsbase?.upload_at, wyscout?.upload_at].filter(Boolean).sort().slice(-1)[0] || null : (source === 'sportsbase' ? sportsbase : wyscout)?.upload_at || null,
       max_highlights:MAX_HIGHLIGHTS,
-      methodology:`Até ${MAX_HIGHLIGHTS} destaques por função. Cada fonte calcula percentis apenas contra atletas da mesma função, com métricas próprias, mínimos de amostra/tentativas, regressão de percentis extremos em amostras pequenas e cobertura estatística. ${source === 'combined' ? 'Como Sportsbase e Wyscout estão disponíveis, o modo Automático integra os dois scores por atleta ponderando cobertura e robustez; atletas presentes somente em uma fonte continuam elegíveis e não recebem penalidade pela ausência na outra.' : `Fonte ativa: ${source === 'wyscout' ? 'Wyscout' : 'Sportsbase'}.`} Primeiro e segundo volante, meia ofensivo, extremos e centroavantes têm modelos separados. Goleiro Sportsbase é comparado somente com outros goleiros pelo Índice do provedor porque esse export não contém defesas/xGA; no Wyscout entram métricas específicas da posição. Zagueiros nunca são excluídos por ausência de pé dominante.`,
+      methodology:`Até ${MAX_HIGHLIGHTS} destaques por função. Cada fonte calcula percentis apenas contra atletas da mesma função, com métricas próprias, mínimos de amostra/tentativas, regressão de percentis extremos em amostras pequenas e cobertura estatística. ${source === 'combined' ? 'Como Sportsbase e Wyscout estão disponíveis, o modo Automático integra os dois scores por atleta ponderando cobertura, robustez e atualização individual por jogos/minutos. Se uma fonte estiver defasada para aquele atleta, ela perde peso; se um campo/métrica estiver ausente, não é tratado como zero. Atletas presentes somente em uma fonte continuam elegíveis e não recebem penalidade pela ausência na outra.' : `Fonte ativa: ${source === 'wyscout' ? 'Wyscout' : 'Sportsbase'}.`} Primeiro e segundo volante, meia ofensivo, extremos e centroavantes têm modelos separados. Goleiro Sportsbase é comparado somente com outros goleiros pelo Índice do provedor porque esse export não contém defesas/xGA; no Wyscout entram métricas específicas da posição. Zagueiros nunca são excluídos por ausência de pé dominante.`,
     })
   } catch (error) {
     console.error('[league-highlights-get]', error)

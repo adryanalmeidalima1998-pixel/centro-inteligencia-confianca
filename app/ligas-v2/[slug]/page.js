@@ -227,7 +227,7 @@ function PitchPlayer({ jogador, x, y, selected, onClick, emptyLabel }) {
 function CardDetalhe({ jogador, onClose }) {
   if (!jogador) return null
   const cor = GRUPO_COR[jogador._grupo] || GFC
-  const wyscout = jogador._fonte === 'wyscout'
+  const wyscout = jogador._fonte === 'wyscout' || (jogador._fonte === 'combined' && jogador._fresh_source === 'wyscout')
   const pct = value => Number.isFinite(Number(value)) ? `${Number(value).toFixed(1)}%` : '—'
   const metricas = wyscout
     ? jogador._grupo==='GK'

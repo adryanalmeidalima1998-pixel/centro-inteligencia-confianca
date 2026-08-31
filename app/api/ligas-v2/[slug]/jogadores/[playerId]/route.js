@@ -9,6 +9,7 @@ import { decodePlayerKey } from '@/data/player-route'
 import { getLeague } from '@/data/leagues'
 import { enrichPlayersWithFoot } from '@/data/player-foot'
 import { ensureLigaJogadoresSchema } from '@/lib/league-dataset-schema'
+import { compareProviderFreshness, fusePlayerRecords } from '@/data/provider-data-fusion'
 import {
   attachCanonicalPlayers,
   ensurePlayerMaster,
@@ -42,19 +43,42 @@ async function getLatestLeague(slug) {
   return { sportsbase, wyscout }
 }
 
+function findSourcePlayer(players = [], key = {}) {
+  const exact = players.find(item => String(item.nome || '').trim() === key.nome && String(item.equipa || '').trim() === key.equipa)
+  if (exact) return exact
+  // Se uma das bases já atualizou o clube e a outra ainda não, o nome pode existir
+  // com outra equipe. Só usamos o fallback quando o nome é único para evitar homônimos.
+  const sameName = players.filter(item => String(item.nome || '').trim() === key.nome)
+  return sameName.length === 1 ? sameName[0] : null
+}
+
 function findPlayerContext(datasets, playerId) {
   const key = decodePlayerKey(playerId)
-  const matchesKey = item => String(item.nome || '').trim() === key.nome && String(item.equipa || '').trim() === key.equipa
   const sportsbasePlayers = datasets.sportsbase
     ? enrichPlayersWithFoot(datasets.sportsbase.players, datasets.wyscout?.players || [], 'wyscout')
+      .map(player=>({ ...player, _source_upload_at:datasets.sportsbase?.uploadedAt }))
     : []
-  const sportsbasePlayer = sportsbasePlayers.find(matchesKey)
-  const wyscoutPlayer = datasets.wyscout?.players.find(matchesKey)
-  const source = sportsbasePlayer ? 'sportsbase' : wyscoutPlayer ? 'wyscout' : null
-  const player = sportsbasePlayer || wyscoutPlayer || null
-  const datasetPlayers = source === 'sportsbase' ? sportsbasePlayers : (datasets.wyscout?.players || [])
+  const wyscoutPlayers = datasets.wyscout
+    ? (datasets.wyscout.players || []).map(player=>({ ...player, _source_upload_at:datasets.wyscout?.uploadedAt }))
+    : []
+  const sportsbasePlayer = findSourcePlayer(sportsbasePlayers, key)
+  const wyscoutPlayer = findSourcePlayer(wyscoutPlayers, key)
+  if (!sportsbasePlayer && !wyscoutPlayer) return { player:null, source:null, datasetPlayers:[], uploadedAt:null }
+
+  if (sportsbasePlayer && wyscoutPlayer) {
+    const freshness = compareProviderFreshness(sportsbasePlayer, wyscoutPlayer)
+    const source = freshness.primary
+    const datasetPlayers = source === 'sportsbase' ? sportsbasePlayers : wyscoutPlayers
+    const uploadedAt = source === 'sportsbase' ? datasets.sportsbase?.uploadedAt : datasets.wyscout?.uploadedAt
+    const player = fusePlayerRecords(sportsbasePlayer, wyscoutPlayer, 1)
+    return { player, source, datasetPlayers, uploadedAt, sourcePlayer:source === 'sportsbase' ? sportsbasePlayer : wyscoutPlayer }
+  }
+
+  const source = sportsbasePlayer ? 'sportsbase' : 'wyscout'
+  const player = sportsbasePlayer || wyscoutPlayer
+  const datasetPlayers = source === 'sportsbase' ? sportsbasePlayers : wyscoutPlayers
   const uploadedAt = source === 'sportsbase' ? datasets.sportsbase?.uploadedAt : datasets.wyscout?.uploadedAt
-  return { player, source, datasetPlayers, uploadedAt }
+  return { player, source, datasetPlayers, uploadedAt, sourcePlayer:player }
 }
 
 async function ensureCanonicalPlayer({ player, source, slug, uploadedAt }) {
@@ -94,14 +118,16 @@ export async function GET(_request, { params }) {
     const context = findPlayerContext(datasets, playerId)
     if (!context.player) return NextResponse.json({ error: 'Jogador não encontrado no último upload da competição.' }, { status: 404 })
 
-    const player = await ensureCanonicalPlayer({ ...context, slug })
+    const canonicalSourcePlayer = await ensureCanonicalPlayer({ player:context.sourcePlayer || context.player, source:context.source, uploadedAt:context.uploadedAt, slug })
+    const [player] = await attachCanonicalPlayers([{ ...context.player, _liga:slug, _fonte:context.player?._fonte || context.source }])
+    const resolvedPlayer = player || { ...context.player, _canonical_id:canonicalSourcePlayer?._canonical_id || null }
     const guarani = await getGuaraniSportsbase()
     const analysis = context.source === 'wyscout'
-      ? buildWyscoutProfilePayload(player, context.datasetPlayers, guarani.players || [], guarani.model || guarani.summary?.model)
-      : buildSportsbaseProfilePayload(player, context.datasetPlayers, guarani.players || [], guarani.model || guarani.summary?.model)
+      ? buildWyscoutProfilePayload(resolvedPlayer, context.datasetPlayers, guarani.players || [], guarani.model || guarani.summary?.model)
+      : buildSportsbaseProfilePayload(resolvedPlayer, context.datasetPlayers, guarani.players || [], guarani.model || guarani.summary?.model)
 
     return NextResponse.json({
-      player,
+      player:resolvedPlayer,
       league: getLeague(slug) || { slug, nome: slug },
       uploadedAt:context.uploadedAt,
       guarani: {
@@ -110,24 +136,24 @@ export async function GET(_request, { params }) {
         games: (guarani.games || []).length,
       },
       levels: {
-        recommended: { score:player._nivel_recomendado_score, label:player._nivel_recomendado },
-        real: { score:player._nivel_real_score, label:player._nivel_real || 'Não validada' },
-        current: { score:player._nivel_atual_score, label:player._nivel_atual, source:player._nivel_fonte },
-        potentialRecommended: { score:player._nivel_potencial_recomendado_score, label:player._nivel_potencial_recomendado },
-        potential: { score:player._nivel_potencial_score, label:player._nivel_potencial },
-        proven: { score:player._nivel_comprovado_score, label:player._nivel_comprovado },
-        confidence: player._nivel_confianca,
-        robustness: player._robustez || null,
-        recommendationType: player._nivel_recomendacao_tipo || 'provisório',
-        modelAvailable: player._nivel_modelo_disponivel,
-        criteria: player._nivel_criterios || {},
-        profileBands: player._faixas_perfis || [],
+        recommended: { score:resolvedPlayer._nivel_recomendado_score, label:resolvedPlayer._nivel_recomendado },
+        real: { score:resolvedPlayer._nivel_real_score, label:resolvedPlayer._nivel_real || 'Não validada' },
+        current: { score:resolvedPlayer._nivel_atual_score, label:resolvedPlayer._nivel_atual, source:resolvedPlayer._nivel_fonte },
+        potentialRecommended: { score:resolvedPlayer._nivel_potencial_recomendado_score, label:resolvedPlayer._nivel_potencial_recomendado },
+        potential: { score:resolvedPlayer._nivel_potencial_score, label:resolvedPlayer._nivel_potencial },
+        proven: { score:resolvedPlayer._nivel_comprovado_score, label:resolvedPlayer._nivel_comprovado },
+        confidence: resolvedPlayer._nivel_confianca,
+        robustness: resolvedPlayer._robustez || null,
+        recommendationType: resolvedPlayer._nivel_recomendacao_tipo || 'provisório',
+        modelAvailable: resolvedPlayer._nivel_modelo_disponivel,
+        criteria: resolvedPlayer._nivel_criterios || {},
+        profileBands: resolvedPlayer._faixas_perfis || [],
       },
       links: {
-        videoUrl:player._video_url || null,
-        ogolUrl:player._ogol_url || null,
+        videoUrl:resolvedPlayer._video_url || null,
+        ogolUrl:resolvedPlayer._ogol_url || null,
       },
-      canonicalId: player._canonical_id || null,
+      canonicalId: resolvedPlayer._canonical_id || null,
       analysis,
     })
   } catch (error) {
@@ -156,7 +182,7 @@ export async function PATCH(request, { params }) {
     if (!context.player) return NextResponse.json({ error: 'Jogador não encontrado no último upload da competição.' }, { status: 404 })
 
     await ensurePlayerMaster()
-    const player = await ensureCanonicalPlayer({ ...context, slug })
+    const player = await ensureCanonicalPlayer({ player:context.sourcePlayer || context.player, source:context.source, uploadedAt:context.uploadedAt, slug })
     if (!player?._canonical_id) return NextResponse.json({ error:'Não foi possível criar a ficha-mãe deste atleta.' }, { status:409 })
 
     await sql`

@@ -30,8 +30,8 @@ export async function GET(req, { params }) {
 
     let selection
     if (source === 'combined') {
-      const sportsbasePlayers = enrichPlayersWithFoot(sportsbase.data || [], wyscout?.data || [], 'wyscout').map(player => ({ ...player, _liga:slug, _fonte:'sportsbase' }))
-      const wyscoutPlayers = (wyscout.data || []).map(player => ({ ...player, _liga:slug, _fonte:'wyscout' }))
+      const sportsbasePlayers = enrichPlayersWithFoot(sportsbase.data || [], wyscout?.data || [], 'wyscout').map(player => ({ ...player, _liga:slug, _fonte:'sportsbase', _source_upload_at:sportsbase.upload_at }))
+      const wyscoutPlayers = (wyscout.data || []).map(player => ({ ...player, _liga:slug, _fonte:'wyscout', _source_upload_at:wyscout.upload_at }))
       const integrated = buildIntegratedRolePools(sportsbasePlayers, wyscoutPlayers)
       selection = buildCompetitiveLeagueSelectionsFromPools(integrated, slug, 'combined')
     } else {

@@ -1,9 +1,11 @@
 export const clampScore = (value, min = 0, max = 100) => Math.max(min, Math.min(max, Number(value) || 0))
 
 export function rankPercentile(value, values = [], higherIsBetter = true) {
+  const present = item => item !== null && item !== undefined && item !== '' && item !== '-' && Number.isFinite(Number(item))
+  if (!present(value)) return null
   const numericValue = Number(value)
-  const valid = values.map(Number).filter(Number.isFinite).sort((a, b) => a - b)
-  if (!Number.isFinite(numericValue) || !valid.length) return null
+  const valid = values.filter(present).map(Number).sort((a, b) => a - b)
+  if (!valid.length) return null
   const lower = valid.filter(item => item < numericValue).length
   const equal = valid.filter(item => item === numericValue).length
   const raw = ((lower + equal * .5) / valid.length) * 100

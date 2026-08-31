@@ -2,6 +2,7 @@ import { buildPlayerIdentity } from '@/app/lib/playerMaster'
 import { SPORTSBASE_SELECTION_ROLES, buildSportsbaseRolePools } from '@/data/sportsbase-selection'
 import { buildWyscoutRolePools } from '@/data/wyscout-selection'
 import { rankPercentile } from '@/data/selection-score-utils'
+import { compareProviderFreshness, pairProviderPlayers } from '@/data/provider-data-fusion'
 
 const clamp = (value, min = 0, max = 100) => Math.max(min, Math.min(max, Number(value) || 0))
 const round = (value, decimals = 1) => {
@@ -55,18 +56,21 @@ function mergeWatchouts(a = [], b = []) {
   return [...map.values()].sort((x,y)=>(Number(x.percentile)||100)-(Number(y.percentile)||100)).slice(0,2)
 }
 
-function fusePair(sportsbase, wyscout, role) {
+function fusePair(sportsbase, wyscout, role, matchQuality = 0) {
   if (!sportsbase && !wyscout) return null
-  if (!sportsbase) return { ...wyscout, _source_scores:{ wyscout:wyscout._score }, _source_coverage:1, _fonte:'wyscout' }
-  if (!wyscout) return { ...sportsbase, _source_scores:{ sportsbase:sportsbase._score }, _source_coverage:1, _fonte:'sportsbase' }
+  if (!sportsbase) return { ...wyscout, _source_scores:{ wyscout:wyscout._score }, _source_coverage:1, _fonte:'wyscout', _fresh_source:'wyscout', _match_quality:matchQuality }
+  if (!wyscout) return { ...sportsbase, _source_scores:{ sportsbase:sportsbase._score }, _source_coverage:1, _fonte:'sportsbase', _fresh_source:'sportsbase', _match_quality:matchQuality }
 
-  const qa = candidateQuality(sportsbase)
-  const qb = candidateQuality(wyscout)
+  const freshness = compareProviderFreshness(sportsbase, wyscout)
+  // Cobertura e robustez continuam importantes, mas uma base defasada não pode
+  // ter o mesmo peso de outra que já contém um jogo/minutagem adicional.
+  const qa = candidateQuality(sportsbase) * freshness.sportsbase
+  const qb = candidateQuality(wyscout) * freshness.wyscout
   const weightedScore = (Number(sportsbase._score) * qa + Number(wyscout._score) * qb) / Math.max(.01, qa + qb)
   const weightedPerformance = (Number(sportsbase._performance_score) * qa + Number(wyscout._performance_score) * qb) / Math.max(.01, qa + qb)
   const disagreement = Math.abs(Number(sportsbase._score) - Number(wyscout._score))
   const consensus = clamp(100 - disagreement * 2.2, 55, 100)
-  const primary = (Number(wyscout.minutos) || 0) > (Number(sportsbase.minutos) || 0) ? wyscout : sportsbase
+  const primary = freshness.primary === 'wyscout' ? wyscout : sportsbase
 
   return {
     ...primary,
@@ -75,8 +79,8 @@ function fusePair(sportsbase, wyscout, role) {
     posicao:primary.posicao || sportsbase.posicao || wyscout.posicao,
     pe:informedFoot(wyscout.pe) || informedFoot(sportsbase.pe) || primary.pe,
     idade:primary.idade ?? sportsbase.idade ?? wyscout.idade,
-    minutos:Math.max(Number(sportsbase.minutos) || 0, Number(wyscout.minutos) || 0),
-    jogos:Math.max(Number(sportsbase.jogos) || 0, Number(wyscout.jogos) || 0),
+    minutos:Number(primary.minutos) || Math.max(Number(sportsbase.minutos) || 0, Number(wyscout.minutos) || 0),
+    jogos:Number(primary.jogos) || Math.max(Number(sportsbase.jogos) || 0, Number(wyscout.jogos) || 0),
     _slot:role.slot,
     _role_label:role.label,
     _grupo:role.group,
@@ -96,28 +100,22 @@ function fusePair(sportsbase, wyscout, role) {
     _source_performance:{ sportsbase:round(sportsbase._performance_score), wyscout:round(wyscout._performance_score) },
     _source_coverage:2,
     _source_consensus:Math.round(consensus),
+    _fresh_source:freshness.primary,
+    _freshness_reason:freshness.reason,
+    _freshness_weights:{ sportsbase:round(freshness.sportsbase,2), wyscout:round(freshness.wyscout,2) },
+    _match_quality:round(matchQuality,2),
     _fonte:'combined',
-    _source_model:'cic-integrated-role-score',
+    _source_model:'cic-integrated-role-score-v8',
     _provisional:Boolean(sportsbase._provisional && wyscout._provisional),
   }
 }
 
 function mergeRole(role, sportsbasePool, wyscoutPool) {
-  const map = new Map()
-  for (const candidate of sportsbasePool?.ranked || []) {
-    const key = identityKey(candidate)
-    const current = map.get(key) || {}
-    current.sportsbase = candidate
-    map.set(key, current)
-  }
-  for (const candidate of wyscoutPool?.ranked || []) {
-    const key = identityKey(candidate)
-    const current = map.get(key) || {}
-    current.wyscout = candidate
-    map.set(key, current)
-  }
-
-  let ranked = [...map.values()].map(item=>fusePair(item.sportsbase, item.wyscout, role)).filter(Boolean)
+  // Pareamento canônico com fallback controlado para idade ±1, nacionalidade,
+  // posição e clube. Isso evita duplicar o mesmo atleta quando os provedores
+  // escrevem clube/idade de forma ligeiramente diferente e também evita unir homônimos.
+  const pairs = pairProviderPlayers(sportsbasePool?.ranked || [], wyscoutPool?.ranked || [])
+  let ranked = pairs.map(item=>fusePair(item.sportsbase, item.wyscout, role, item.matchQuality)).filter(Boolean)
 
   // Pequena recalibração relativa no universo integrado. Ela preserva os scores
   // das fontes, mas impede que diferenças de escala entre provedores alterem a ordem.
@@ -174,6 +172,6 @@ export function buildIntegratedRolePools(sportsbasePlayers = [], wyscoutPlayers 
     thresholds,
     source:'combined',
     totalEligible:new Set(Object.values(rolePools).flatMap(pool=>pool.ranked.map(identityKey))).size,
-    methodology:'Integração CIC por função: cada fonte calcula percentis e robustez no próprio modelo; atletas presentes nas duas bases recebem score integrado ponderado por cobertura e amostra. Atletas presentes em apenas uma fonte permanecem elegíveis sem penalização por ausência na outra base.',
+    methodology:'Integração CIC V8 por função: cada fonte calcula seus percentis no próprio modelo; o score integrado pondera cobertura, robustez e atualização individual por jogos/minutos. Campo ausente nunca vira zero automaticamente na elegibilidade. Quando uma fonte está mais atualizada, ela recebe maior peso; a outra continua contribuindo nas métricas que possui. Atletas presentes em apenas uma fonte permanecem elegíveis sem penalização.',
   }
 }
