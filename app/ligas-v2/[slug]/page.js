@@ -118,7 +118,7 @@ function UploadBox({ slug, onSuccess }) {
       </div>
       {msg && <p style={{ marginTop:8, fontSize:10.5, fontWeight:700, lineHeight:1.5, color:msg.tipo==='ok'?'#15803d':'#dc2626' }}>{msg.tipo==='ok'?'✓ ':'✗ '}{msg.texto}</p>}
       <div style={{ marginTop:10, padding:'9px 11px', borderRadius:9, background:'#fff', border:'1px solid rgba(148,163,184,.25)', fontSize:9.5, color:'#475569', lineHeight:1.55 }}>
-        <b>Fluxo por liga:</b> Sportsbase e Wyscout funcionam como fontes estatísticas completas e independentes. Quando ambos existem, o sistema mantém os dois modelos e usa o Wyscout também para complementar o pé preferido.
+        <b>Fluxo por liga:</b> Sportsbase e Wyscout podem funcionar isoladamente. Quando as duas planilhas existem na mesma liga, o modo Automático integra os scores por função sem excluir atletas que estejam apenas em uma das bases; o Wyscout também complementa o pé preferido quando disponível.
       </div>
     </div>
   )
@@ -565,11 +565,19 @@ function SelecaoCampeonato({ slug, ligaNome, sourcePreference='auto', onSourceCh
 
   const groups = ['GK','DEF','MID','FWD']
   const byGroup = Object.fromEntries(groups.map(group => [group, squad.filter(player => player._grupo === group)]))
-  const thresholdsText = Object.entries(thresholds).filter(([,item]) => item.limiar > 0).map(([slot,item]) => `${slot} ≥ ${item.limiar} min`).join(' · ')
+  const thresholdsText = Object.entries(thresholds).map(([slot,item]) => {
+    if (source === 'combined') {
+      const parts=[]
+      if (item.sportsbase > 0) parts.push(`SB ${item.sportsbase}`)
+      if (item.wyscout > 0) parts.push(`WY ${item.wyscout}`)
+      return parts.length ? `${slot}: ${parts.join(' / ')} min` : null
+    }
+    return item.limiar > 0 ? `${slot} ≥ ${item.limiar} min` : null
+  }).filter(Boolean).join(' · ')
 
   return <div>
     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:14, flexWrap:'wrap', marginBottom:14 }}>
-      <div><h2 style={{ fontSize:18, fontWeight:900, color:'#1a2e1a' }}>⭐ Seleções do Campeonato</h2><p style={{ fontSize:11, color:'#94a3b8', marginTop:3 }}>4-3-3 funcional · {total} jogadores elegíveis · fonte {source === 'sportsbase' ? 'Sportsbase' : 'Wyscout'}{uploadAt ? ` · ${new Date(uploadAt).toLocaleDateString('pt-BR')}` : ''}</p></div>
+      <div><h2 style={{ fontSize:18, fontWeight:900, color:'#1a2e1a' }}>⭐ Seleções do Campeonato</h2><p style={{ fontSize:11, color:'#94a3b8', marginTop:3 }}>4-3-3 funcional · {total} jogadores elegíveis · fonte {source === 'combined' ? 'Sportsbase + Wyscout' : source === 'sportsbase' ? 'Sportsbase' : 'Wyscout'}{uploadAt ? ` · ${new Date(uploadAt).toLocaleDateString('pt-BR')}` : ''}</p></div>
       <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
         <div style={{display:'flex',gap:4,alignItems:'center'}}><span style={{fontSize:8.5,fontWeight:900,color:'#94a3b8'}}>FONTE</span>{[['auto','Auto'],['sportsbase','Sportsbase'],['wyscout','Wyscout']].filter(([value])=>value==='auto'||availableSources[value]).map(([value,label])=><button key={value} onClick={()=>onSourceChange?.(value)} style={{padding:'6px 8px',border:`1px solid ${sourcePreference===value?GFC:'#dbe7f2'}`,borderRadius:7,background:sourcePreference===value?'#eaf4fd':'#fff',color:sourcePreference===value?GFC:'#64748b',fontSize:9,fontWeight:800,cursor:'pointer'}}>{label}</button>)}</div>
         <button onClick={buscar} style={{ padding:'8px 13px', background:'#fff', border:`1.5px solid ${GFC}`, borderRadius:9, color:GFC, fontWeight:800, cursor:'pointer' }}>↻ Atualizar</button><button onClick={handleExport} disabled={exporting} style={{ padding:'8px 13px', background:exporting?'#94a3b8':GFC, color:'#fff', border:'none', borderRadius:9, fontWeight:800, cursor:exporting?'wait':'pointer' }}>{exporting?'Gerando...':'📄 PDF'}</button></div>
@@ -1594,13 +1602,13 @@ export default function LigaV2Page({ slugOverride = null } = {}) {
             <div style={{ background:'linear-gradient(135deg,#064b82,#0a66b7)', borderRadius:14, padding:'20px 24px', marginBottom:24 }}>
               <p style={{ fontSize:11, color:'rgba(255,255,255,0.65)', fontWeight:700, textTransform:'uppercase', letterSpacing:'1px', marginBottom:6 }}>Central de Upload</p>
               <h2 style={{ fontSize:18, fontWeight:900, color:'#fff', marginBottom:4 }}>Importar Dados — {liga.nome}</h2>
-              <p style={{ fontSize:12, color:'rgba(255,255,255,0.75)' }}>Escolha Sportsbase ou Wyscout. Cada fonte gera rankings, percentis, gráficos, times e seleções com seu próprio catálogo de métricas.</p>
+              <p style={{ fontSize:12, color:'rgba(255,255,255,0.75)' }}>Importe Sportsbase, Wyscout ou as duas. Cada fonte mantém seu próprio catálogo de métricas; quando ambas estão disponíveis, o modo Automático integra os rankings por função.</p>
               {liga.orientacaoUpload && <p style={{ fontSize:10.5, color:'#d1fae5', marginTop:8, lineHeight:1.5, fontWeight:700 }}>ℹ {liga.orientacaoUpload}</p>}
             </div>
             {canEdit
               ? <div style={{ maxWidth:760 }}>
-                  <UploadBox slug={slug} onSuccess={(provider)=>{ setDataSource(provider); setRefreshKey(k=>k+1) }} />
-                  <div style={{marginTop:12,padding:'10px 13px',background:'#effaf3',border:'1px solid #bbf7d0',borderRadius:10,fontSize:10,color:'#166534',lineHeight:1.5}}><b>Integração por liga:</b> Sportsbase e Wyscout podem ser usados sozinhos. A aba Times e as Seleções são recalculadas automaticamente com as métricas da fonte disponível, sem upload coletivo por clube.</div>
+                  <UploadBox slug={slug} onSuccess={()=>{ setDataSource('auto'); setRefreshKey(k=>k+1) }} />
+                  <div style={{marginTop:12,padding:'10px 13px',background:'#effaf3',border:'1px solid #bbf7d0',borderRadius:10,fontSize:10,color:'#166534',lineHeight:1.5}}><b>Integração por liga:</b> Sportsbase e Wyscout podem ser usados sozinhos. Com as duas fontes, o Automático cruza o mesmo atleta e combina os scores funcionais ponderando robustez e cobertura, sem penalizar quem aparece apenas em uma planilha.</div>
                 </div>
               : <div style={{ padding:20, textAlign:'center', color:'#94a3b8', fontSize:13 }}>🔒 Upload restrito ao administrador</div>
             }

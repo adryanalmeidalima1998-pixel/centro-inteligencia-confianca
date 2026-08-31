@@ -1,5 +1,6 @@
 import { sql } from '@vercel/postgres'
-import { buildCompetitiveLeagueSelections } from '@/data/level-selection'
+import { buildCompetitiveLeagueSelections, buildCompetitiveLeagueSelectionsFromPools } from '@/data/level-selection'
+import { buildIntegratedRolePools } from '@/data/unified-selection'
 import { enrichPlayersWithFoot } from '@/data/player-foot'
 import { ensureLigaJogadoresSchema } from '@/lib/league-dataset-schema'
 
@@ -22,14 +23,24 @@ export async function GET(req, { params }) {
       ? 'wyscout'
       : requested === 'sportsbase' && sportsbase
         ? 'sportsbase'
-        : sportsbase ? 'sportsbase' : wyscout ? 'wyscout' : null
+        : requested === 'combined' && sportsbase && wyscout
+          ? 'combined'
+          : sportsbase && wyscout ? 'combined' : sportsbase ? 'sportsbase' : wyscout ? 'wyscout' : null
     if (!source) return Response.json({ selections:{}, teamA:[], teamB:[], teamC:[], total_jogadores:0, thresholds:{}, upload_at:null })
 
-    const raw = source === 'sportsbase'
-      ? enrichPlayersWithFoot(sportsbase.data || [], wyscout?.data || [], 'wyscout')
-      : (wyscout.data || [])
-    const players = raw.map(player => ({ ...player, _liga:slug, _fonte:source }))
-    const selection = buildCompetitiveLeagueSelections(players, slug, source)
+    let selection
+    if (source === 'combined') {
+      const sportsbasePlayers = enrichPlayersWithFoot(sportsbase.data || [], wyscout?.data || [], 'wyscout').map(player => ({ ...player, _liga:slug, _fonte:'sportsbase' }))
+      const wyscoutPlayers = (wyscout.data || []).map(player => ({ ...player, _liga:slug, _fonte:'wyscout' }))
+      const integrated = buildIntegratedRolePools(sportsbasePlayers, wyscoutPlayers)
+      selection = buildCompetitiveLeagueSelectionsFromPools(integrated, slug, 'combined')
+    } else {
+      const raw = source === 'sportsbase'
+        ? enrichPlayersWithFoot(sportsbase.data || [], wyscout?.data || [], 'wyscout')
+        : (wyscout.data || [])
+      const players = raw.map(player => ({ ...player, _liga:slug, _fonte:source }))
+      selection = buildCompetitiveLeagueSelections(players, slug, source)
+    }
     const current = selection.selections.current
 
     return Response.json({
@@ -42,7 +53,7 @@ export async function GET(req, { params }) {
       total_jogadores:selection.totalEligible,
       thresholds:selection.thresholds,
       role_thresholds:selection.thresholds,
-      upload_at:(source === 'sportsbase' ? sportsbase : wyscout).upload_at,
+      upload_at:source === 'combined' ? [sportsbase?.upload_at, wyscout?.upload_at].filter(Boolean).sort().slice(-1)[0] || null : (source === 'sportsbase' ? sportsbase : wyscout).upload_at,
       missing_groups:selection.missingRoles.includes('GK') ? ['GK'] : [],
       missing_roles:selection.missingRoles,
       methodology:selection.methodology,

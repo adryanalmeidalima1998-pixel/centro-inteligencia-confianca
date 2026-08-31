@@ -4,15 +4,19 @@ import {
   getSportsbaseMetric,
   normalizeSportsbasePosition,
 } from './sportsbase-map'
+import { adaptiveRolePool, calibrateRoleCandidates } from './selection-score-utils'
 
 const round = (value, decimals = 1) => {
   const factor = 10 ** decimals
-  return Math.round(value * factor) / factor
+  return Math.round((Number(value) || 0) * factor) / factor
 }
 
 const ROLE = (slot, label, group, positions, fallback, metrics) => ({ slot, label, group, positions, fallback, metrics })
 
 export const SPORTSBASE_SELECTION_ROLES = [
+  // O export Sportsbase usado no CIC não possui eventos específicos de goleiro
+  // (defesas, xGA etc.). Para GK a nota usa o Índice Sportsbase dentro da própria
+  // posição, com forte controle de amostra. Nunca compara goleiro com jogador de linha.
   ROLE('GK','Goleiro','GK',['GK'],[],[]),
   ROLE('LB','Lateral esquerdo','DEF',['LB','LWB'],['LCB','LM'],[
     ['duelos_def_pct',.14],['duelos_def_90',.10],['desarmes_pct',.10],['intercecoes_90',.10],
@@ -34,12 +38,12 @@ export const SPORTSBASE_SELECTION_ROLES = [
     ['passes_prog_90',.14],['passes_prog_pct',.10],['entradas_terco_passe_90',.08],['conducoes_90',.08],
     ['recuperacoes_90',.08],['perdas_campo_proprio_90',.08],
   ]),
-  ROLE('DM','Volante','MID',['CDM','LCDM','RCDM','LDM','RDM','DMF','LDMF','RDMF'],['LCM','RCM','CMF'],[
+  ROLE('DM','Primeiro volante','MID',['CDM','LCDM','RCDM','LDM','RDM','DMF','LDMF','RDMF'],['LCM','RCM','CMF'],[
     ['recuperacoes_90',.14],['intercecoes_90',.12],['duelos_def_pct',.12],['desarmes_pct',.08],
     ['passes_prog_90',.14],['passes_prog_pct',.10],['passes_pct',.08],['passes_longos_pct',.07],
     ['perdas_bola_90',.09],['perdas_campo_proprio_90',.06],
   ]),
-  ROLE('CM','Meia central','MID',['LCM','RCM','CMF','LCMF','RCMF'],['CDM','CAM','LM','RM'],[
+  ROLE('CM','Segundo volante','MID',['LCM','RCM','CMF','LCMF','RCMF'],['CDM','CAM','LM','RM'],[
     ['passes_prog_90',.14],['passes_prog_pct',.10],['passes_chave_90',.12],['assist_remate_90',.10],
     ['passes_area_90',.08],['entradas_terco_passe_90',.08],['recuperacoes_90',.10],['conducoes_90',.08],
     ['participacao_gols_90',.08],['perdas_bola_90',.08],['passes_pct',.04],
@@ -79,22 +83,44 @@ export function getRoleSuitability(player, role) {
   return 0
 }
 
-function adaptiveRolePool(players, role) {
-  const candidates = players.filter(player=>getRoleSuitability(player,role)>0)
-  if (!candidates.length) return { candidates:[], minimumMinutes:0, maxMinutes:0, factor:0 }
-  const maxMinutes = Math.max(...candidates.map(player=>Number(player.minutos)||0))
-  const targetSize = role.slot==='GK' ? 3 : 7
-  const factors = [.35,.30,.25,.20,.15,0]
-  for (const factor of factors) {
-    const minimumMinutes = factor ? Math.max(50, Math.round(maxMinutes*factor/50)*50) : 0
-    const eligible = candidates.filter(player=>(Number(player.minutos)||0)>=minimumMinutes)
-    if (eligible.length>=targetSize || factor===0) return { candidates:eligible, minimumMinutes, maxMinutes:Math.round(maxMinutes), factor }
-  }
-  return { candidates, minimumMinutes:0, maxMinutes:Math.round(maxMinutes), factor:0 }
+function rolePool(players, role) {
+  return adaptiveRolePool(players, { ...role, suitability:player=>getRoleSuitability(player, role) })
+}
+
+function scoreSportsbaseGoalkeepers(players, role) {
+  const poolInfo = rolePool(players, role)
+  const indexValues = poolInfo.candidates.map(player=>Number(player.indice)).filter(Number.isFinite)
+  if (!indexValues.length) return { ...poolInfo, ranked:[] }
+
+  const raw = poolInfo.candidates.map(player => {
+    const index = Number(player.indice)
+    if (!Number.isFinite(index)) return null
+    const percentile = calculateSportsbasePercentile(index, indexValues, true)
+    if (!Number.isFinite(percentile)) return null
+    return {
+      ...player,
+      _slot:role.slot,
+      _role_label:role.label,
+      _grupo:role.group,
+      _raw_performance:percentile,
+      _coverage:100,
+      _suitability:round(getRoleSuitability(player, role) * 100, 0),
+      _sample_minimum:poolInfo.minimumMinutes,
+      _sample_target:poolInfo.sampleTarget,
+      _score_breakdown:[{ key:'indice', label:'Índice Sportsbase (percentil entre goleiros)', percentile, value:index, weight:1 }],
+      _strengths:[{ key:'indice', label:'Índice Sportsbase', percentile, value:index, weight:1 }],
+      _watchouts:[],
+      _source_model:'sportsbase-gk-index',
+    }
+  }).filter(Boolean)
+
+  return { ...poolInfo, ranked:calibrateRoleCandidates(raw) }
 }
 
 function scoreRoleCandidates(players, role) {
-  const poolInfo = adaptiveRolePool(players,role)
+  if (role.slot === 'GK') return scoreSportsbaseGoalkeepers(players, role)
+
+  const poolInfo = rolePool(players,role)
   if (!role.metrics.length) return { ...poolInfo, ranked:[] }
   const totalWeight = role.metrics.reduce((sum,[,weight])=>sum+weight,0)
   const valuesByMetric = {}
@@ -107,7 +133,7 @@ function scoreRoleCandidates(players, role) {
       .map(player=>player[metricKey])
   }
 
-  const ranked = poolInfo.candidates.map(player=>{
+  const raw = poolInfo.candidates.map(player=>{
     let weightedScore=0
     let coveredWeight=0
     const breakdown=[]
@@ -125,31 +151,28 @@ function scoreRoleCandidates(players, role) {
     }
 
     const coverage=totalWeight?coveredWeight/totalWeight:0
-    if (coverage<.52 || !coveredWeight) return null
+    if (coverage<.58 || !coveredWeight) return null
     const performance=weightedScore/coveredWeight
     const suitability=getRoleSuitability(player,role)
-    const sampleBase=Math.max(poolInfo.minimumMinutes*2,900)
-    const sampleConfidence=Math.min(100,60+40*Math.min(1,(Number(player.minutos)||0)/sampleBase))
-    const score=performance*.87+sampleConfidence*.08+suitability*100*.05
     const ordered=[...breakdown].sort((a,b)=>b.percentile-a.percentile)
     return {
       ...player,
       _slot:role.slot,
       _role_label:role.label,
       _grupo:role.group,
-      _score:round(score,1),
-      _performance_score:round(performance,1),
-      _sample_confidence:round(sampleConfidence,0),
+      _raw_performance:round(performance,1),
       _coverage:round(coverage*100,0),
       _suitability:round(suitability*100,0),
       _score_breakdown:breakdown,
-      _strengths:ordered.filter(item=>item.percentile>=70).slice(0,3),
-      _watchouts:[...breakdown].sort((a,b)=>a.percentile-b.percentile).filter(item=>item.percentile<=35).slice(0,2),
+      _strengths:ordered.filter(item=>item.percentile>=72).slice(0,3),
+      _watchouts:[...breakdown].sort((a,b)=>a.percentile-b.percentile).filter(item=>item.percentile<=28).slice(0,2),
       _sample_minimum:poolInfo.minimumMinutes,
+      _sample_target:poolInfo.sampleTarget,
+      _source_model:'sportsbase-role-percentiles',
     }
-  }).filter(Boolean).sort((a,b)=>b._score-a._score)
+  }).filter(Boolean)
 
-  return { ...poolInfo, ranked }
+  return { ...poolInfo, ranked:calibrateRoleCandidates(raw) }
 }
 
 function pickTeam(rolePools, excluded = new Set()) {
@@ -157,7 +180,6 @@ function pickTeam(rolePools, excluded = new Set()) {
     role,
     ranked:(rolePools[role.slot]?.ranked||[]).filter(player=>!excluded.has(`${player.nome}|${player.equipa}`)),
   }))
-  // Primeiro ocupamos as funções com menor oferta. Isso reduz improvisações e duplicidade de jogadores versáteis.
   availableRoles.sort((a,b)=>a.ranked.length-b.ranked.length)
   const used=new Set(excluded)
   const selected=[]
@@ -195,11 +217,10 @@ export function buildSportsbaseSelections(players = []) {
   return {
     teamA,teamB,teamC,thresholds,totalEligible,
     missingRoles:SPORTSBASE_SELECTION_ROLES.filter(role=>!(rolePools[role.slot]?.ranked||[]).length).map(role=>role.slot),
-    methodology:'Score por função no 4-3-3: percentis Sportsbase nativos, pares volume/eficiência, mínimos de tentativas, cobertura mínima de 52%, adequação posicional e confiança de amostra.',
+    methodology:'Score por função: percentis Sportsbase, pares volume/eficiência, controle de tentativas, cobertura mínima, regressão de amostra e adequação posicional. Goleiros usam o Índice Sportsbase apenas contra outros goleiros, pois esse export não traz métricas específicas de defesa.',
   }
 }
 
-/** Exposição controlada dos pools por função para outras seleções do CIC. */
 export function buildSportsbaseRolePools(players = []) {
   const rolePools = {}
   const thresholds = {}

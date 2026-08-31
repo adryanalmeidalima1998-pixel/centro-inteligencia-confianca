@@ -92,8 +92,7 @@ function buildMode(rolePools, mode) {
   return { reference, highlight, ascent }
 }
 
-export function buildCompetitiveLeagueSelections(players = [], slug = '', source = 'sportsbase') {
-  const base = source === 'sportsbase' ? buildSportsbaseRolePools(players) : wyscoutRolePools(players)
+export function buildCompetitiveLeagueSelectionsFromPools(base = { rolePools:{}, thresholds:{} }, slug = '', source = 'sportsbase') {
   const rolePools = {}
   for (const role of SPORTSBASE_SELECTION_ROLES) {
     rolePools[role.slot] = {
@@ -113,9 +112,14 @@ export function buildCompetitiveLeagueSelections(players = [], slug = '', source
     totalEligible,
     missingRoles:SPORTSBASE_SELECTION_ROLES.filter(role => !(rolePools[role.slot]?.ranked || []).length).map(role => role.slot),
     methodology:{
-      current:`Nota estatística ${source === 'wyscout' ? 'Wyscout' : 'Sportsbase'} por função: percentis nativos 82%, robustez da amostra 10%, cobertura de métricas 5% e adequação posicional 3%.`,
-      potential:`Projeção ${source === 'wyscout' ? 'Wyscout' : 'Sportsbase'}: rendimento atual 62%, curva etária 18%, amostra 8%, cobertura 7% e combinação idade-desempenho 5%.`,
-      opportunity:`Oportunidade ${source === 'wyscout' ? 'Wyscout' : 'Sportsbase'}: rendimento por função 55%, viabilidade do mercado 20%, idade 15%, amostra 7% e cobertura estatística 3%.`,
+      current:`Rendimento por função ${source === 'combined' ? 'integrado Sportsbase + Wyscout' : source === 'wyscout' ? 'Wyscout' : 'Sportsbase'}: score funcional calibrado, robustez da amostra e adequação posicional.`,
+      potential:`Projeção ${source === 'combined' ? 'integrada' : source === 'wyscout' ? 'Wyscout' : 'Sportsbase'}: rendimento atual 62%, curva etária 18%, amostra 8%, cobertura 7% e combinação idade-desempenho 5%.`,
+      opportunity:`Oportunidade ${source === 'combined' ? 'integrada' : source === 'wyscout' ? 'Wyscout' : 'Sportsbase'}: rendimento por função 55%, viabilidade do mercado 20%, idade 15%, amostra 7% e cobertura estatística 3%.`,
     },
   }
+}
+
+export function buildCompetitiveLeagueSelections(players = [], slug = '', source = 'sportsbase') {
+  const base = source === 'sportsbase' ? buildSportsbaseRolePools(players) : wyscoutRolePools(players)
+  return buildCompetitiveLeagueSelectionsFromPools(base, slug, source)
 }

@@ -9,6 +9,7 @@ const GFC_DARK = '#064b82'
 const MAX_HIGHLIGHTS = 8
 
 function sourceLabel(source) {
+  if (source === 'combined') return 'Sportsbase + Wyscout'
   if (source === 'wyscout') return 'Wyscout'
   if (source === 'sportsbase') return 'Sportsbase'
   return 'Automático'
