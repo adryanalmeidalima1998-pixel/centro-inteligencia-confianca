@@ -3,6 +3,7 @@ import { ensureTreinadoresSchema, safeJson } from '@/lib/treinadores-schema'
 import { parseWyscoutTeamStats, matchWyscoutToCoachGames } from '@/lib/wyscout-trainer-teamstats'
 import { analyzeCoachWyscoutData } from '@/lib/treinador-ai'
 import { sanitizeCoachReport } from '@/lib/treinador-report-sanitizer'
+import { rebuildTacticalMetrics } from '@/lib/treinador-tactical-utils'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -114,6 +115,9 @@ export async function POST(request,{params}) {
     }),...synthetic]
 
     const current=safeJson(coach.relatorio_json,{})
+    // Recalcula as formações usando o histórico completo já enriquecido com o Wyscout.
+    // Isso corrige temporadas atuais em que o Transfermarkt não traz a tática, como ASA 2026.
+    const tacticalMetrics=rebuildTacticalMetrics(safeJson(coach.metricas_json,{}),updatedCoachGames)
     let analysis=null, aiWarning=''
     try {
       analysis=await analyzeCoachWyscoutData({coach:{...coach,jogos_json:updatedCoachGames},currentReport:current,wyscout:{...parsed,jogos:matched}})
@@ -155,6 +159,7 @@ export async function POST(request,{params}) {
     await sql`
       UPDATE treinadores SET
         jogos_json=${JSON.stringify(updatedCoachGames)}::jsonb,
+        metricas_json=${JSON.stringify(tacticalMetrics)}::jsonb,
         relatorio_json=${JSON.stringify(report)}::jsonb,
         recomendacao=${report.recomendacao || 'Em análise'},
         estilo_jogo=${report.resumo_executivo || null},
