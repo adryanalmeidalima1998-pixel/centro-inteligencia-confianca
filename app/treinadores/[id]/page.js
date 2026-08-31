@@ -14,25 +14,16 @@ function Section({title,desc,children}){return <section className="rounded-2xl b
 function Field({label,value,onChange,rows=4,placeholder=''}){return <label className="block"><span className="mb-1.5 block text-[9px] font-black uppercase tracking-[.14em] text-slate-400">{label}</span>{rows===1?<input value={value||''} onChange={e=>onChange(e.target.value)} placeholder={placeholder} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-700 outline-none focus:border-[#0a66b7]"/>:<textarea value={value||''} onChange={e=>onChange(e.target.value)} rows={rows} placeholder={placeholder} className="w-full resize-y rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs leading-relaxed text-slate-700 outline-none focus:border-[#0a66b7]"/>}</label>}
 function StarsEdit({value,onChange,disabled}){return <div className="flex gap-1">{[1,2,3,4,5].map(n=><button disabled={disabled} type="button" key={n} onClick={()=>onChange(n)} className="disabled:cursor-default"><Star size={17} className={n<=Number(value||0)?'fill-amber-400 text-amber-400':'text-slate-200'}/></button>)}</div>}
 
-
-async function readApiJson(response){
- const raw=await response.text()
- if(!raw)return {}
- try{return JSON.parse(raw)}catch{}
- const compact=raw.replace(/\s+/g,' ').trim()
- if(/an error occurred|function invocation|internal server error/i.test(compact)){
-  throw new Error('O servidor encerrou a interpretação antes de concluir. Tente novamente; se o material for muito grande, importe em duas partes.')
- }
- throw new Error(compact.slice(0,260)||'O servidor retornou uma resposta inválida.')
-}
-
 function normalizeReport(report={}){
- return {
-  analista:'Adryan Almeida',coordenador:'',clube_solicitante:'Associação Desportiva Confiança — Aracaju / SE',cargo_avaliado:'Treinador Principal',data_relatorio:new Date().toLocaleDateString('pt-BR'),resumo_executivo:'',titulos_principais:'',jogos_analisados:[],
+ const merged = {
+  analista:'Adryan Almeida',coordenador:'Anthony Emanoel',clube_solicitante:'Associação Desportiva Confiança — Aracaju / SE',cargo_avaliado:'Treinador Principal',data_relatorio:new Date().toLocaleDateString('pt-BR'),resumo_executivo:'',titulos_principais:'',jogos_analisados:[],
   modelo_jogo:{saida_bola:'',construcao:'',ultimo_terco:'',transicao_ofensiva:'',bloco_alto:'',bloco_medio_baixo:'',transicao_defensiva:'',bola_parada_ofensiva:'',bola_parada_defensiva:''},
   sistemas_taticos:[],fontes_coladas:[],pontos_fortes:[],pontos_melhoria:[],perfis_jogadores:[],adaptabilidade:[],filosofia_declarada:'',fonte_filosofia:'',coerencia_discurso_dados:'',referencias_externas:'',recomendacao:'Em análise',justificativas_recomendacao:[],sintese_final:'',...report,
   modelo_jogo:{saida_bola:'',construcao:'',ultimo_terco:'',transicao_ofensiva:'',bloco_alto:'',bloco_medio_baixo:'',transicao_defensiva:'',bola_parada_ofensiva:'',bola_parada_defensiva:'',...(report.modelo_jogo||{})}
  }
+ if (!String(merged.coordenador || '').trim()) merged.coordenador = 'Anthony Emanoel'
+ if (!String(merged.analista || '').trim()) merged.analista = 'Adryan Almeida'
+ return merged
 }
 
 export default function CoachDossier(){
@@ -45,14 +36,14 @@ export default function CoachDossier(){
  const setR=(key,value)=>setReport(p=>({...p,[key]:value}))
  const setModel=(key,value)=>setReport(p=>({...p,modelo_jogo:{...p.modelo_jogo,[key]:value}}))
  async function save(){if(!canEdit)return;setSaving(true);setSaved(false);const r=await fetch(`/api/treinadores/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({relatorio_json:report,recomendacao:report.recomendacao,estrelas:coach?.estrelas||null,estilo_jogo:coach?.estilo_jogo||null,forcas:(report.pontos_fortes||[]).map(x=>x.titulo).filter(Boolean).join(' · '),fraquezas:(report.pontos_melhoria||[]).map(x=>x.titulo).filter(Boolean).join(' · ')})});if(r.ok){setSaved(true);setTimeout(()=>setSaved(false),1800);setCoach(p=>({...p,recomendacao:report.recomendacao,relatorio_json:report}))}else{const d=await r.json();setMessage(d.error||'Erro ao salvar')}setSaving(false)}
- async function refreshTM(){if(!coach?.transfermarkt_url)return;setRefreshing(true);setMessage('');try{const r=await fetch('/api/treinadores/import-transfermarkt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:coach.transfermarkt_url})});const d=await readApiJson(r);if(!r.ok)throw new Error(d.error||'Falha ao atualizar');await load();setMessage('Dados públicos atualizados. A análise interna foi preservada.')}catch(e){setMessage(e.message)}finally{setRefreshing(false)}}
+ async function refreshTM(){if(!coach?.transfermarkt_url)return;setRefreshing(true);setMessage('');try{const r=await fetch('/api/treinadores/import-transfermarkt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:coach.transfermarkt_url})});const d=await r.json();if(!r.ok)throw new Error(d.error||'Falha ao atualizar');await load();setMessage('Dados públicos atualizados. A análise interna foi preservada.')}catch(e){setMessage(e.message)}finally{setRefreshing(false)}}
 
  async function interpretTexts(){
   if(!canEdit||sourceText.trim().length<40){setMessage('Cole um texto completo para o sistema interpretar.');return}
   setInterpreting(true);setMessage('')
   try{
    const r=await fetch(`/api/treinadores/${id}/interpretar-textos`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({texto:sourceText,titulo:sourceTitle,url:sourceUrl})})
-   const d=await readApiJson(r); if(!r.ok)throw new Error(d.error||'Falha ao interpretar o texto')
+   const d=await r.json(); if(!r.ok)throw new Error(d.error||'Falha ao interpretar o texto')
    const next=normalizeReport(d.report||{}); setReport(next); setCoach(p=>({...p,relatorio_json:next,recomendacao:next.recomendacao,sistemas_jogo:(d.analysis?.sistemas_taticos||[]).map(x=>x.sistema)}));
    setSourceText('');setSourceTitle('');setSourceUrl('');setMessage('Texto interpretado e campos do relatório preenchidos automaticamente.');setTab('modelo')
   }catch(e){setMessage(e.message)}finally{setInterpreting(false)}
@@ -77,7 +68,7 @@ export default function CoachDossier(){
 
   {tab==='visao'&&<div className="mt-5 space-y-4">
    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6"><Stat label="Jogos carreira" value={metrics.jogos_carreira||metrics.jogos_detalhados||0}/><Stat label="PPJ carreira" value={Number(metrics.ppj_carreira||metrics.ppj_detalhado||0).toFixed(2)}/><Stat label="Aproveitamento" value={`${Number(metrics.aproveitamento||0).toFixed(1)}%`} sub={`${metrics.vitorias||0}V · ${metrics.empates||0}E · ${metrics.derrotas||0}D`}/><Stat label="Gols pró" value={metrics.gols_pro||0}/><Stat label="Gols contra" value={metrics.gols_contra||0}/><Stat label="Idade" value={coach.idade?`${coach.idade}`:'—'} sub={coach.data_nascimento}/></div>
-   <div className="grid gap-4 lg:grid-cols-[1.25fr_.75fr]"><Section title="Resumo executivo" desc="Síntese que abre o relatório final."><Field label="Leitura executiva" value={report.resumo_executivo} onChange={v=>setR('resumo_executivo',v)} rows={7} placeholder="Contexto de carreira, momento atual, identidade e aderência ao projeto..."/></Section><Section title="Identificação do relatório"><div className="space-y-3"><Field rows={1} label="Analista" value={report.analista} onChange={v=>setR('analista',v)}/><Field rows={1} label="Coordenação de Mercado" value={report.coordenador} onChange={v=>setR('coordenador',v)}/><Field rows={1} label="Data" value={report.data_relatorio} onChange={v=>setR('data_relatorio',v)}/><Field rows={1} label="Clube solicitante" value={report.clube_solicitante} onChange={v=>setR('clube_solicitante',v)}/><Field rows={1} label="Títulos principais" value={report.titulos_principais} onChange={v=>setR('titulos_principais',v)} placeholder="Ex.: Campeonato Estadual 2024..."/></div></Section></div>
+   <div className="grid gap-4 lg:grid-cols-[1.25fr_.75fr]"><Section title="Resumo executivo" desc="Síntese que abre o relatório final."><Field label="Leitura executiva" value={report.resumo_executivo} onChange={v=>setR('resumo_executivo',v)} rows={7} placeholder="Contexto de carreira, momento atual, identidade e aderência ao projeto..."/></Section><Section title="Identificação do relatório"><div className="space-y-3"><Field rows={1} label="Scouting/Dados" value={report.analista} onChange={v=>setR('analista',v)}/><Field rows={1} label="Coordenação de Mercado" value={report.coordenador} onChange={v=>setR('coordenador',v)}/><Field rows={1} label="Data" value={report.data_relatorio} onChange={v=>setR('data_relatorio',v)}/><Field rows={1} label="Clube solicitante" value={report.clube_solicitante} onChange={v=>setR('clube_solicitante',v)}/><Field rows={1} label="Títulos principais" value={report.titulos_principais} onChange={v=>setR('titulos_principais',v)} placeholder="Ex.: Campeonato Estadual 2024..."/></div></Section></div>
    <div className="grid gap-4 lg:grid-cols-2"><Section title="Esquemas-base mais utilizados" desc={`Distribuição automática nos ${metrics.jogos_com_formacao||0} jogos com formação registrada.`}><div className="space-y-3">{(metrics.esquemas_base||[]).slice(0,8).map((f,i)=><div key={i} className="grid grid-cols-[90px_1fr_78px] items-center gap-3"><span className="text-xs font-black text-[#06172e]">{f.formacao}</span><div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#0a66b7]" style={{width:`${Math.min(100,f.percentual||0)}%`}}/></div><span className="text-right text-[10px] font-bold text-slate-400">{f.jogos} · {Number(f.percentual||0).toFixed(1)}%</span></div>)}{!(metrics.esquemas_base||[]).length&&<p className="text-xs text-slate-400">Atualize a fonte para carregar os esquemas-base do histórico detalhado.</p>}</div></Section><Section title="Variações táticas registradas" desc="Mantém as descrições do Transfermarkt, como ofensivo, defensivo, plano ou losango."><div className="flex flex-wrap gap-2">{(metrics.formacoes||[]).slice(0,14).map((f,i)=><div key={i} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><p className="text-xs font-black text-[#06172e]">{f.formacao}</p><p className="mt-0.5 text-[9px] font-bold text-slate-400">{f.jogos} jogos · {Number(f.percentual||0).toFixed(1)}%</p></div>)}{!(metrics.formacoes||[]).length&&<p className="text-xs text-slate-400">Nenhuma variação tática estruturada encontrada.</p>}</div></Section></div>
    {(report.sistemas_taticos||[]).length>0&&<Section title="Leitura dos sistemas táticos" desc="Contexto de uso extraído das matérias, entrevistas e referências inseridas no scouting."><div className="grid gap-3 md:grid-cols-2">{report.sistemas_taticos.map((x,i)=><div key={i} className="rounded-xl border border-sky-100 bg-sky-50/40 p-4"><div className="flex items-center justify-between gap-3"><p className="text-sm font-black text-[#06172e]">{x.sistema}</p><span className="rounded-full bg-white px-2 py-1 text-[8px] font-black uppercase text-[#0a66b7]">{x.frequencia||'Referência'}</span></div><p className="mt-2 text-[10px] font-semibold text-slate-600">{x.contexto}</p><p className="mt-2 text-[9px] leading-relaxed text-slate-400">{x.evidencia}</p></div>)}</div></Section>}
   </div>}
