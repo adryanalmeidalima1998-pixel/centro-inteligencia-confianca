@@ -27,7 +27,10 @@ function withImportedGames(current=[], imported=[]) {
   for (const g of imported || []) {
     if (!g.game_id) continue
     const old=map.get(Number(g.game_id)) || {}
-    map.set(Number(g.game_id),{id:Number(g.game_id),fonte:'Wyscout',nota:old.nota||'',...old,fonte:old.fonte||'Wyscout'})
+    const oldNote=String(old.nota || '').trim()
+    const looksLikeOldAuto=/\b(recorte|dados|métricas?|evidência|xg|ppda|posse|remates?)\b/i.test(oldNote)
+    const note=(!oldNote || looksLikeOldAuto) ? (g.leitura_automatica || oldNote) : oldNote
+    map.set(Number(g.game_id),{id:Number(g.game_id),fonte:'Wyscout',nota:note,...old,nota:note,fonte:old.fonte||'Wyscout'})
   }
   return [...map.values()]
 }
@@ -118,6 +121,14 @@ export async function POST(request,{params}) {
     } catch (err) {
       console.error('[treinadores/wyscout/ai]',err)
       aiWarning=err?.message || 'Os dados foram importados, mas a interpretação automática não foi concluída.'
+    }
+
+    if (analysis?.jogos_destaque?.length) {
+      const byKey=new Map(analysis.jogos_destaque.map(x=>[`${String(x.data||'').trim()}|${String(x.jogo||'').trim().toLowerCase()}`,String(x.leitura||'').trim()]))
+      matched=matched.map(g=>{
+        const exact=byKey.get(`${String(g.data||'').trim()}|${String(g.jogo||'').trim().toLowerCase()}`)
+        return exact ? {...g,leitura_automatica:exact} : g
+      })
     }
 
     const wyscoutMeta={

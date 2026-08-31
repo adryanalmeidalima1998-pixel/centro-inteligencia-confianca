@@ -303,7 +303,7 @@ export async function exportCoachReportPdf(coach) {
     section('ADERÊNCIA AO OBJETIVO INSTITUCIONAL', 'Prioridade: retorno do Confiança à Série C')
     dataTable(['Nota','Nível','Objetivo'], [[`${objective.nota || 0}/100`, objective.nivel || 'Em análise', objective.objetivo || 'Retorno à Série C']], { fontSize:7.4, headFillColor:BLUE })
     if ((objective.acessos_confirmados || []).length) {
-      dataTable(['Clube','Temporada','Movimento','Conquista / evidência'], (objective.acessos_confirmados || []).map(x=>[
+      dataTable(['Clube','Temporada','Movimento','Conquista / contexto'], (objective.acessos_confirmados || []).map(x=>[
         x.clube, x.temporada, `${x.origem || '—'} → ${x.destino || '—'}`, [x.conquista,x.evidencia].filter(Boolean).join(' · ')
       ]), { fontSize:6.6, headFillColor:GREEN })
     }
@@ -316,7 +316,7 @@ export async function exportCoachReportPdf(coach) {
   const watchedIds = new Set((report.jogos_analisados || []).map(x => Number(x.id)))
   const watched = games.filter(g => watchedIds.has(Number(g.id)))
   if (watched.length) {
-    section('1. JOGOS ANALISADOS', 'Partidas assistidas e marcadas para leitura qualitativa')
+    section('1. JOGOS ANALISADOS', 'Partidas selecionadas para leitura técnica')
     dataTable(
       ['Data','Partida','Competição','Tática','Fonte'],
       watched.map(g => [
@@ -331,7 +331,7 @@ export async function exportCoachReportPdf(coach) {
   }
 
   if (wyscout?.resumo) {
-    section('ANÁLISE QUANTITATIVA · WYSCOUT TEAM STATS', `${wyscout.resumo.games || 0} jogos importados`)
+    section('LEITURA DOS JOGOS · WYSCOUT', `${wyscout.resumo.games || 0} jogos importados`)
     dataTable(['Jogos','V-E-D','xG/xGA','Posse','PPDA','Entradas área','Remates'], [[
       wyscout.resumo.games || 0,
       `${wyscout.resumo.wins || 0}-${wyscout.resumo.draws || 0}-${wyscout.resumo.losses || 0}`,
@@ -347,9 +347,8 @@ export async function exportCoachReportPdf(coach) {
     })
     const wsGames=(wyscout.jogos || []).filter(x=>x.game_id).slice(0,12)
     if (wsGames.length) {
-      dataTable(['Data','Jogo','Sistema','xG','Posse','PPDA'], wsGames.map(g=>[
-        g.data,g.jogo,g.sistema || '—',`${Number(g.metricas?.xg || 0).toFixed(2).replace('.',',')} / ${Number(g.adversario_metricas?.xg || 0).toFixed(2).replace('.',',')}`,
-        `${Number(g.metricas?.possession || 0).toFixed(1).replace('.',',')}%`,Number(g.metricas?.ppda || 0).toFixed(2).replace('.',',')
+      dataTable(['Data','Jogo','Sistema','Análise'], wsGames.map(g=>[
+        g.data,g.jogo,g.sistema || '—',g.leitura_automatica || '—'
       ]), { fontSize:6.3, headFillColor:NAVY })
     }
   }
@@ -405,7 +404,7 @@ export async function exportCoachReportPdf(coach) {
 
   if ((report.sistemas_taticos || []).length) {
     section('LEITURA DOS SISTEMAS TÁTICOS', 'Interpretação qualitativa do comportamento estrutural')
-    dataTable(['Sistema','Frequência','Contexto','Evidência'], (report.sistemas_taticos || []).map(x => [x.sistema, x.frequencia || '—', x.contexto || '—', x.evidencia || '—']), { fontSize: 6.5 })
+    dataTable(['Sistema','Frequência','Contexto','Análise'], (report.sistemas_taticos || []).map(x => [x.sistema, x.frequencia || '—', x.contexto || '—', x.evidencia || '—']), { fontSize: 6.5 })
   }
 
   if ((metrics.evolucao_tatica || []).length) {
@@ -414,7 +413,7 @@ export async function exportCoachReportPdf(coach) {
   }
 
   const model = report.modelo_jogo || {}
-  section('4. MODELO DE JOGO', 'Síntese das evidências por fase do jogo')
+  section('4. MODELO DE JOGO', 'Leitura do comportamento por fase do jogo')
   const modelSections = [
     ['4.1 Saída de bola', model.saida_bola],
     ['4.2 Construção', model.construcao],
@@ -438,12 +437,12 @@ export async function exportCoachReportPdf(coach) {
   })
 
   if ((report.pontos_fortes || []).length || (report.pontos_melhoria || []).length) {
-    section('5. PONTOS FORTES E PONTOS DE MELHORIA', 'Principais evidências da avaliação')
+    section('5. PONTOS FORTES E PONTOS DE MELHORIA', 'Síntese da avaliação do scouting')
     if ((report.pontos_fortes || []).length) {
-      dataTable(['Ponto forte','Evidência'], (report.pontos_fortes || []).filter(x => x.titulo || x.evidencia).map(x => [x.titulo, x.evidencia]), { headFillColor: GREEN })
+      dataTable(['Ponto forte','Análise'], (report.pontos_fortes || []).filter(x => x.titulo || x.evidencia).map(x => [x.titulo, x.evidencia]), { headFillColor: GREEN })
     }
     if ((report.pontos_melhoria || []).length) {
-      dataTable(['Ponto de melhoria','Evidência'], (report.pontos_melhoria || []).filter(x => x.titulo || x.evidencia).map(x => [x.titulo, x.evidencia]), { headFillColor: RED })
+      dataTable(['Ponto de melhoria','Análise'], (report.pontos_melhoria || []).filter(x => x.titulo || x.evidencia).map(x => [x.titulo, x.evidencia]), { headFillColor: RED })
     }
   }
 
@@ -472,7 +471,7 @@ export async function exportCoachReportPdf(coach) {
       doc.setFont('helvetica','bold')
       doc.setTextColor(...BLUE)
       doc.setFontSize(8.7)
-      doc.text('Coerência entre discurso e evidências', M, y)
+      doc.text('Coerência entre discurso e comportamento', M, y)
       y += 4
       paragraph(report.coerencia_discurso_dados)
     }
