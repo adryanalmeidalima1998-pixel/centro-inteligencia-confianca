@@ -385,7 +385,7 @@ export default function RelatorioColetivo({ teams = [], seasonReport = null, tea
     return rows
   })()
 
-  const formations = prof.formations || []
+  const formations = matchStats?.formations?.length ? matchStats.formations : (prof.formations || [])
   const corners = prof.corners || {}
   const exposureTotal = Number(golsLado?.ataques_esquerda || 0) + Number(golsLado?.ataques_centro || 0) + Number(golsLado?.ataques_direita || 0)
   const defenseWonTotal = Number(golsLado?.duelos_def_ganhos_esquerda || 0) + Number(golsLado?.duelos_def_ganhos_centro || 0) + Number(golsLado?.duelos_def_ganhos_direita || 0)
@@ -405,12 +405,12 @@ export default function RelatorioColetivo({ teams = [], seasonReport = null, tea
       <div className="mt-4">
         <SectionTitle sub="Posicionamento na Série C + indicadores do relatório de equipe">Identidade coletiva</SectionTitle>
         <div className="grid grid-cols-2 gap-2.5">
-          <Kpi label="Posse" value={prof.possession?.pct != null ? `${fmt(prof.possession.pct,1)}%` : (matchStats?.possession != null ? `${fmt(matchStats.possession,1)}%` : (possessionMetric?.value || '—'))} sub={rankText(prof.possession?.rank || possessionMetric?.rank, possessionMetric?.total || 20)} />
-          <Kpi label="PPDA" value={prof.ppda?.value != null ? fmt(prof.ppda.value,1) : (matchStats?.ppda != null ? fmt(matchStats.ppda,1) : '—')} sub={rankText(prof.ppda?.rank)} />
+          <Kpi label="Posse" value={matchStats?.possession != null ? `${fmt(matchStats.possession,1)}%` : (prof.possession?.pct != null ? `${fmt(prof.possession.pct,1)}%` : (possessionMetric?.value || '—'))} sub={matchStats?.possession != null ? `${matchStats.matches} jogos · Wyscout` : rankText(prof.possession?.rank || possessionMetric?.rank, possessionMetric?.total || 20)} />
+          <Kpi label="PPDA" value={matchStats?.ppda != null ? fmt(matchStats.ppda,1) : (prof.ppda?.value != null ? fmt(prof.ppda.value,1) : '—')} sub={matchStats?.ppda != null ? `${matchStats.matches} jogos · Wyscout` : rankText(prof.ppda?.rank)} />
           <Kpi label="Gols" value={registeredGoalsScored ? fmt(registeredGoalsScored) : '—'} sub={registeredGoalsScored ? `${rankText(metricByName(col,'Gols')?.rank, metricByName(col,'Gols')?.total) || 'Temporada'} · cadastro de gols` : rankText(metricByName(col,'Gols')?.rank, metricByName(col,'Gols')?.total)} />
-          <Kpi label="Chutes/90" value={prof.shots?.per90 != null ? fmt(prof.shots.per90,1) : (matchStats?.shots != null ? fmt(matchStats.shots,1) : '—')} sub={rankText(prof.shots?.rank)} />
+          <Kpi label="Chutes/90" value={matchStats?.shots != null ? fmt(matchStats.shots,1) : (prof.shots?.per90 != null ? fmt(prof.shots.per90,1) : '—')} sub={matchStats?.shots != null ? `${matchStats.matches} jogos · por 90` : rankText(prof.shots?.rank)} />
           <Kpi label="Gols sofridos" value={registeredGoalsConceded ? fmt(registeredGoalsConceded) : '—'} sub={registeredGoalsConceded ? 'Cadastro de gols · temporada' : null} tone="rose" />
-          <Kpi label="Chutes sofridos/90" value={prof.shotsAgainst?.per90 != null ? fmt(prof.shotsAgainst.per90,1) : (matchStats?.shotsAgainst != null ? fmt(matchStats.shotsAgainst,1) : '—')} sub={rankText(prof.shotsAgainst?.rank)} tone="rose" />
+          <Kpi label="Chutes sofridos/90" value={matchStats?.shotsAgainst != null ? fmt(matchStats.shotsAgainst,1) : (prof.shotsAgainst?.per90 != null ? fmt(prof.shotsAgainst.per90,1) : '—')} sub={matchStats?.shotsAgainst != null ? `${matchStats.matches} jogos · por 90` : rankText(prof.shotsAgainst?.rank)} tone="rose" />
         </div>
       </div>
 
@@ -437,16 +437,26 @@ export default function RelatorioColetivo({ teams = [], seasonReport = null, tea
 
     {/* PÁGINA 2 - como estamos sofrendo */}
     <section className="coletivo-page mx-auto flex w-full max-w-[900px] flex-col rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-      <PageHeader page={2} totalPages={5} subtitle="Como estamos sofrendo · origem, momento e espaço" teamReport={teamReport} />
+      <PageHeader page={2} totalPages={5} subtitle="Como estamos sofrendo · origem, volume e espaço" teamReport={teamReport} />
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <div className="rounded-2xl border border-gray-100 p-3">
-          <div className="mb-2 text-[8px] font-black uppercase tracking-widest text-gray-500">Origem dos gols sofridos</div>
-          {concededGoalTypes.length ? <><Bars items={concededGoalTypes} tone="rose" showShare /><div className="mt-1 text-[7px] text-gray-400">Origem detalhada cadastrada junto à posição de cada gol.</div></> : (origem ? <Bars items={origem} tone="rose" showShare /> : <p className="text-[9px] text-gray-400">Sem leitura disponível.</p>)}
+          <div className="mb-2 text-[8px] font-black uppercase tracking-widest text-gray-500">{concededGoalTypes.length || origem ? 'Origem dos gols sofridos' : 'Volume defensivo · últimas partidas'}</div>
+          {concededGoalTypes.length ? <><Bars items={concededGoalTypes} tone="rose" showShare /><div className="mt-1 text-[7px] text-gray-400">Origem detalhada cadastrada junto à posição de cada gol.</div></> : (origem ? <Bars items={origem} tone="rose" showShare /> : <div className="grid grid-cols-2 gap-2">
+            <ProfileMetric label="Gols sofridos" value={matchStats?.goalsAgainst != null ? fmt(matchStats.goalsAgainst) : fmt(registeredGoalsConceded)} sub={matchStats?.matches ? `Últimos ${matchStats.matches} jogos` : null} tone="rose" />
+            <ProfileMetric label="Chutes sofridos/90" value={matchStats?.shotsAgainst != null ? fmt(matchStats.shotsAgainst,1) : '—'} sub={matchStats?.shotsAgainstOnTarget != null ? `${fmt(matchStats.shotsAgainstOnTarget,1)} no alvo/90` : null} tone="rose" />
+            <ProfileMetric label="Duelos defensivos/90" value={matchStats?.defensiveDuels != null ? fmt(matchStats.defensiveDuels,1) : '—'} sub={matchStats?.defensiveDuelsSuccess != null ? `${fmt(matchStats.defensiveDuelsSuccess,1)}% ganhos` : null} />
+            <ProfileMetric label="xGA médio" value={matchStats?.xga != null ? fmt(matchStats.xga,2) : '—'} sub="Gols esperados contra" tone="rose" />
+          </div>)}
         </div>
         <div className="rounded-2xl border border-gray-100 p-3">
-          <div className="mb-2 text-[8px] font-black uppercase tracking-widest text-gray-500">Quando sofremos</div>
-          {tempo ? <><Bars items={tempo} tone="rose" showShare />{faixas?.length ? <div className="mt-3 border-t border-gray-100 pt-3"><Bars items={faixas} tone="rose" /></div> : null}</> : <p className="text-[9px] text-gray-400">Sem leitura disponível.</p>}
+          <div className="mb-2 text-[8px] font-black uppercase tracking-widest text-gray-500">{tempo ? 'Quando sofremos' : 'Estabilidade defensiva · últimas partidas'}</div>
+          {tempo ? <><Bars items={tempo} tone="rose" showShare />{faixas?.length ? <div className="mt-3 border-t border-gray-100 pt-3"><Bars items={faixas} tone="rose" /></div> : null}</> : <div className="grid grid-cols-2 gap-2">
+            <ProfileMetric label="Jogos sem sofrer" value={matchStats?.cleanSheets != null ? fmt(matchStats.cleanSheets) : '—'} sub={matchStats?.matches ? `de ${matchStats.matches} partidas` : null} />
+            <ProfileMetric label="Gols sofridos/jogo" value={matchStats?.goalsAgainstPerGame != null ? fmt(matchStats.goalsAgainstPerGame,2) : '—'} tone="rose" />
+            <ProfileMetric label="PPDA" value={matchStats?.ppda != null ? fmt(matchStats.ppda,1) : '—'} sub="Intensidade da pressão" />
+            <ProfileMetric label="Recuperações/90" value={matchStats?.recoveries != null ? fmt(matchStats.recoveries,1) : '—'} />
+          </div>}
         </div>
       </div>
 
@@ -479,39 +489,39 @@ export default function RelatorioColetivo({ teams = [], seasonReport = null, tea
 
       <div className="mt-4 space-y-3">
         <div className="rounded-2xl border border-gray-100 bg-gray-50/40 p-3">
-          <SectionTitle>Construção e progressão</SectionTitle>
+          <SectionTitle sub={matchStats?.matches ? `Últimas ${matchStats.matches} partidas · fusão Wyscout + Sportsbase` : null}>Construção e progressão</SectionTitle>
           <div className="grid grid-cols-3 gap-2">
-            <ProfileMetric label="Precisão de passe" value={prof.organization?.passAccuracy != null ? `${fmt(prof.organization.passAccuracy,1)}%` : '—'} rank={prof.organization?.rank} />
-            <ProfileMetric label="Passes progressivos/90" value={prof.progressivePasses?.per90 != null ? fmt(prof.progressivePasses.per90,1) : (matchStats?.progressivePasses != null ? fmt(matchStats.progressivePasses,1) : (progressiveMetric?.value || '—'))} rank={prof.progressivePasses?.rank || progressiveMetric?.rank} sub={prof.progressivePasses?.accuracy != null ? `${fmt(prof.progressivePasses.accuracy,1)}% certos` : null} tone="emerald" />
-            <ProfileMetric label="Terço final/90" value={prof.finalThirdPasses?.per90 != null ? fmt(prof.finalThirdPasses.per90,1) : (matchStats?.finalThirdPasses != null ? fmt(matchStats.finalThirdPasses,1) : '—')} rank={prof.finalThirdPasses?.rank} sub={prof.finalThirdPasses?.accuracy != null ? `${fmt(prof.finalThirdPasses.accuracy,1)}% certos` : null} />
-            <ProfileMetric label="Passe em profundidade/90" value={prof.deepPasses?.per90 != null ? fmt(prof.deepPasses.per90,1) : '—'} rank={prof.deepPasses?.rank} sub={prof.deepPasses?.accuracy != null ? `${fmt(prof.deepPasses.accuracy,1)}% certos` : null} />
-            <ProfileMetric label="Recepções profundas/90" value={prof.deepReceptions?.per90 != null ? fmt(prof.deepReceptions.per90,1) : '—'} rank={prof.deepReceptions?.rank} />
-            <ProfileMetric label="Intensidade de jogo" value={prof.organization?.gameIntensity != null ? fmt(prof.organization.gameIntensity,1) : (matchStats?.intensity != null ? fmt(matchStats.intensity,1) : '—')} rank={prof.organization?.rank} sub={prof.organization?.gameIntensity == null && matchStats?.intensity != null ? 'Wyscout · média dos jogos' : null} />
+            <ProfileMetric label="Precisão de passe" value={matchStats?.passAccuracy != null ? `${fmt(matchStats.passAccuracy,1)}%` : (prof.organization?.passAccuracy != null ? `${fmt(prof.organization.passAccuracy,1)}%` : '—')} rank={matchStats?.passAccuracy != null ? null : prof.organization?.rank} />
+            <ProfileMetric label="Passes progressivos/90" value={matchStats?.progressivePasses != null ? fmt(matchStats.progressivePasses,1) : (prof.progressivePasses?.per90 != null ? fmt(prof.progressivePasses.per90,1) : (progressiveMetric?.value || '—'))} rank={matchStats?.progressivePasses != null ? null : (prof.progressivePasses?.rank || progressiveMetric?.rank)} sub={matchStats?.progressivePassAccuracy != null ? `${fmt(matchStats.progressivePassAccuracy,1)}% certos` : (prof.progressivePasses?.accuracy != null ? `${fmt(prof.progressivePasses.accuracy,1)}% certos` : null)} tone="emerald" />
+            <ProfileMetric label="Terço final/90" value={matchStats?.finalThirdPasses != null ? fmt(matchStats.finalThirdPasses,1) : (prof.finalThirdPasses?.per90 != null ? fmt(prof.finalThirdPasses.per90,1) : '—')} rank={matchStats?.finalThirdPasses != null ? null : prof.finalThirdPasses?.rank} sub={matchStats?.finalThirdPassAccuracy != null ? `${fmt(matchStats.finalThirdPassAccuracy,1)}% certos` : (prof.finalThirdPasses?.accuracy != null ? `${fmt(prof.finalThirdPasses.accuracy,1)}% certos` : null)} />
+            <ProfileMetric label="Passes por posse" value={matchStats?.passesPerPossession != null ? fmt(matchStats.passesPerPossession,2) : '—'} sub={matchStats?.passesPerPossession != null ? 'Ritmo da circulação' : null} />
+            <ProfileMetric label="Recepções profundas/90" value={matchStats?.deepReceptions != null ? fmt(matchStats.deepReceptions,1) : (prof.deepReceptions?.per90 != null ? fmt(prof.deepReceptions.per90,1) : '—')} rank={matchStats?.deepReceptions != null ? null : prof.deepReceptions?.rank} />
+            <ProfileMetric label="Intensidade de jogo" value={matchStats?.intensity != null ? fmt(matchStats.intensity,1) : (prof.organization?.gameIntensity != null ? fmt(prof.organization.gameIntensity,1) : '—')} rank={matchStats?.intensity != null ? null : prof.organization?.rank} sub={matchStats?.intensity != null ? 'Wyscout · média dos jogos' : null} />
           </div>
         </div>
 
         <div className="rounded-2xl border border-gray-100 bg-gray-50/40 p-3">
           <SectionTitle>Pressão e defesa</SectionTitle>
           <div className="grid grid-cols-3 gap-2">
-            <ProfileMetric label="Recuperações/90" value={prof.recoveries?.per90 != null ? fmt(prof.recoveries.per90,1) : (matchStats?.recoveries != null ? fmt(matchStats.recoveries,1) : '—')} rank={prof.recoveries?.rank} sub={prof.recoveries?.per90 == null && matchStats?.recoveries != null ? 'Wyscout · média dos jogos' : null} />
-            <ProfileMetric label="Pressão bem-sucedida" value={pressureMetric?.value || '—'} rank={pressureMetric?.rank} sub={averageGapText(pressureMetric)} tone={pressureMetric?.status === 'alerta' ? 'rose' : 'gray'} />
-            <ProfileMetric label="Recuperações no campo adversário" value={highRecoveryMetric?.value || '—'} rank={highRecoveryMetric?.rank} sub={averageGapText(highRecoveryMetric)} tone={highRecoveryMetric?.status === 'alerta' ? 'rose' : 'gray'} />
-            <ProfileMetric label="Interceptações/90" value={prof.interceptions?.per90 != null ? fmt(prof.interceptions.per90,1) : (interceptionMetric?.value || '—')} rank={prof.interceptions?.rank || interceptionMetric?.rank} tone={(prof.interceptions?.rank || interceptionMetric?.rank) >= 16 ? 'rose' : 'gray'} />
-            <ProfileMetric label="PPDA" value={prof.ppda?.value != null ? fmt(prof.ppda.value,1) : (matchStats?.ppda != null ? fmt(matchStats.ppda,1) : '—')} rank={prof.ppda?.rank} sub={prof.ppda?.value == null && matchStats?.ppda != null ? 'Wyscout · média dos jogos' : null} />
-            <ProfileMetric label="Duelos defensivos" value={prof.defensiveDuels?.per90 != null ? `${fmt(prof.defensiveDuels.per90,1)}/90` : '—'} rank={prof.defensiveDuels?.rank} sub={prof.defensiveDuels?.success != null ? `${fmt(prof.defensiveDuels.success,1)}% ganhos` : null} />
-            <ProfileMetric label="Duelos aéreos" value={prof.aerialDuels?.per90 != null ? `${fmt(prof.aerialDuels.per90,1)}/90` : '—'} rank={prof.aerialDuels?.rank} sub={prof.aerialDuels?.success != null ? `${fmt(prof.aerialDuels.success,1)}% ganhos` : null} />
-            <ProfileMetric label="Chutes bloqueados/90" value={prof.blockedShots?.per90 != null ? fmt(prof.blockedShots.per90,1) : '—'} rank={prof.blockedShots?.rank} />
+            <ProfileMetric label="Recuperações/90" value={matchStats?.recoveries != null ? fmt(matchStats.recoveries,1) : (prof.recoveries?.per90 != null ? fmt(prof.recoveries.per90,1) : '—')} rank={matchStats?.recoveries != null ? null : prof.recoveries?.rank} sub={matchStats?.recoveries != null ? 'Últimas partidas · por 90' : null} />
+            <ProfileMetric label="Pressão bem-sucedida" value={matchStats?.pressureSuccess != null ? `${fmt(matchStats.pressureSuccess,1)}%` : (pressureMetric?.value || '—')} rank={matchStats?.pressureSuccess != null ? null : pressureMetric?.rank} sub={matchStats?.pressureSuccess != null ? 'Últimas partidas · Sportsbase' : averageGapText(pressureMetric)} tone={matchStats?.pressureSuccess == null && pressureMetric?.status === 'alerta' ? 'rose' : 'gray'} />
+            <ProfileMetric label="Recuperações campo adversário/90" value={matchStats?.recoveriesOppHalf != null ? fmt(matchStats.recoveriesOppHalf,1) : (highRecoveryMetric?.value || '—')} rank={matchStats?.recoveriesOppHalf != null ? null : highRecoveryMetric?.rank} sub={matchStats?.recoveriesOppHalf != null ? 'Últimas partidas · por 90' : averageGapText(highRecoveryMetric)} tone={matchStats?.recoveriesOppHalf == null && highRecoveryMetric?.status === 'alerta' ? 'rose' : 'gray'} />
+            <ProfileMetric label="Interceptações/90" value={matchStats?.interceptions != null ? fmt(matchStats.interceptions,1) : (prof.interceptions?.per90 != null ? fmt(prof.interceptions.per90,1) : (interceptionMetric?.value || '—'))} rank={matchStats?.interceptions != null ? null : (prof.interceptions?.rank || interceptionMetric?.rank)} />
+            <ProfileMetric label="PPDA" value={matchStats?.ppda != null ? fmt(matchStats.ppda,1) : (prof.ppda?.value != null ? fmt(prof.ppda.value,1) : '—')} rank={matchStats?.ppda != null ? null : prof.ppda?.rank} sub={matchStats?.ppda != null ? 'Wyscout · média dos jogos' : null} />
+            <ProfileMetric label="Duelos defensivos/90" value={matchStats?.defensiveDuels != null ? fmt(matchStats.defensiveDuels,1) : (prof.defensiveDuels?.per90 != null ? fmt(prof.defensiveDuels.per90,1) : '—')} rank={matchStats?.defensiveDuels != null ? null : prof.defensiveDuels?.rank} sub={matchStats?.defensiveDuelsSuccess != null ? `${fmt(matchStats.defensiveDuelsSuccess,1)}% ganhos` : (prof.defensiveDuels?.success != null ? `${fmt(prof.defensiveDuels.success,1)}% ganhos` : null)} />
+            <ProfileMetric label="Duelos aéreos/90" value={matchStats?.aerialDuels != null ? fmt(matchStats.aerialDuels,1) : (prof.aerialDuels?.per90 != null ? fmt(prof.aerialDuels.per90,1) : '—')} rank={matchStats?.aerialDuels != null ? null : prof.aerialDuels?.rank} sub={matchStats?.aerialDuelsSuccess != null ? `${fmt(matchStats.aerialDuelsSuccess,1)}% ganhos` : (prof.aerialDuels?.success != null ? `${fmt(prof.aerialDuels.success,1)}% ganhos` : null)} />
+            <ProfileMetric label="Chutes bloqueados/90" value={matchStats?.blockedShots != null ? fmt(matchStats.blockedShots,1) : (prof.blockedShots?.per90 != null ? fmt(prof.blockedShots.per90,1) : '—')} rank={matchStats?.blockedShots != null ? null : prof.blockedShots?.rank} />
           </div>
         </div>
 
         <div className="rounded-2xl border border-gray-100 bg-gray-50/40 p-3">
           <SectionTitle>Ataque e presença</SectionTitle>
           <div className="grid grid-cols-3 gap-2">
-            <ProfileMetric label="Chutes/90" value={prof.shots?.per90 != null ? fmt(prof.shots.per90,1) : (matchStats?.shots != null ? fmt(matchStats.shots,1) : '—')} rank={prof.shots?.rank} sub={prof.shots?.xgPerShot != null ? `xG/chute ${fmt(prof.shots.xgPerShot,2)}` : (matchStats?.shots != null ? 'Wyscout · média dos jogos' : null)} />
-            <ProfileMetric label="Toques na área/90" value={prof.boxTouches?.per90 != null ? fmt(prof.boxTouches.per90,1) : '—'} rank={prof.boxTouches?.rank} />
-            <ProfileMetric label="Dribles/90" value={prof.dribbles?.per90 != null ? fmt(prof.dribbles.per90,1) : '—'} rank={prof.dribbles?.rank} sub={prof.dribbles?.success != null ? `${fmt(prof.dribbles.success,1)}% sucesso` : null} />
-            <ProfileMetric label="Cruzamentos/90" value={prof.crosses?.per90 != null ? fmt(prof.crosses.per90,1) : '—'} rank={prof.crosses?.rank} sub={prof.crosses?.accuracy != null ? `${fmt(prof.crosses.accuracy,1)}% certos` : null} />
-            <ProfileMetric label="Duelos ofensivos" value={prof.offensiveDuels?.per90 != null ? `${fmt(prof.offensiveDuels.per90,1)}/90` : '—'} rank={prof.offensiveDuels?.rank} sub={prof.offensiveDuels?.success != null ? `${fmt(prof.offensiveDuels.success,1)}% ganhos` : null} />
+            <ProfileMetric label="Chutes/90" value={matchStats?.shots != null ? fmt(matchStats.shots,1) : (prof.shots?.per90 != null ? fmt(prof.shots.per90,1) : '—')} rank={matchStats?.shots != null ? null : prof.shots?.rank} sub={matchStats?.shotsOnTarget != null ? `${fmt(matchStats.shotsOnTarget,1)} no alvo/90` : (prof.shots?.xgPerShot != null ? `xG/chute ${fmt(prof.shots.xgPerShot,2)}` : null)} />
+            <ProfileMetric label="Toques na área/90" value={matchStats?.boxTouches != null ? fmt(matchStats.boxTouches,1) : (prof.boxTouches?.per90 != null ? fmt(prof.boxTouches.per90,1) : '—')} rank={matchStats?.boxTouches != null ? null : prof.boxTouches?.rank} />
+            <ProfileMetric label="Dribles/90" value={matchStats?.dribbles != null ? fmt(matchStats.dribbles,1) : (prof.dribbles?.per90 != null ? fmt(prof.dribbles.per90,1) : '—')} rank={matchStats?.dribbles != null ? null : prof.dribbles?.rank} sub={matchStats?.dribblesSuccess != null ? `${fmt(matchStats.dribblesSuccess,1)}% sucesso` : (prof.dribbles?.success != null ? `${fmt(prof.dribbles.success,1)}% sucesso` : null)} />
+            <ProfileMetric label="Cruzamentos/90" value={matchStats?.crosses != null ? fmt(matchStats.crosses,1) : (prof.crosses?.per90 != null ? fmt(prof.crosses.per90,1) : '—')} rank={matchStats?.crosses != null ? null : prof.crosses?.rank} sub={matchStats?.crossesAccuracy != null ? `${fmt(matchStats.crossesAccuracy,1)}% certos` : (prof.crosses?.accuracy != null ? `${fmt(prof.crosses.accuracy,1)}% certos` : null)} />
+            <ProfileMetric label="Duelos ofensivos/90" value={matchStats?.offensiveDuels != null ? fmt(matchStats.offensiveDuels,1) : (prof.offensiveDuels?.per90 != null ? fmt(prof.offensiveDuels.per90,1) : '—')} rank={matchStats?.offensiveDuels != null ? null : prof.offensiveDuels?.rank} sub={matchStats?.offensiveDuelsSuccess != null ? `${fmt(matchStats.offensiveDuelsSuccess,1)}% ganhos` : (prof.offensiveDuels?.success != null ? `${fmt(prof.offensiveDuels.success,1)}% ganhos` : null)} />
             <ProfileMetric label="Gols marcados" value={registeredGoalsScored ? fmt(registeredGoalsScored) : '—'} rank={metricByName(col,'Gols')?.rank} sub="Total da temporada" />
           </div>
         </div>
@@ -554,15 +564,24 @@ export default function RelatorioColetivo({ teams = [], seasonReport = null, tea
       <div className="mt-4 grid grid-cols-2 gap-3">
         <div className="rounded-2xl border border-gray-100 p-3">
           <SectionTitle>Estruturas mais utilizadas</SectionTitle>
-          {formations.length ? <div className="grid grid-cols-3 gap-2">{formations.slice(0,3).map((f,i) => <div key={i} className="rounded-xl bg-gray-50 p-3 text-center"><div className="text-lg font-black bc text-gray-800">{f.formation}</div><div className="text-[9px] font-black text-emerald-700">{fmt(f.share,0)}%</div></div>)}</div> : <p className="text-[9px] text-gray-400">Sem dados de formação disponíveis.</p>}
+          {formations.length ? <div className="grid grid-cols-3 gap-2">{formations.slice(0,3).map((f,i) => <div key={i} className="rounded-xl bg-gray-50 p-3 text-center"><div className="text-lg font-black bc text-gray-800">{f.formation || f.sistema}</div><div className="text-[9px] font-black text-emerald-700">{fmt(f.share ?? f.percentual,0)}%</div><div className="mt-0.5 text-[7px] font-bold text-gray-400">{f.matches ?? f.jogos ?? ''}{(f.matches ?? f.jogos) ? ' jogo(s)' : ''}</div></div>)}</div> : null}
         </div>
         <div className="rounded-2xl border border-gray-100 p-3">
           <SectionTitle>Bolas paradas</SectionTitle>
           <div className="grid grid-cols-2 gap-2">
-            <ProfileMetric label="Gols em bola parada" value={scoredGoalPoints.length ? fmt(scoredSetPieces) : '—'} sub={scoredGoalPoints.length ? `${Math.round(scoredSetPieces / Math.max(1, registeredGoalsScored) * 100)}% dos ${registeredGoalsScored} gols` : 'Cadastre a origem dos gols'} />
-            <ProfileMetric label="Gols sofridos em bola parada" value={concededGoalPoints.length ? fmt(concededSetPieces) : '—'} sub={concededGoalPoints.length ? `${Math.round(concededSetPieces / Math.max(1, registeredGoalsConceded) * 100)}% dos ${registeredGoalsConceded} sofridos` : 'Cadastre a origem dos gols'} tone="rose" />
-            <ProfileMetric label="Cantos" value={corners.total?.total != null ? fmt(corners.total.total) : '—'} sub={corners.total?.xg != null ? `xG ${fmt(corners.total.xg,2)}` : null} />
-            <ProfileMetric label="Cantos curtos" value={corners.short?.total != null ? fmt(corners.short.total) : '—'} sub={corners.short?.xg != null ? `xG ${fmt(corners.short.xg,2)}` : null} />
+            <ProfileMetric
+              label={(scoredGoalPoints.length || matchStats?.setPieceGoals != null) ? 'Gols em bola parada' : 'Bolas paradas/90'}
+              value={scoredGoalPoints.length ? fmt(scoredSetPieces) : (matchStats?.setPieceGoals != null ? fmt(matchStats.setPieceGoals) : (matchStats?.setPieces != null ? fmt(matchStats.setPieces,1) : '—'))}
+              sub={scoredGoalPoints.length ? `${Math.round(scoredSetPieces / Math.max(1, registeredGoalsScored) * 100)}% dos ${registeredGoalsScored} gols` : (matchStats?.setPieceGoals != null ? 'Sportsbase · jogos analisados' : 'Wyscout · volume por 90')}
+            />
+            <ProfileMetric
+              label={(concededGoalPoints.length || matchStats?.setPieceGoalsAgainst != null) ? 'Gols sofridos em bola parada' : 'Bolas paradas rivais/90'}
+              value={concededGoalPoints.length ? fmt(concededSetPieces) : (matchStats?.setPieceGoalsAgainst != null ? fmt(matchStats.setPieceGoalsAgainst) : (matchStats?.setPiecesAgainst != null ? fmt(matchStats.setPiecesAgainst,1) : '—'))}
+              sub={concededGoalPoints.length ? `${Math.round(concededSetPieces / Math.max(1, registeredGoalsConceded) * 100)}% dos ${registeredGoalsConceded} sofridos` : (matchStats?.setPieceGoalsAgainst != null ? 'Sportsbase · jogos analisados' : 'Wyscout · volume rival por 90')}
+              tone="rose"
+            />
+            <ProfileMetric label="Cantos/90" value={matchStats?.corners != null ? fmt(matchStats.corners,1) : (corners.total?.total != null ? fmt(corners.total.total) : '—')} sub={matchStats?.corners != null ? 'Últimas partidas' : (corners.total?.xg != null ? `xG ${fmt(corners.total.xg,2)}` : null)} />
+            <ProfileMetric label="Cantos com remate/90" value={matchStats?.cornersShots != null ? fmt(matchStats.cornersShots,1) : (corners.short?.total != null ? fmt(corners.short.total) : '—')} sub={matchStats?.cornersShots != null ? 'Wyscout Team Stats' : (corners.short?.xg != null ? `xG ${fmt(corners.short.xg,2)}` : null)} />
           </div>
         </div>
       </div>

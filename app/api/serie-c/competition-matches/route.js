@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { sql } from '@vercel/postgres'
 import { ensureSerieCTables } from '../../../../lib/serieCDb'
-import { buildCompetitionMatchRecords, parseWorkbookFile } from '../../../../lib/serieCParse'
+import { buildCompetitionMatchRecords, parseCompetitionWorkbookFile } from '../../../../lib/serieCParse'
 import seedMatches from '../../../../lib/data/serieCMatchesSeed2026.json'
 import { normTeamName, toNumber } from '../../../../lib/serieC'
 
@@ -39,8 +39,27 @@ function dayDistance(a, b) {
   return Math.abs(first - second) / 86400000
 }
 
+
+function clubTokens(value) {
+  const stop = new Set(['FC','EC','SC','AA','AD','SAF','CLUBE','CLUB','DE','DA','DO','DAS','DOS','ESPORTE','SPORT'])
+  return normTeamName(value).split(' ').filter(token => token && !stop.has(token))
+}
+
+function sameClubName(a, b) {
+  const na = normTeamName(a), nb = normTeamName(b)
+  if (!na || !nb) return false
+  if (na === nb || na.includes(nb) || nb.includes(na)) return true
+  const ta = clubTokens(a), tb = clubTokens(b)
+  if (!ta.length || !tb.length) return false
+  const shared = ta.filter(token => tb.includes(token))
+  return shared.length / Math.min(ta.length, tb.length) >= 0.5
+}
+
+function sameMatchPair(record, row) {
+  return sameClubName(record.homeTeam, row.home_team) && sameClubName(record.awayTeam, row.away_team)
+}
 function isGuaraniIdentity(team, code) {
-  return normTeamName(team).includes('CONFIANÇA') || normTeamName(code) === 'CON'
+  return normTeamName(team).includes('CONFIANCA') || normTeamName(code) === 'CON'
 }
 
 async function syncGuaraniTimeline(records, season, competition) {
@@ -66,7 +85,8 @@ async function syncGuaraniTimeline(records, season, competition) {
   for (const record of guaraniRecords) {
     const isHome = isGuaraniIdentity(record.homeTeam, record.homeCode)
     const opponentRaw = isHome ? record.awayTeam : record.homeTeam
-    const candidates = existingByOpponent.get(normTeamName(opponentRaw)) || []
+    const exactCandidates = existingByOpponent.get(normTeamName(opponentRaw)) || []
+    const candidates = exactCandidates.length ? exactCandidates : current.rows.filter(row => sameClubName(row.opponent, opponentRaw))
     const nearest = candidates
       .map(row => ({ row, distance: dayDistance(record.matchDate, row.match_date) }))
       .filter(item => item.distance <= 2)
@@ -208,7 +228,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Envie a planilha de estatísticas das partidas.' }, { status: 400 })
     }
 
-    const rawRows = await parseWorkbookFile(file)
+    const rawRows = await parseCompetitionWorkbookFile(file)
     const records = buildCompetitionMatchRecords(rawRows)
     if (!records.length) {
       return NextResponse.json({ error: 'Nenhuma partida válida foi encontrada. Aceito: Data + Match + Time ou Data + Jogo + Equipa.' }, { status: 400 })
@@ -222,9 +242,10 @@ export async function POST(request) {
       FROM serie_c_competition_matches
       WHERE season = ${season} AND competition = ${competition}
     `
+    const existingRows = existingResult.rows
     const existingMap = new Map()
     const existingByPair = new Map()
-    for (const row of existingResult.rows) {
+    for (const row of existingRows) {
       const date = dateKey(row.match_date)
       const pair = `${normTeamName(row.home_team)}|${normTeamName(row.away_team)}`
       existingMap.set(`${date}|${pair}`, row)
@@ -235,7 +256,8 @@ export async function POST(request) {
     for (const record of records) {
       let existing = existingMap.get(normalizedMatchKey(record))
       if (!existing) {
-        const candidates = existingByPair.get(normalizedPairKey(record)) || []
+        const exactCandidates = existingByPair.get(normalizedPairKey(record)) || []
+        const candidates = exactCandidates.length ? exactCandidates : existingRows.filter(row => sameMatchPair(record, row))
         existing = candidates
           .map(row => ({ row, distance: dayDistance(record.matchDate, row.match_date) }))
           .filter(item => item.distance <= 2)

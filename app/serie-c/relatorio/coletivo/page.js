@@ -59,7 +59,7 @@ export default function ColetivoPrintPage() {
     </div>
 
     <div className="print-area mx-auto py-6 px-4">
-      <RelatorioColetivo teams={teams} seasonReport={data?.seasonReport} physical={physical} golsLado={golsLado} teamReport={teamReport} />
+      <RelatorioColetivo teams={teams} seasonReport={data?.seasonReport} teamMatchStats={data?.teamMatchStats} physical={physical} golsLado={golsLado} teamReport={teamReport} />
     </div>
   </div>
 }
