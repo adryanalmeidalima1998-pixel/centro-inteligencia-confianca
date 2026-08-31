@@ -9,7 +9,7 @@ import { decodePlayerKey } from '@/data/player-route'
 import { getLeague } from '@/data/leagues'
 import { enrichPlayersWithFoot } from '@/data/player-foot'
 import { ensureLigaJogadoresSchema } from '@/lib/league-dataset-schema'
-import { compareProviderFreshness, fusePlayerRecords } from '@/data/provider-data-fusion'
+import { compareProviderFreshness, fusePlayerRecords, pairProviderPlayers } from '@/data/provider-data-fusion'
 import {
   attachCanonicalPlayers,
   ensurePlayerMaster,
@@ -61,8 +61,31 @@ function findPlayerContext(datasets, playerId) {
   const wyscoutPlayers = datasets.wyscout
     ? (datasets.wyscout.players || []).map(player=>({ ...player, _source_upload_at:datasets.wyscout?.uploadedAt }))
     : []
-  const sportsbasePlayer = findSourcePlayer(sportsbasePlayers, key)
-  const wyscoutPlayer = findSourcePlayer(wyscoutPlayers, key)
+  let sportsbasePlayer = findSourcePlayer(sportsbasePlayers, key)
+  let wyscoutPlayer = findSourcePlayer(wyscoutPlayers, key)
+  let matchQuality = 0
+  let matchReason = ''
+
+  // A URL pode ter sido criada com o nome completo do Sportsbase enquanto o
+  // Wyscout usa abreviação (ex.: Kevin Stiben Viveros Rodallega ↔ K. Viveros),
+  // ou o inverso. Depois do match exato em uma fonte, procuramos o par seguro
+  // na outra usando o mesmo resolvedor do modo Automático.
+  if (sportsbasePlayer && !wyscoutPlayer && wyscoutPlayers.length) {
+    const pair = pairProviderPlayers([sportsbasePlayer], wyscoutPlayers).find(item=>item.sportsbase && item.wyscout)
+    if (pair) {
+      wyscoutPlayer = pair.wyscout
+      matchQuality = pair.matchQuality
+      matchReason = pair.matchReason
+    }
+  } else if (wyscoutPlayer && !sportsbasePlayer && sportsbasePlayers.length) {
+    const pair = pairProviderPlayers(sportsbasePlayers, [wyscoutPlayer]).find(item=>item.sportsbase && item.wyscout)
+    if (pair) {
+      sportsbasePlayer = pair.sportsbase
+      matchQuality = pair.matchQuality
+      matchReason = pair.matchReason
+    }
+  }
+
   if (!sportsbasePlayer && !wyscoutPlayer) return { player:null, source:null, datasetPlayers:[], uploadedAt:null }
 
   if (sportsbasePlayer && wyscoutPlayer) {
@@ -70,7 +93,7 @@ function findPlayerContext(datasets, playerId) {
     const source = freshness.primary
     const datasetPlayers = source === 'sportsbase' ? sportsbasePlayers : wyscoutPlayers
     const uploadedAt = source === 'sportsbase' ? datasets.sportsbase?.uploadedAt : datasets.wyscout?.uploadedAt
-    const player = fusePlayerRecords(sportsbasePlayer, wyscoutPlayer, 1)
+    const player = fusePlayerRecords(sportsbasePlayer, wyscoutPlayer, matchQuality || 1, matchReason || 'profile_exact')
     return { player, source, datasetPlayers, uploadedAt, sourcePlayer:source === 'sportsbase' ? sportsbasePlayer : wyscoutPlayer }
   }
 
