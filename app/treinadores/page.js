@@ -5,6 +5,17 @@ import { useSession } from 'next-auth/react'
 import { BriefcaseBusiness, ExternalLink, FileUp, Link2, Plus, RefreshCw, Search, ShieldCheck, Star, Trash2, TrendingUp, Users } from 'lucide-react'
 import AppShell from '../components/layout/AppShell'
 
+
+async function readApiResponse(response) {
+  const raw = await response.text()
+  if (!raw) return {}
+  try { return JSON.parse(raw) } catch {
+    const cleaned = raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+    const message = cleaned && cleaned.length < 500 ? cleaned : 'A função da Vercel não retornou JSON. Tente novamente em alguns segundos.'
+    return { error: message || `Erro HTTP ${response.status}` }
+  }
+}
+
 const REC = {
   'Recomendado': 'bg-emerald-50 text-emerald-700 border-emerald-200',
   'Com Ressalvas': 'bg-amber-50 text-amber-700 border-amber-200',
@@ -78,7 +89,13 @@ export default function TreinadoresPage(){
   useEffect(()=>{load()},[])
   async function importTM(){
     if(!url.trim())return;setImporting(true);setError('')
-    try{const r=await fetch('/api/treinadores/import-transfermarkt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url.trim()})});const d=await r.json();if(!r.ok)throw new Error(d.error||'Falha ao importar');setUrl('');await load();router.push(`/treinadores/${d.id}`)}catch(e){setError(e.message)}finally{setImporting(false)}
+    try{
+      const r=await fetch('/api/treinadores/import-transfermarkt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url.trim()})})
+      const d=await readApiResponse(r)
+      if(!r.ok)throw new Error(d.error||`Falha ao importar (HTTP ${r.status})`)
+      if(!d?.id)throw new Error(d?.error||'O treinador foi processado, mas o sistema não recebeu o ID do dossiê.')
+      setUrl('');await load();router.push(`/treinadores/${d.id}`)
+    }catch(e){setError(e?.message||'Falha ao importar treinador.')}finally{setImporting(false)}
   }
   async function remove(id){if(!confirm('Excluir este treinador e o dossiê salvo?'))return;await fetch(`/api/treinadores/${id}`,{method:'DELETE'});load()}
   const filtered=useMemo(()=>coaches.filter(c=>{const text=`${c.nome} ${c.clube_atual} ${c.nacionalidade}`.toLowerCase();const okQ=text.includes(query.toLowerCase());const rec=c.recomendacao||c.relatorio_json?.recomendacao||'Em análise';return okQ&&(filter==='Todos'||filter===rec)}),[coaches,query,filter])

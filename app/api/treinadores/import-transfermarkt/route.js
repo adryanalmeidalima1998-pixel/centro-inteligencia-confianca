@@ -1,7 +1,6 @@
 import { sql } from '@vercel/postgres'
 import { ensureTreinadoresSchema } from '@/lib/treinadores-schema'
 import { scrapeTransfermarktTrainer } from '@/lib/transfermarkt-trainer'
-import { generateAutomaticCoachReport } from '@/lib/treinador-ai'
 
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
@@ -52,7 +51,7 @@ function initialReport(data) {
   const summary = `${data.nome_completo || data.nome}${data.idade ? `, ${data.idade} anos` : ''}, ${data.nacionalidade || 'treinador'}, possui ${careerGames} jogo(s) registrados no histórico importado e média de ${Number(ppj).toFixed(2).replace('.', ',')} ponto(s) por jogo.${data.formacao_preferida ? ` A formação preferencial indicada é ${data.formacao_preferida}.` : ''}${current}`
   return {
     analista: 'Adryan Almeida',
-    coordenador: '',
+    coordenador: 'Anthony Emanoel',
     clube_solicitante: 'Associação Desportiva Confiança — Aracaju / SE',
     cargo_avaliado: 'Treinador Principal',
     data_relatorio: new Date().toLocaleDateString('pt-BR'),
@@ -89,14 +88,14 @@ export async function POST(request) {
   try {
     await ensureTreinadoresSchema()
     const { url } = await request.json()
-    const d = await scrapeTransfermarktTrainer(url)
+    const d = await scrapeTransfermarktTrainer(url, { allowAiFallback:false })
     const existingRow = await sql`SELECT relatorio_json FROM treinadores WHERE transfermarkt_id = ${d.transfermarkt_id} OR nome = ${d.nome} LIMIT 1`
     const existingReport = existingRow.rows[0]?.relatorio_json || {}
-    let automatic = {}
-    if (process.env.OPENAI_API_KEY) {
-      try { automatic = await generateAutomaticCoachReport(d) } catch (err) { d.aviso_relatorio = err.message }
-    }
-    const finalReport = mergeAutoReport(initialReport(d), existingReport, automatic)
+    // O importador salva primeiro os dados factuais. A análise qualitativa por IA
+    // é executada na aba "Importar textos", evitando timeout em perfis longos.
+    const finalReport = mergeAutoReport(initialReport(d), existingReport, {})
+    if (!String(finalReport.coordenador || '').trim()) finalReport.coordenador = 'Anthony Emanoel'
+    if (!String(finalReport.analista || '').trim()) finalReport.analista = 'Adryan Almeida'
     const career = JSON.stringify(d.carreira || [])
     const games = JSON.stringify(d.jogos || [])
     const metrics = JSON.stringify(d.metricas || {})
