@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import AppShell from '../components/layout/AppShell'
 import { usePlayerPhotos } from '../hooks/usePlayerPhotos'
 import { PhotoSelectorModal } from '../components/photos/PhotoSelectorModal'
+import { CORPO_TECNICO_DEMO_ENABLED, buildDemoDmData, demoSquadPlayers } from '@/lib/demoCorpoTecnico'
 
 const STYLE = `
   .bc { font-family: 'Barlow Condensed', sans-serif; }
@@ -398,6 +399,37 @@ function TabStatusRecuperacao({ players, getPhotoUrl }) {
 
   const fetchRows = useCallback(async () => {
     setLoading(true)
+    if (CORPO_TECNICO_DEMO_ENABLED) {
+      const demoPlayers = (players || []).slice(0, 16)
+      const partida = 'Confiança 1 x 1 Maringá · DEMO'
+      const all = demoPlayers.map((p, i) => {
+        const recuperacao = i % 9 === 0 ? 6 : i % 5 === 0 ? 7 : 8 + (i % 3 === 0 ? 1 : 0)
+        const cmjEs = i % 8 === 0 ? -0.72 : i % 5 === 0 ? -0.36 : -0.08 + (i % 3) * 0.11
+        const pcrEs = i % 10 === 0 ? 0.74 : i % 6 === 0 ? 0.38 : 0.05 + (i % 4) * 0.08
+        const queda = i % 11 === 0 ? 17.2 : i % 6 === 0 ? 12.4 : 4.5 + (i % 4)
+        const ass = i % 13 === 0 ? 16.1 : 5.2 + (i % 5)
+        const cmjCor = cmjEs <= -0.6 ? 'Vermelho' : cmjEs <= -0.3 ? 'Amarelo' : 'Verde'
+        const pcrCor = pcrEs >= 0.6 ? 'Vermelho' : pcrEs >= 0.3 ? 'Amarelo' : 'Verde'
+        const forcaCor = queda > 15 || ass > 15 ? 'Vermelho' : queda > 10 ? 'Amarelo' : 'Verde'
+        return {
+          id:`demo-rec-${i+1}`, partida, data_partida:'2026-08-29', jogador:p.nome,
+          recuperacao_nota:recuperacao, recuperacao:recuperacao <= 6 ? 'Vermelho' : recuperacao === 7 ? 'Amarelo' : 'Verde',
+          cmj_valor:38.5 + (i % 7) * 1.1, cmj_es:cmjEs, cmj:cmjCor,
+          pcr_valor:3.9 + (i % 6) * 0.12, pcr_es:pcrEs, pcr:pcrCor,
+          forca_esquerda:385 + (i % 8) * 8, forca_direita:390 + (i % 7) * 7,
+          forca_absoluta:388 + (i % 8) * 7, forca_queda_pct:queda, forca_assimetria:ass, forca:forcaCor,
+          demo:true,
+        }
+      })
+      setRows(all)
+      setPartidas([{partida,data:'2026-08-29'}])
+      setPartidaSel(partida)
+      const cm={}, pm={}, fm={}
+      demoPlayers.forEach((p,i)=>{ const k=p.nome.toLowerCase().trim(); cm[k]=41+(i%6); pm[k]=3.7+(i%6)*.1; fm[k]={basal:430+(i%7)*6,absoluta:435+(i%5)*8} })
+      setCmjBasals(cm); setPcrBasals(pm); setForcaBasals(fm)
+      setLoading(false)
+      return
+    }
     try {
       const [srRes, cmjRes, pcrRes, forcaRes] = await Promise.all([
         fetch('/api/status-recuperacao'),
@@ -439,9 +471,9 @@ function TabStatusRecuperacao({ players, getPhotoUrl }) {
       })
       setForcaBasals(fm)
     } finally { setLoading(false) }
-  }, [partidaSel])
+  }, [partidaSel, players])
 
-  useEffect(() => { fetchRows() }, [])
+  useEffect(() => { fetchRows() }, [fetchRows])
 
   // Fecha picker ao clicar fora
   useEffect(() => {
@@ -454,6 +486,10 @@ function TabStatusRecuperacao({ players, getPhotoUrl }) {
   const rowsPartida = rows.filter(r => r.partida === partidaSel)
 
   async function upsert(row, patch) {
+    if (CORPO_TECNICO_DEMO_ENABLED || row?.demo) {
+      setRows(prev => prev.map(r => String(r.id) === String(row.id) ? { ...r, ...patch } : r))
+      return
+    }
     await fetch('/api/status-recuperacao', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -474,6 +510,10 @@ function TabStatusRecuperacao({ players, getPhotoUrl }) {
   }
 
   async function handleNovaPartida() {
+    if (CORPO_TECNICO_DEMO_ENABLED) {
+      alert('No modo demonstração, use a partida fictícia já carregada. Desative o modo demo para cadastrar dados reais.')
+      return
+    }
     if (!novaPartida.trim() || !novaData || jogadoresSel.length === 0) return
     setSaving(true)
     await fetch('/api/status-recuperacao', {
@@ -496,6 +536,9 @@ function TabStatusRecuperacao({ players, getPhotoUrl }) {
   }
 
   async function handleDeletePartida() {
+    if (CORPO_TECNICO_DEMO_ENABLED) {
+      setRows([]); setPartidas([]); setPartidaSel(''); setConfirmDel(null); return
+    }
     await fetch(`/api/status-recuperacao?partida=${encodeURIComponent(confirmDel)}`, { method: 'DELETE' })
     setConfirmDel(null)
     if (partidaSel === confirmDel) setPartidaSel('')
@@ -2358,6 +2401,14 @@ export default function DmPage() {
   // ── CARGA ──────────────────────────────────────────────────────────────────
   async function loadAll() {
     setLoading(true)
+    if (CORPO_TECNICO_DEMO_ENABLED) {
+      const demo = buildDemoDmData()
+      setCases(demo.cases)
+      setLogs(demo.logs)
+      setPlayers(demoSquadPlayers())
+      setLoading(false)
+      return
+    }
     try {
       const [dmRes, squadRes] = await Promise.all([
         fetch('/api/dm'),
@@ -2387,6 +2438,12 @@ export default function DmPage() {
   // ── SALVAR CASO ────────────────────────────────────────────────────────────
   async function saveCase() {
     if (!caseForm.jogador.trim()) return
+    if (CORPO_TECNICO_DEMO_ENABLED) {
+      const local = { ...caseForm, id: editId || `demo-local-case-${Date.now()}`, demo:true, observacoes: caseForm.observacoes || 'DADO FICTÍCIO — demonstração do fluxo do DM.' }
+      setCases(prev => editId ? prev.map(c => String(c.id)===String(editId) ? local : c) : [local, ...prev])
+      setShowCaseForm(false); setEditId(null); setCaseForm(emptyCase())
+      return
+    }
     setSaving(true)
     try {
       const url    = editId ? `/api/dm/${editId}` : '/api/dm'
@@ -2404,6 +2461,12 @@ export default function DmPage() {
   // ── SALVAR LOG ─────────────────────────────────────────────────────────────
   async function saveLog() {
     if (!logForm.jogador?.trim()) return
+    if (CORPO_TECNICO_DEMO_ENABLED) {
+      const local = { ...logForm, id: editLogId || `demo-local-log-${Date.now()}`, demo:true, observacoes: logForm.observacoes || 'DADO FICTÍCIO — demonstração do fluxo do DM.' }
+      setLogs(prev => editLogId ? prev.map(l => String(l.id)===String(editLogId) ? local : l) : [local, ...prev])
+      setShowLogForm(false); setLogForm(emptyLog()); setEditLogId(null)
+      return
+    }
     setSaving(true)
     try {
       const url    = editLogId ? `/api/dm/${editLogId}` : '/api/dm'
@@ -2419,6 +2482,7 @@ export default function DmPage() {
   }
 
   function editLog(l) {
+    if (l?.demo) { alert('Este registro é fictício e existe apenas para demonstração. Desative o modo demo para trabalhar com dados reais.'); return }
     setLogForm({
       data: l.data ? l.data.substring(0,10) : '',
       jogador: l.jogador||'', posicao: l.posicao||'', pe_dominante: l.pe_dominante||'',
@@ -2432,6 +2496,10 @@ export default function DmPage() {
   }
 
   async function deleteCase(id) {
+    if (String(id).startsWith('demo-')) {
+      setCases(prev => prev.filter(c => String(c.id) !== String(id)))
+      return
+    }
     try {
       const res = await fetch(`/api/dm/${id}?type=case`,{method:'DELETE'})
       const data = await res.json()
@@ -2441,6 +2509,10 @@ export default function DmPage() {
   }
 
   async function deleteLog(id) {
+    if (String(id).startsWith('demo-')) {
+      setLogs(prev => prev.filter(l => String(l.id) !== String(id)))
+      return
+    }
     try {
       const res = await fetch(`/api/dm/${id}?type=log`,{method:'DELETE'})
       const data = await res.json()
@@ -2450,6 +2522,7 @@ export default function DmPage() {
   }
 
   function editCase(c) {
+    if (c?.demo) { alert('Este caso é fictício e existe apenas para demonstração. Desative o modo demo para trabalhar com dados reais.'); return }
     setCaseForm({
       jogador: c.jogador||'', parte_corporal: c.parte_corporal||'', tipo_lesao: c.tipo_lesao||'',
       diagnostico: c.diagnostico||'', hd_texto: c.hd_texto||'', estagio: c.estagio||'',
@@ -2498,7 +2571,11 @@ export default function DmPage() {
               <span className="pulse-dot w-2 h-2 rounded-full bg-red-300" />
               <p className="text-[9px] font-black uppercase tracking-[0.4em] text-red-200">Departamento Médico</p>
             </div>
-            <h1 className="bc text-5xl font-black uppercase text-white leading-none mb-4">DM</h1>
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+              <h1 className="bc text-5xl font-black uppercase text-white leading-none">DM</h1>
+              {CORPO_TECNICO_DEMO_ENABLED && <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-red-100">Demonstração · casos fictícios</span>}
+            </div>
+            {CORPO_TECNICO_DEMO_ENABLED && <p className="mb-4 max-w-2xl text-[9px] font-semibold text-red-100/80">Os registros exibidos são cenários ilustrativos para apresentação da ferramenta e não representam condições médicas reais dos atletas.</p>}
             <div className="flex gap-3 flex-wrap items-center">
               <div className="flex items-center gap-2 bg-white/10 border border-white/20 rounded-xl px-3.5 py-2">
                 <span className="text-lg">🏥</span>

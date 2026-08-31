@@ -8,8 +8,70 @@ import { normTeamName, valueFromMetricAny } from '../../../../lib/serieC'
 
 const XG_ALIASES = ['Golos esperados', 'Gols esperados', 'xG', 'Expected goals']
 
+const MATCH_ALIASES = {
+  possession: ['Posse, %', 'Posse de bola, %', 'Posse'],
+  ppda: ['PPDA'],
+  shots: ['Remates / à baliza', 'Remates', 'Chutes'],
+  shotsOnTarget: ['Remates à baliza', 'Remates no alvo', 'Chutes no alvo'],
+  shotsAgainst: ['Remates contra / no alvo', 'Remates contra', 'Chutes contra'],
+  shotsAgainstOnTarget: ['Remates contra no alvo', 'Remates contra / no alvo'],
+  xg: XG_ALIASES,
+  boxEntries: ['Entradas na grande área', 'Entradas na área', 'Entradas na grande área (corridas/cruzamentos)'],
+  progressivePasses: ['Passes progressivos / precisos', 'Passes progressivos'],
+  finalThirdPasses: ['Passes para terço final / certos', 'Passes para terço final', 'Passes para o terço final'],
+  recoveries: ['Recuperações', 'Recuperacoes'],
+  intensity: ['Intensidade de jogo'],
+}
+function avgNumbers(values) {
+  const valid = values.filter(v => Number.isFinite(Number(v))).map(Number)
+  return valid.length ? valid.reduce((a,b)=>a+b,0)/valid.length : null
+}
+function aggregateConfiancaMatchStats(rows) {
+  const games=[]
+  for (const row of rows || []) {
+    const home=isGuaraniSide(row.home_team,row.home_code)
+    const away=isGuaraniSide(row.away_team,row.away_code)
+    if(!home && !away) continue
+    const own=home ? (row.home_metrics||{}) : (row.away_metrics||{})
+    const opp=home ? (row.away_metrics||{}) : (row.home_metrics||{})
+    const metric=(aliases,obj=own)=>valueFromMetricAny(obj,aliases)
+    games.push({
+      round:Number(row.round)||null,
+      date:row.match_date,
+      opponent:home?row.away_team:row.home_team,
+      goalsFor:Number(home?row.home_score:row.away_score)||0,
+      goalsAgainst:Number(home?row.away_score:row.home_score)||0,
+      possession:metric(MATCH_ALIASES.possession),
+      ppda:metric(MATCH_ALIASES.ppda),
+      shots:metric(MATCH_ALIASES.shots),
+      shotsOnTarget:metric(MATCH_ALIASES.shotsOnTarget),
+      shotsAgainst:metric(MATCH_ALIASES.shotsAgainst) ?? metric(MATCH_ALIASES.shots,opp),
+      shotsAgainstOnTarget:metric(MATCH_ALIASES.shotsAgainstOnTarget) ?? metric(MATCH_ALIASES.shotsOnTarget,opp),
+      xg:metric(MATCH_ALIASES.xg),
+      xga:metric(MATCH_ALIASES.xg,opp),
+      boxEntries:metric(MATCH_ALIASES.boxEntries),
+      progressivePasses:metric(MATCH_ALIASES.progressivePasses),
+      finalThirdPasses:metric(MATCH_ALIASES.finalThirdPasses),
+      recoveries:metric(MATCH_ALIASES.recoveries),
+      intensity:metric(MATCH_ALIASES.intensity),
+    })
+  }
+  if(!games.length) return null
+  return {
+    source:'partidas-wyscout', matches:games.length,
+    goalsFor:games.reduce((a,g)=>a+g.goalsFor,0), goalsAgainst:games.reduce((a,g)=>a+g.goalsAgainst,0),
+    possession:avgNumbers(games.map(g=>g.possession)), ppda:avgNumbers(games.map(g=>g.ppda)),
+    shots:avgNumbers(games.map(g=>g.shots)), shotsOnTarget:avgNumbers(games.map(g=>g.shotsOnTarget)),
+    shotsAgainst:avgNumbers(games.map(g=>g.shotsAgainst)), shotsAgainstOnTarget:avgNumbers(games.map(g=>g.shotsAgainstOnTarget)),
+    xg:avgNumbers(games.map(g=>g.xg)), xga:avgNumbers(games.map(g=>g.xga)),
+    boxEntries:avgNumbers(games.map(g=>g.boxEntries)), progressivePasses:avgNumbers(games.map(g=>g.progressivePasses)),
+    finalThirdPasses:avgNumbers(games.map(g=>g.finalThirdPasses)), recoveries:avgNumbers(games.map(g=>g.recoveries)),
+    intensity:avgNumbers(games.map(g=>g.intensity)), games,
+  }
+}
+
 function isGuaraniSide(team, code) {
-  return normTeamName(team).includes('CONFIANÇA') || normTeamName(code) === 'CON'
+  return normTeamName(team).includes('CONFIANCA') || normTeamName(code) === 'CON'
 }
 
 function expectedPerformanceFromMatches(rows, standingsGuarani) {
@@ -142,7 +204,7 @@ export async function GET(request) {
         FROM serie_c_competition_matches
         WHERE season = ${currentUpload.season} AND competition = ${currentUpload.competition}
           AND round IS NOT NULL AND round <= ${currentUpload.round}
-          AND (home_team ILIKE '%Confiança%' OR away_team ILIKE '%Confiança%' OR home_code = 'CON' OR away_code = 'CON')
+          AND (home_team ILIKE '%Confiança%' OR away_team ILIKE '%Confiança%' OR home_team ILIKE '%Confianca%' OR away_team ILIKE '%Confianca%' OR home_code = 'CON' OR away_code = 'CON')
         ORDER BY round ASC, match_date ASC
       `,
       sql`
@@ -155,11 +217,12 @@ export async function GET(request) {
       `,
     ])
     const standingsRows = Array.isArray(standingsRes.rows[0]?.rows) ? standingsRes.rows[0].rows : []
-    const standingsGuarani = standingsRows.find(row => normTeamName(row?.team).includes('CONFIANÇA')) || null
+    const standingsGuarani = standingsRows.find(row => normTeamName(row?.team).includes('CONFIANCA')) || null
     const seasonReport = standingsRes.rows[0]?.report_data && typeof standingsRes.rows[0].report_data === 'object'
       ? standingsRes.rows[0].report_data
       : {}
     const expectedPerformance = expectedPerformanceFromMatches(matchXgRes.rows, standingsGuarani)
+    const teamMatchStats = aggregateConfiancaMatchStats(matchXgRes.rows)
 
     const reportHistoryRes = await sql`
       SELECT round, rows, report_data, reference_date
@@ -170,7 +233,7 @@ export async function GET(request) {
     `
     const seasonReportTimeline = reportHistoryRes.rows.map(snapshot => {
       const rows = Array.isArray(snapshot.rows) ? snapshot.rows : []
-      const guarani = rows.find(row => normTeamName(row?.team).includes('CONFIANÇA')) || null
+      const guarani = rows.find(row => normTeamName(row?.team).includes('CONFIANCA')) || null
       return {
         round: Number(snapshot.round),
         referenceDate: snapshot.reference_date,
@@ -210,6 +273,7 @@ export async function GET(request) {
       reportExcludedPlayers: exclusionsRes.rows.map(row => row.player),
       timeline,
       expectedPerformance,
+      teamMatchStats,
       standingsGuarani,
       seasonReport,
       seasonReportTimeline,

@@ -12,6 +12,9 @@ import { useTeamCrest } from '../hooks/useTeamCrest'
 export default function TeamCrest({ name, size = 32, className = '', style = {} }) {
   const { url, loading } = useTeamCrest(name)
 
+  const normalized = String(name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()
+  const localConfianca = normalized.includes('CONFIANCA')
+
   const initials = (name || '').split(' ')
     .map(w => w[0]).join('').substring(0, 2).toUpperCase()
 
@@ -20,6 +23,10 @@ export default function TeamCrest({ name, size = 32, className = '', style = {} 
     height: size,
     flexShrink: 0,
     ...style,
+  }
+
+  if (localConfianca) {
+    return <img src="/confianca.png" alt={name || 'Confiança'} className={`object-contain ${className}`} style={baseStyle} />
   }
 
   if (loading) {

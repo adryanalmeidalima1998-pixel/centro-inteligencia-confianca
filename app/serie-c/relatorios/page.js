@@ -271,7 +271,7 @@ export default function RelatoriosPage() {
 
           {aba === 'elenco' && <RelatorioElenco report={elencoReport} photoFor={photos.getPhotoUrl} />}
 
-          {aba === 'coletivo' && <RelatorioColetivo teams={teams} seasonReport={data?.seasonReport} physical={physical} golsLado={golsLado} teamReport={teamReport} />}
+          {aba === 'coletivo' && <RelatorioColetivo teams={teams} seasonReport={data?.seasonReport} teamMatchStats={data?.teamMatchStats} physical={physical} golsLado={golsLado} teamReport={teamReport} />}
         </>}
       </div>
 
