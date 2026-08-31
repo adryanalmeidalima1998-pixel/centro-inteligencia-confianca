@@ -14,6 +14,18 @@ function Section({title,desc,children}){return <section className="rounded-2xl b
 function Field({label,value,onChange,rows=4,placeholder=''}){return <label className="block"><span className="mb-1.5 block text-[9px] font-black uppercase tracking-[.14em] text-slate-400">{label}</span>{rows===1?<input value={value||''} onChange={e=>onChange(e.target.value)} placeholder={placeholder} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-700 outline-none focus:border-[#0a66b7]"/>:<textarea value={value||''} onChange={e=>onChange(e.target.value)} rows={rows} placeholder={placeholder} className="w-full resize-y rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs leading-relaxed text-slate-700 outline-none focus:border-[#0a66b7]"/>}</label>}
 function StarsEdit({value,onChange,disabled}){return <div className="flex gap-1">{[1,2,3,4,5].map(n=><button disabled={disabled} type="button" key={n} onClick={()=>onChange(n)} className="disabled:cursor-default"><Star size={17} className={n<=Number(value||0)?'fill-amber-400 text-amber-400':'text-slate-200'}/></button>)}</div>}
 
+
+async function readApiJson(response){
+ const raw=await response.text()
+ if(!raw)return {}
+ try{return JSON.parse(raw)}catch{}
+ const compact=raw.replace(/\s+/g,' ').trim()
+ if(/an error occurred|function invocation|internal server error/i.test(compact)){
+  throw new Error('O servidor encerrou a interpretação antes de concluir. Tente novamente; se o material for muito grande, importe em duas partes.')
+ }
+ throw new Error(compact.slice(0,260)||'O servidor retornou uma resposta inválida.')
+}
+
 function normalizeReport(report={}){
  return {
   analista:'Adryan Almeida',coordenador:'',clube_solicitante:'Associação Desportiva Confiança — Aracaju / SE',cargo_avaliado:'Treinador Principal',data_relatorio:new Date().toLocaleDateString('pt-BR'),resumo_executivo:'',titulos_principais:'',jogos_analisados:[],
@@ -33,14 +45,14 @@ export default function CoachDossier(){
  const setR=(key,value)=>setReport(p=>({...p,[key]:value}))
  const setModel=(key,value)=>setReport(p=>({...p,modelo_jogo:{...p.modelo_jogo,[key]:value}}))
  async function save(){if(!canEdit)return;setSaving(true);setSaved(false);const r=await fetch(`/api/treinadores/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({relatorio_json:report,recomendacao:report.recomendacao,estrelas:coach?.estrelas||null,estilo_jogo:coach?.estilo_jogo||null,forcas:(report.pontos_fortes||[]).map(x=>x.titulo).filter(Boolean).join(' · '),fraquezas:(report.pontos_melhoria||[]).map(x=>x.titulo).filter(Boolean).join(' · ')})});if(r.ok){setSaved(true);setTimeout(()=>setSaved(false),1800);setCoach(p=>({...p,recomendacao:report.recomendacao,relatorio_json:report}))}else{const d=await r.json();setMessage(d.error||'Erro ao salvar')}setSaving(false)}
- async function refreshTM(){if(!coach?.transfermarkt_url)return;setRefreshing(true);setMessage('');try{const r=await fetch('/api/treinadores/import-transfermarkt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:coach.transfermarkt_url})});const d=await r.json();if(!r.ok)throw new Error(d.error||'Falha ao atualizar');await load();setMessage('Dados públicos atualizados. A análise interna foi preservada.')}catch(e){setMessage(e.message)}finally{setRefreshing(false)}}
+ async function refreshTM(){if(!coach?.transfermarkt_url)return;setRefreshing(true);setMessage('');try{const r=await fetch('/api/treinadores/import-transfermarkt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:coach.transfermarkt_url})});const d=await readApiJson(r);if(!r.ok)throw new Error(d.error||'Falha ao atualizar');await load();setMessage('Dados públicos atualizados. A análise interna foi preservada.')}catch(e){setMessage(e.message)}finally{setRefreshing(false)}}
 
  async function interpretTexts(){
   if(!canEdit||sourceText.trim().length<40){setMessage('Cole um texto completo para o sistema interpretar.');return}
   setInterpreting(true);setMessage('')
   try{
    const r=await fetch(`/api/treinadores/${id}/interpretar-textos`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({texto:sourceText,titulo:sourceTitle,url:sourceUrl})})
-   const d=await r.json(); if(!r.ok)throw new Error(d.error||'Falha ao interpretar o texto')
+   const d=await readApiJson(r); if(!r.ok)throw new Error(d.error||'Falha ao interpretar o texto')
    const next=normalizeReport(d.report||{}); setReport(next); setCoach(p=>({...p,relatorio_json:next,recomendacao:next.recomendacao,sistemas_jogo:(d.analysis?.sistemas_taticos||[]).map(x=>x.sistema)}));
    setSourceText('');setSourceTitle('');setSourceUrl('');setMessage('Texto interpretado e campos do relatório preenchidos automaticamente.');setTab('modelo')
   }catch(e){setMessage(e.message)}finally{setInterpreting(false)}

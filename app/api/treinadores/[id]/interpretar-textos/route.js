@@ -89,6 +89,11 @@ export async function POST(request, { params }) {
 
     return Response.json({ success:true, report, analysis, source:sourceMeta })
   } catch (err) {
-    return Response.json({ error:err.message || 'Falha ao interpretar os textos.' }, { status:500 })
+    const status = Number(err?.status) || (err?.name === 'AbortError' ? 504 : 500)
+    console.error('[treinadores/interpretar-textos]', err)
+    return Response.json({
+      error: err?.message || 'Falha ao interpretar os textos.',
+      code: status === 504 ? 'AI_TIMEOUT' : status === 429 ? 'AI_LIMIT' : 'AI_ERROR'
+    }, { status: status >= 400 && status <= 599 ? status : 500 })
   }
 }
