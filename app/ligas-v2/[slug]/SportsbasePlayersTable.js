@@ -663,6 +663,10 @@ export default function SportsbasePlayersTable({ slug, ligaNome = '', source = '
         <strong>🔗 Integração automática ativa.</strong> {fusionQuality.paired||0} atletas pareados entre as duas fontes ({fusionQuality.high_confidence_paired||0} em alta confiança) · {fusionQuality.sportsbase_only||0} somente Sportsbase · {fusionQuality.wyscout_only||0} somente Wyscout{fusionQuality.ambiguous?` · ${fusionQuality.ambiguous} ambíguo(s) mantido(s) separado(s)`:''}. Nomes abreviados, como <b>K. Viveros</b>, são validados por sobrenome/inicial + clube + idade + posição/nacionalidade antes da fusão.
       </div>}
 
+      {provider==='combined'&&fusionQuality&&<div style={{padding:'9px 12px',marginBottom:12,borderRadius:9,background:'#eef6ff',border:'1px solid #c9ddf8',color:'#24558a',fontSize:10,lineHeight:1.45}}>
+        <strong>🔗 Integração automática ativa.</strong> {fusionQuality.paired||0} atletas pareados entre as duas fontes ({fusionQuality.high_confidence_paired||0} em alta confiança) · {fusionQuality.sportsbase_only||0} somente Sportsbase · {fusionQuality.wyscout_only||0} somente Wyscout{fusionQuality.ambiguous?` · ${fusionQuality.ambiguous} ambíguo(s) mantido(s) separado(s)`:''}. Nomes abreviados, como <b>K. Viveros</b>, são validados por sobrenome/inicial + clube + idade + posição/nacionalidade antes da fusão.
+      </div>}
+
       {!meta?.hasGoalkeepers && <div style={{ padding:'9px 12px', marginBottom:12, borderRadius:9, background:'#fff7ed', border:'1px solid #fed7aa', color:'#c2410c', fontSize:10 }}>⚠ O arquivo não contém goleiros. O ranking e a Seleção do Campeonato de GK permanecem indisponíveis até um export específico.</div>}
 
       <div style={{ display:'flex', justifyContent:'space-between', gap:10, alignItems:'center', marginBottom:10, flexWrap:'wrap' }}>
