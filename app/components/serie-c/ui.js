@@ -1,7 +1,7 @@
 // app/components/serie-c/ui.js
 // Peças pequenas e reutilizáveis da área Série C | Estatísticas:
 // MetricModeToggle, RankingBadge, PercentileBadge, MetricCard, EmptyState,
-// ErrorState, GuaraniTag. Tudo no mesmo arquivo pra facilitar import.
+// ErrorState, ClubTag. Tudo no mesmo arquivo pra facilitar import.
 'use client'
 
 export function MetricModeToggle({ mode, onChange }) {
@@ -91,7 +91,7 @@ export function VariationBadge({ value }) {
   )
 }
 
-export function GuaraniTag() {
+export function ClubTag() {
   return (
     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-sky-600 text-white text-[8px] font-black uppercase tracking-widest">
       Confiança

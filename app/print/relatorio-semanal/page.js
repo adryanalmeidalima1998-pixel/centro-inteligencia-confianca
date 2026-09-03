@@ -3,8 +3,8 @@
 import { useState, useEffect, useMemo, Suspense } from 'react'
 
 // ─── CORES CIC ─────────────────────────────────────────────────────────────────
-const GFC  = '#0a66b7'
-const GFC2 = '#064b82'
+const BRAND_PRIMARY  = '#0a66b7'
+const BRAND_DARK = '#064b82'
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────────
 function safeDate(v) {
@@ -81,7 +81,7 @@ function Badge({ text, bg, color }) {
   )
 }
 
-function Kpi({ label, value, sub, color = GFC, bg = '#f0fdf4', border = '#bbf7d0' }) {
+function Kpi({ label, value, sub, color = BRAND_PRIMARY, bg = '#f0fdf4', border = '#bbf7d0' }) {
   return (
     <div style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 10, padding: '10px 14px' }}>
       <div style={{ fontSize: 7, fontWeight: 900, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 4 }}>{label}</div>
@@ -91,7 +91,7 @@ function Kpi({ label, value, sub, color = GFC, bg = '#f0fdf4', border = '#bbf7d0
   )
 }
 
-function SecTitle({ children, accent = GFC }) {
+function SecTitle({ children, accent = BRAND_PRIMARY }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
       <div style={{ width: 3, height: 14, background: accent, borderRadius: 2, flexShrink: 0 }} />
@@ -100,7 +100,7 @@ function SecTitle({ children, accent = GFC }) {
   )
 }
 
-function Avatar({ name, color = GFC }) {
+function Avatar({ name, color = BRAND_PRIMARY }) {
   const initial = (name || '?')[0].toUpperCase()
   return (
     <div style={{ width: 28, height: 28, borderRadius: '50%', background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -290,13 +290,13 @@ function PrintContent() {
     </div>
   )
 
-  const stripe = { position: 'absolute', top: 0, left: 0, right: 0, height: 5, background: `linear-gradient(90deg,${GFC} 0%,#22c55e 55%,#1e293b 100%)` }
+  const stripe = { position: 'absolute', top: 0, left: 0, right: 0, height: 5, background: `linear-gradient(90deg,${BRAND_PRIMARY} 0%,#22c55e 55%,#1e293b 100%)` }
   const page   = { width: 794, background: 'white', padding: '28px 32px', position: 'relative', fontFamily: "'Inter',sans-serif" }
 
   const ALERTA_CFG = {
     critico: { bg: '#fef2f2', border: '#fecaca', dot: '#ef4444', tag: 'CRÍTICO',  tagBg: '#fee2e2', tagColor: '#991b1b' },
     atencao: { bg: '#fffbeb', border: '#fde68a', dot: '#f59e0b', tag: 'ATENÇÃO',  tagBg: '#fef3c7', tagColor: '#92400e' },
-    ok:      { bg: '#f0fdf4', border: '#bbf7d0', dot: GFC,       tag: 'INFO',     tagBg: '#dcfce7', tagColor: '#166534' },
+    ok:      { bg: '#f0fdf4', border: '#bbf7d0', dot: BRAND_PRIMARY,       tag: 'INFO',     tagBg: '#dcfce7', tagColor: '#166534' },
   }
 
   return (
@@ -319,7 +319,7 @@ function PrintContent() {
 
       {/* Botões tela */}
       <div className="no-print" style={{ position: 'fixed', top: 16, right: 16, zIndex: 9999, display: 'flex', gap: 8 }}>
-        <button onClick={() => window.print()} style={{ background: GFC, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 22px', fontWeight: 900, fontSize: 13, cursor: 'pointer', textTransform: 'uppercase', fontFamily: 'Inter,sans-serif' }}>
+        <button onClick={() => window.print()} style={{ background: BRAND_PRIMARY, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 22px', fontWeight: 900, fontSize: 13, cursor: 'pointer', textTransform: 'uppercase', fontFamily: 'Inter,sans-serif' }}>
           🖨️ Salvar PDF
         </button>
         <button onClick={() => window.close()} style={{ background: '#1e293b', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
@@ -332,7 +332,7 @@ function PrintContent() {
         <div style={stripe} />
 
         {/* Capa header */}
-        <div style={{ background: GFC2, borderRadius: 12, padding: '20px 24px', marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: BRAND_DARK, borderRadius: 12, padding: '20px 24px', marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <img src="/confianca.png" alt="" style={{ height: 52, width: 'auto' }} />
             <div>
@@ -351,9 +351,9 @@ function PrintContent() {
         <div style={{ marginBottom: 14 }}>
           <SecTitle>Resumo Executivo</SecTitle>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
-            <Kpi label="Ligas Monitoradas" value={ligasV2.length}                        sub="com dados Wyscout"   color={GFC}       bg="#f0fdf4"  border="#bbf7d0" />
+            <Kpi label="Ligas Monitoradas" value={ligasV2.length}                        sub="com dados Wyscout"   color={BRAND_PRIMARY}       bg="#f0fdf4"  border="#bbf7d0" />
             <Kpi label="Atletas na Base"    value={totalJogs.toLocaleString('pt-BR')}    sub="base total"          color="#1d4ed8"   bg="#eff6ff"  border="#bfdbfe" />
-            <Kpi label="Em Monitoramento"   value={ativos.length}                        sub="atletas ativos"      color={GFC}       bg="#f0fdf4"  border="#bbf7d0" />
+            <Kpi label="Em Monitoramento"   value={ativos.length}                        sub="atletas ativos"      color={BRAND_PRIMARY}       bg="#f0fdf4"  border="#bbf7d0" />
             <Kpi label="Jogadores Dest."    value={destacados.length}                    sub="avaliados em campo"  color="#92400e"   bg="#fffbeb"  border="#fde68a" />
             <Kpi label="Lista Final CIC"    value={listaFinal.length}                    sub="relatórios finais"   color="#991b1b"   bg="#fef2f2"  border="#fecaca" />
             <Kpi label="Observações"        value={todasPartidas.length}                 sub="jogos registrados"   color="#475569"   bg="#f8fafc"  border="#e2e8f0" />
@@ -455,7 +455,7 @@ function PrintContent() {
                     const contratoAlerta = diasContrato !== null && diasContrato <= 60
                     return (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', borderBottom: '1px solid #f1f5f9' }}>
-                        <div style={{ width: 22, height: 22, borderRadius: '50%', background: GFC, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <div style={{ width: 22, height: 22, borderRadius: '50%', background: BRAND_PRIMARY, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           <span style={{ fontSize: 9, fontWeight: 900, color: 'white' }}>{(a.apelido || a.nome || '?')[0].toUpperCase()}</span>
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -564,7 +564,7 @@ function PrintContent() {
             {partidasSemana.length > 0 && (
               <div style={{ marginBottom: 6 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
-                  <div style={{ width: 3, height: 14, background: GFC, borderRadius: 2 }} />
+                  <div style={{ width: 3, height: 14, background: BRAND_PRIMARY, borderRadius: 2 }} />
                   <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#334155' }}>
                     Partidas da semana — {partidasSemana.length} jogo{partidasSemana.length > 1 ? 's' : ''}
                   </span>
@@ -604,7 +604,7 @@ function PrintContent() {
                                 const vc = verdColor(jog.veredito)
                                 return (
                                   <div key={ji} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'white', border: '1px solid #e8f4ec', borderRadius: 7, padding: '4px 8px' }}>
-                                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: GFC, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: BRAND_PRIMARY, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                       <span style={{ fontSize: 8, fontWeight: 900, color: 'white' }}>{(jog.nome || '?')[0].toUpperCase()}</span>
                                     </div>
                                     <div>
@@ -660,7 +660,7 @@ function PrintContent() {
               const vc = verdColor(j.veredito)
               return (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, background: i % 2 === 0 ? 'white' : '#f8fafc', border: '1px solid #f1f5f9', borderRadius: 9, padding: '8px 12px' }}>
-                  <Avatar name={j.nome} color={GFC} />
+                  <Avatar name={j.nome} color={BRAND_PRIMARY} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 9, fontWeight: 800, color: '#1a2e1a' }}>{j.nome || '—'}</div>
                     <div style={{ fontSize: 7, color: '#64748b', marginTop: 2 }}>{j.time_nome || '—'} · {j.posicao || '—'}</div>
@@ -788,7 +788,7 @@ function PrintContent() {
                             </span>
                           ) : <span style={{ color: '#cbd5e1', fontSize: 7 }}>—</span>}
                         </td>
-                        <td style={{ padding: '5px 8px', borderRight: '1px solid #f1f5f9', fontSize: 7.5, fontWeight: 700, color: GFC, whiteSpace: 'nowrap' }}>
+                        <td style={{ padding: '5px 8px', borderRight: '1px solid #f1f5f9', fontSize: 7.5, fontWeight: 700, color: BRAND_PRIMARY, whiteSpace: 'nowrap' }}>
                           {a.valor_mercado || '—'}
                         </td>
                         <td style={{ padding: '5px 8px' }}>
@@ -886,7 +886,7 @@ function PrintContent() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
               {comparacoes.slice(0, 6).map((c, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: i % 2 === 0 ? 'white' : '#f8fafc', border: '1px solid #f1f5f9', borderRadius: 9, padding: '7px 12px' }}>
-                  <Avatar name={c.nomeA} color={GFC} />
+                  <Avatar name={c.nomeA} color={BRAND_PRIMARY} />
                   <div style={{ flex: 1 }}>
                     <span style={{ fontSize: 8.5, fontWeight: 800, color: '#1a2e1a' }}>{c.nomeA || '—'}</span>
                     <span style={{ fontSize: 7, color: '#94a3b8', margin: '0 6px' }}>vs</span>

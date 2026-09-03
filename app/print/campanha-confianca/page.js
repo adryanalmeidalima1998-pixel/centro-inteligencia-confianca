@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo, Suspense } from 'react'
 
-const GFC  = '#0a66b7'
-const GFC2 = '#064b82'
+const BRAND_PRIMARY  = '#0a66b7'
+const BRAND_DARK = '#064b82'
 const RED  = '#c62828'
 const AMB  = '#b45309'
 const BLUE = '#1565c0'
@@ -21,7 +21,7 @@ function Badge({ text, bg, color, size = 7 }) {
   )
 }
 
-function Kpi({ label, value, sub, color = GFC, bg = '#f0fdf4', border = '#bbf7d0' }) {
+function Kpi({ label, value, sub, color = BRAND_PRIMARY, bg = '#f0fdf4', border = '#bbf7d0' }) {
   return (
     <div style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 8, padding: '8px 10px' }}>
       <div style={{ fontSize: 6.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 3 }}>{label}</div>
@@ -31,7 +31,7 @@ function Kpi({ label, value, sub, color = GFC, bg = '#f0fdf4', border = '#bbf7d0
   )
 }
 
-function SecTitle({ children, accent = GFC }) {
+function SecTitle({ children, accent = BRAND_PRIMARY }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
       <div style={{ width: 3, height: 14, background: accent, borderRadius: 2, flexShrink: 0 }} />
@@ -86,7 +86,7 @@ function GraficoLinha({ sorted, width = 730, height = 200 }) {
   const linePath = sorted.map((h, i) => `${i === 0 ? 'M' : 'L'} ${xOf(i)} ${yOf(h.posicao)}`).join(' ')
   const areaPath = `${linePath} L ${xOf(n - 1)} ${mg.top + ch} L ${xOf(0)} ${mg.top + ch} Z`
 
-  const RES_COLOR = { V: GFC, E: AMB, D: RED }
+  const RES_COLOR = { V: BRAND_PRIMARY, E: AMB, D: RED }
 
   // Linha G8 y
   const yG8 = yOf(8)
@@ -95,17 +95,17 @@ function GraficoLinha({ sorted, width = 730, height = 200 }) {
     <svg width={width} height={height} style={{ display: 'block', overflow: 'visible' }}>
       <defs>
         <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={GFC} stopOpacity="0.12" />
-          <stop offset="100%" stopColor={GFC} stopOpacity="0.01" />
+          <stop offset="0%" stopColor={BRAND_PRIMARY} stopOpacity="0.12" />
+          <stop offset="100%" stopColor={BRAND_PRIMARY} stopOpacity="0.01" />
         </linearGradient>
         <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor={GFC} floodOpacity="0.15" />
+          <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor={BRAND_PRIMARY} floodOpacity="0.15" />
         </filter>
       </defs>
 
       {/* Faixa G8 */}
       <rect x={mg.left} y={mg.top} width={cw} height={yG8 - mg.top}
-        fill={GFC} fillOpacity="0.06" />
+        fill={BRAND_PRIMARY} fillOpacity="0.06" />
 
       {/* Grid horizontal */}
       {Array.from({ length: Math.ceil(maxPos) }, (_, i) => i + 1).filter(p => p % 2 === 0 || p === 1).map(p => {
@@ -113,15 +113,15 @@ function GraficoLinha({ sorted, width = 730, height = 200 }) {
         return (
           <g key={p}>
             <line x1={mg.left} y1={y} x2={mg.left + cw} y2={y}
-              stroke={p === 8 ? GFC : '#f4f8fc'} strokeWidth={p === 8 ? 0 : 0.6} />
+              stroke={p === 8 ? BRAND_PRIMARY : '#f4f8fc'} strokeWidth={p === 8 ? 0 : 0.6} />
           </g>
         )
       })}
 
       {/* Linha de corte G8 */}
       <line x1={mg.left} y1={yG8} x2={mg.left + cw} y2={yG8}
-        stroke={GFC} strokeWidth={1} strokeDasharray="5 3" opacity="0.6" />
-      <text x={mg.left + cw + 4} y={yG8 + 3} fontSize="7" fill={GFC} fontWeight="700">G8</text>
+        stroke={BRAND_PRIMARY} strokeWidth={1} strokeDasharray="5 3" opacity="0.6" />
+      <text x={mg.left + cw + 4} y={yG8 + 3} fontSize="7" fill={BRAND_PRIMARY} fontWeight="700">G8</text>
 
       {/* Labels eixo Y */}
       {[1, 4, 8, 12].filter(p => p <= maxPos + 1).map(p => (
@@ -133,7 +133,7 @@ function GraficoLinha({ sorted, width = 730, height = 200 }) {
       <path d={areaPath} fill="url(#areaGrad)" />
 
       {/* Linha principal */}
-      <path d={linePath} fill="none" stroke={GFC} strokeWidth="2.5"
+      <path d={linePath} fill="none" stroke={BRAND_PRIMARY} strokeWidth="2.5"
         strokeLinecap="round" strokeLinejoin="round" filter="url(#shadow)" />
 
       {/* Labels eixo X */}
@@ -162,11 +162,11 @@ function GraficoLinha({ sorted, width = 730, height = 200 }) {
             <text x={cx} y={cy + 3.5} fontSize="7.5" fill={col}
               textAnchor="middle" fontWeight="900">{h.resultado}</text>
             {isLider && (
-              <text x={cx} y={cy - r - 4} fontSize="7" fill={GFC}
+              <text x={cx} y={cy - r - 4} fontSize="7" fill={BRAND_PRIMARY}
                 textAnchor="middle" fontWeight="800">Liderança</text>
             )}
             {isEntrou && !isLider && (
-              <text x={cx} y={cy - r - 4} fontSize="6.5" fill={GFC}
+              <text x={cx} y={cy - r - 4} fontSize="6.5" fill={BRAND_PRIMARY}
                 textAnchor="middle" fontWeight="700">Entrou G8</text>
             )}
           </g>
@@ -319,7 +319,7 @@ function CampanhaContent() {
   const st = useMemo(() => calcStats(sorted), [sorted])
   const geradoEm = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
   const TOTAL = 6
-  const stripe = { position: 'absolute', top: 0, left: 0, right: 0, height: 5, background: `linear-gradient(90deg,${GFC} 0%,#22c55e 55%,#1e293b 100%)` }
+  const stripe = { position: 'absolute', top: 0, left: 0, right: 0, height: 5, background: `linear-gradient(90deg,${BRAND_PRIMARY} 0%,#22c55e 55%,#1e293b 100%)` }
   const page = { width: 794, background: 'white', padding: '28px 32px 20px', position: 'relative', fontFamily: "'Inter',sans-serif", display: 'flex', flexDirection: 'column', minHeight: 1060 }
 
   if (loading) return (
@@ -389,7 +389,7 @@ function CampanhaContent() {
 
       {/* Botões tela */}
       <div className="no-print" style={{ position: 'fixed', top: 16, right: 16, zIndex: 9999, display: 'flex', gap: 7 }}>
-        <button onClick={() => window.print()} style={{ background: GFC, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 22px', fontWeight: 900, fontSize: 13, cursor: 'pointer', textTransform: 'uppercase', fontFamily: 'Inter,sans-serif' }}>
+        <button onClick={() => window.print()} style={{ background: BRAND_PRIMARY, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 22px', fontWeight: 900, fontSize: 13, cursor: 'pointer', textTransform: 'uppercase', fontFamily: 'Inter,sans-serif' }}>
           🖨️ Salvar PDF
         </button>
         <button onClick={() => window.close()} style={{ background: '#1e293b', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
@@ -402,7 +402,7 @@ function CampanhaContent() {
         <div style={stripe} />
 
         {/* Capa */}
-        <div style={{ background: GFC2, borderRadius: 12, padding: '16px 20px', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: BRAND_DARK, borderRadius: 12, padding: '16px 20px', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <img src="/confianca.png" alt="" style={{ height: 52, width: 'auto' }} />
             <div>
@@ -424,7 +424,7 @@ function CampanhaContent() {
           <Kpi label="Posição atual"   value={`${st.posAtual}°`}                     color={st.posAtual <= 8 ? '#166534' : '#991b1b'} bg={st.posAtual <= 8 ? '#dcfce7' : '#fee2e2'} border={st.posAtual <= 8 ? '#86efac' : '#fecaca'} />
           <Kpi label="Melhor"          value={`${st.melhor}°`}                        color="#166534"  bg="#dcfce7"  border="#86efac" />
           <Kpi label="Pior"            value={`${st.pior}°`}                          color="#991b1b"  bg="#fee2e2"  border="#fecaca" />
-          <Kpi label="Pts acumulados"  value={st.ptsAcum}                             color={GFC}      bg="#f0fdf4"  border="#bbf7d0" />
+          <Kpi label="Pts acumulados"  value={st.ptsAcum}                             color={BRAND_PRIMARY}      bg="#f0fdf4"  border="#bbf7d0" />
           <Kpi label="Aprovat. geral"  value={fp(st.aprGeral)}                        color={st.aprGeral >= 60 ? '#166534' : '#92400e'} bg={st.aprGeral >= 60 ? '#dcfce7' : '#fef3c7'} border={st.aprGeral >= 60 ? '#86efac' : '#fde68a'} />
           <Kpi label="Rodadas G8"      value={st.g8}                                  color="#166534"  bg="#dcfce7"  border="#86efac" />
           <Kpi label="Maior subida"    value={st.maiorSubida > 0 ? `+${st.maiorSubida}` : '—'} color="#166534" bg="#dcfce7" border="#86efac" />
@@ -445,7 +445,7 @@ function CampanhaContent() {
 
         {/* Leitura geral */}
         <div style={{ background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: 10, padding: '10px 14px', marginBottom: 8 }}>
-          <div style={{ fontSize: 7, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: GFC, marginBottom: 6 }}>Leitura Geral da Campanha</div>
+          <div style={{ fontSize: 7, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: BRAND_PRIMARY, marginBottom: 6 }}>Leitura Geral da Campanha</div>
           <p style={{ fontSize: 9.5, color: '#1a2e1a', lineHeight: 1.65 }}>{gerarResumo(sorted, st)}</p>
         </div>
 
@@ -486,8 +486,8 @@ function CampanhaContent() {
             </div>
           ))}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <div style={{ width: 24, height: 2, background: GFC, opacity: 0.5 }} />
-            <div style={{ width: 6, height: 6, borderRadius: 2, background: GFC, opacity: 0.2 }} />
+            <div style={{ width: 24, height: 2, background: BRAND_PRIMARY, opacity: 0.5 }} />
+            <div style={{ width: 6, height: 6, borderRadius: 2, background: BRAND_PRIMARY, opacity: 0.2 }} />
             <span style={{ fontSize: 8, fontWeight: 600, color: '#64748b' }}>Zona G8</span>
           </div>
         </div>
@@ -505,7 +505,7 @@ function CampanhaContent() {
             : `O time está na ${st.posAtual}° posição, tendo ficado dentro do G8 em ${st.g8} de ${st.n} rodadas analisadas.`
           return (
             <div style={{ background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: 8, padding: '8px 10px', marginBottom: 14 }}>
-              <span style={{ fontSize: 7, fontWeight: 900, color: GFC, textTransform: 'uppercase', letterSpacing: '0.07em' }}>💡 Insight  </span>
+              <span style={{ fontSize: 7, fontWeight: 900, color: BRAND_PRIMARY, textTransform: 'uppercase', letterSpacing: '0.07em' }}>💡 Insight  </span>
               <span style={{ fontSize: 8.5, color: '#1a2e1a' }}>{txt}</span>
             </div>
           )
@@ -557,7 +557,7 @@ function CampanhaContent() {
                 const varCor = h.variacaoPosicao > 0 ? '#166534' : h.variacaoPosicao < 0 ? '#991b1b' : '#94a3b8'
                 const varTxt = h.variacaoPosicao > 0 ? `↑ +${h.variacaoPosicao}` : h.variacaoPosicao < 0 ? `↓ ${h.variacaoPosicao}` : '—'
                 return (
-                  <tr key={i} style={{ background: isLast ? '#f0fdf4' : i % 2 === 0 ? 'white' : '#f8fafc', borderBottom: '1px solid #f1f5f9', borderLeft: isLast ? `3px solid ${GFC}` : '3px solid transparent' }}>
+                  <tr key={i} style={{ background: isLast ? '#f0fdf4' : i % 2 === 0 ? 'white' : '#f8fafc', borderBottom: '1px solid #f1f5f9', borderLeft: isLast ? `3px solid ${BRAND_PRIMARY}` : '3px solid transparent' }}>
                     <td style={{ padding: '5px 8px', fontWeight: 800, color: '#1a2e1a', borderRight: '1px solid #f1f5f9' }}>R{h.rodada}</td>
                     <td style={{ padding: '7px 9px', color: '#64748b', borderRight: '1px solid #f1f5f9', whiteSpace: 'nowrap' }}>{h.data || '—'}</td>
                     <td style={{ padding: '7px 9px', fontWeight: 700, color: '#1a2e1a', borderRight: '1px solid #f1f5f9' }}>{h.adversario || '—'}</td>
@@ -590,7 +590,7 @@ function CampanhaContent() {
             if (status === 'Manteve a posição.') return null
             const isPositivo = status.includes('Liderança') || status.includes('G8') || status.includes('Subiu')
             const isNegativo = status.includes('Deixou') || status.includes('Saiu') || status.includes('Cedeu')
-            const cor = isPositivo ? GFC : isNegativo ? RED : AMB
+            const cor = isPositivo ? BRAND_PRIMARY : isNegativo ? RED : AMB
             const bg  = isPositivo ? '#f0fdf4' : isNegativo ? '#fef2f2' : '#fffbeb'
             return (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, background: bg, borderRadius: 7, padding: '6px 10px', border: `1px solid ${cor}22` }}>
@@ -616,7 +616,7 @@ function CampanhaContent() {
           <Kpi label="Vitórias"     value={st.last5.v}                               color="#166534"  bg="#dcfce7"  border="#86efac" />
           <Kpi label="Empates"      value={st.last5.e}                               color="#92400e"  bg="#fef3c7"  border="#fde68a" />
           <Kpi label="Derrotas"     value={st.last5.d}                               color="#991b1b"  bg="#fee2e2"  border="#fecaca" />
-          <Kpi label="Pontos"       value={st.last5.pts}                             color={GFC}      bg="#f0fdf4"  border="#bbf7d0" />
+          <Kpi label="Pontos"       value={st.last5.pts}                             color={BRAND_PRIMARY}      bg="#f0fdf4"  border="#bbf7d0" />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6, marginBottom: 10 }}>
           <Kpi label="Aprovat."     value={fp(st.last5.apr)}                         color={st.last5.apr>=60?'#166534':'#92400e'} bg={st.last5.apr>=60?'#dcfce7':'#fef3c7'} border={st.last5.apr>=60?'#86efac':'#fde68a'} />
@@ -628,7 +628,7 @@ function CampanhaContent() {
 
         {/* Texto automático momento */}
         <div style={{ background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: 10, padding: '10px 14px', marginBottom: 10 }}>
-          <div style={{ fontSize: 7, fontWeight: 900, color: GFC, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>Leitura do Momento</div>
+          <div style={{ fontSize: 7, fontWeight: 900, color: BRAND_PRIMARY, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>Leitura do Momento</div>
           <p style={{ fontSize: 9.5, color: '#1a2e1a', lineHeight: 1.65 }}>
             {`Nas últimas ${st.last5.n} rodadas, o Confiança somou ${st.last5.pts} pontos, com ${st.last5.v} vitória${st.last5.v!==1?'s':''}, ${st.last5.e} empate${st.last5.e!==1?'s':''} e ${st.last5.d} derrota${st.last5.d!==1?'s':''}, aproveitamento de ${f1(st.last5.apr)}%. `}
             {`A variação de posição no período foi de ${st.last5.varPos>=0?'+':''}${st.last5.varPos} posição${Math.abs(st.last5.varPos)!==1?'ões':''}, indicando tendência de ${{ subindo:'crescimento', estavel:'estabilidade', caindo:'queda' }[tend]}.`}
@@ -688,7 +688,7 @@ function CampanhaContent() {
             const aprBg  = ms.apr >= 60 ? '#dcfce7' : ms.apr >= 40 ? '#fef3c7' : '#fee2e2'
             return (
               <div key={label} style={{ background: '#fafafa', border: '1.5px solid #f1f5f9', borderRadius: 12, overflow: 'hidden' }}>
-                <div style={{ background: GFC2, padding: '10px 14px' }}>
+                <div style={{ background: BRAND_DARK, padding: '10px 14px' }}>
                   <div style={{ fontSize: 10, fontWeight: 900, color: 'white' }}>{label}</div>
                   <div style={{ fontSize: 8, color: '#86efac', marginTop: 2 }}>{ms.j} jogo{ms.j!==1?'s':''}</div>
                 </div>
@@ -753,7 +753,7 @@ function CampanhaContent() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {[
             { title: '🏆 Maior Vitória', desc: st.maiorVit ? `${st.maiorVit.golsPro}x${st.maiorVit.golsContra} vs ${st.maiorVit.adversario} (R${st.maiorVit.rodada})` : '—', bg: '#dcfce7', border: '#86efac', color: '#166534' },
-            { title: '⚡ Maior Impacto Positivo', desc: st.maiorImpacto && st.maiorImpacto.variacaoPosicao > 0 ? `+${st.maiorImpacto.variacaoPosicao} posições vs ${st.maiorImpacto.adversario} (R${st.maiorImpacto.rodada})` : '—', bg: '#f0fdf4', border: '#bbf7d0', color: GFC },
+            { title: '⚡ Maior Impacto Positivo', desc: st.maiorImpacto && st.maiorImpacto.variacaoPosicao > 0 ? `+${st.maiorImpacto.variacaoPosicao} posições vs ${st.maiorImpacto.adversario} (R${st.maiorImpacto.rodada})` : '—', bg: '#f0fdf4', border: '#bbf7d0', color: BRAND_PRIMARY },
           ].map(d => (
             <div key={d.title} style={{ background: d.bg, border: `1.5px solid ${d.border}`, borderRadius: 10, padding: '12px 14px' }}>
               <div style={{ fontSize: 7, fontWeight: 900, color: d.color, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5 }}>{d.title}</div>
@@ -772,7 +772,7 @@ function CampanhaContent() {
 
         {/* Texto conclusão */}
         <div style={{ background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: 10, padding: '10px 14px', marginBottom: 12 }}>
-          <div style={{ fontSize: 7, fontWeight: 900, color: GFC, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Síntese da Campanha</div>
+          <div style={{ fontSize: 7, fontWeight: 900, color: BRAND_PRIMARY, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Síntese da Campanha</div>
           <p style={{ fontSize: 9.5, color: '#1a2e1a', lineHeight: 1.7 }}>{gerarConclusao(sorted, st)}</p>
         </div>
 
@@ -807,7 +807,7 @@ function CampanhaContent() {
         </div>
 
         {/* Objetivo imediato — bloco de destaque */}
-        <div style={{ background: GFC2, borderRadius: 12, padding: '14px 20px', marginBottom: 12 }}>
+        <div style={{ background: BRAND_DARK, borderRadius: 12, padding: '14px 20px', marginBottom: 12 }}>
           <div style={{ fontSize: 8, fontWeight: 900, color: '#86efac', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>🎯 Objetivo Imediato</div>
           <p style={{ fontSize: 13, fontWeight: 800, color: 'white', lineHeight: 1.5 }}>{gerarObjetivo(st)}</p>
         </div>
@@ -830,7 +830,7 @@ function CampanhaContent() {
   )
 }
 
-export default function CampanhaGuarani() {
+export default function CampanhaConfianca() {
   return (
     <Suspense fallback={
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontFamily: 'Inter,sans-serif', color: '#94a3b8', fontSize: 14, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>

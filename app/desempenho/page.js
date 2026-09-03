@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import WyscoutUploader from './WyscoutUploader'
 import XmlAnalyzer from './XmlAnalyzer'
 
-const GFC  = '#0a66b7'
+const BRAND_PRIMARY  = '#0a66b7'
 const RED  = '#c62828'
 const BLUE = '#1565c0'
 const PURP = '#6a1b9a'
@@ -85,8 +85,8 @@ const S = {
   head: { display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 },
   input: { background:'#f9fbf9', border:'1.5px solid #e5edf5', borderRadius:8, padding:'8px 12px', fontSize:13, outline:'none', transition:'border 0.2s', color:'#10233b' },
   select: { background:'#f9fbf9', border:'1.5px solid #e5edf5', borderRadius:8, padding:'8px 12px', fontSize:13, outline:'none', cursor:'pointer', color:'#10233b' },
-  btnGreen: { background:GFC, color:'#fff', border:'none', borderRadius:8, padding:'10px 20px', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:8, transition:'transform 0.1s active' },
-  btnGhost: { background:'#f4f8fc', color:GFC, border:'none', borderRadius:8, padding:'8px 16px', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:8 },
+  btnGreen: { background:BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:8, padding:'10px 20px', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:8, transition:'transform 0.1s active' },
+  btnGhost: { background:'#f4f8fc', color:BRAND_PRIMARY, border:'none', borderRadius:8, padding:'8px 16px', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:8 },
 }
 
 /* ─── Components ───────────────────────────────────────────────────── */
@@ -116,7 +116,7 @@ function SectionDiv({ label, badge, color, bg }) {
 }
 
 /* ─── Mini bar ─────────────────────────────────────────────────────── */
-function MBar({ label, value, max, color=GFC, unit='' }) {
+function MBar({ label, value, max, color=BRAND_PRIMARY, unit='' }) {
   const pct = max>0 ? Math.min(100,(value/max)*100) : 0
   return (
     <div style={{ marginBottom:8 }}>
@@ -141,7 +141,7 @@ function DualBar({ data, keys, colors, height=160 }) {
         <XAxis dataKey="label" tick={{fontSize:9,fill:'#94a3b8'}}/>
         <YAxis tick={{fontSize:9,fill:'#94a3b8'}}/>
         <Tooltip contentStyle={{fontSize:11,borderRadius:8,border:'1px solid #e5edf5'}}/>
-        {keys.map((k,i)=><Bar key={k.key} dataKey={k.key} name={k.name} fill={colors[i]||GFC} radius={[3,3,0,0]} maxBarSize={28}/>)}
+        {keys.map((k,i)=><Bar key={k.key} dataKey={k.key} name={k.name} fill={colors[i]||BRAND_PRIMARY} radius={[3,3,0,0]} maxBarSize={28}/>)}
       </BarChart>
     </ResponsiveContainer>
   )
@@ -155,7 +155,7 @@ function DualLine({ data, keys, colors, height=160 }) {
         <XAxis dataKey="label" tick={{fontSize:9,fill:'#94a3b8'}}/>
         <YAxis tick={{fontSize:9,fill:'#94a3b8'}}/>
         <Tooltip contentStyle={{fontSize:11,borderRadius:8,border:'1px solid #e5edf5'}}/>
-        {keys.map((k,i)=><Line key={k.key} type="monotone" dataKey={k.key} name={k.name} stroke={colors[i]||GFC} strokeWidth={2} dot={{r:3}}/>)}
+        {keys.map((k,i)=><Line key={k.key} type="monotone" dataKey={k.key} name={k.name} stroke={colors[i]||BRAND_PRIMARY} strokeWidth={2} dot={{r:3}}/>)}
       </LineChart>
     </ResponsiveContainer>
   )
@@ -191,7 +191,7 @@ function Campograma({ formacao, escalacao, onChange, editable=false }) {
                         style={{
                           width:36, height:36, borderRadius:'50%',
                           background: player ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.18)',
-                          color: player ? GFC : 'rgba(255,255,255,0.6)',
+                          color: player ? BRAND_PRIMARY : 'rgba(255,255,255,0.6)',
                           display:'flex', alignItems:'center', justifyContent:'center',
                           fontSize:8, fontWeight:700, cursor: editable ? 'pointer' : 'default',
                           transition:'transform 0.15s',
@@ -268,7 +268,7 @@ function EstudoGols({ estudo, onChange, onSave, saving }) {
     <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
       {/* KPIs */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8 }}>
-        {[{l:'Gols marc.',k:'gols_marcados',c:GFC},{l:'Gols sofr.',k:'gols_sofridos',c:RED},{l:'xG',k:'xg',c:GFC},{l:'xGA',k:'xga',c:RED}].map(({l,k,c})=>(
+        {[{l:'Gols marc.',k:'gols_marcados',c:BRAND_PRIMARY},{l:'Gols sofr.',k:'gols_sofridos',c:RED},{l:'xG',k:'xg',c:BRAND_PRIMARY},{l:'xGA',k:'xga',c:RED}].map(({l,k,c})=>(
           <div key={k} style={kpiStyle(c)}>
             <input type="number" min="0" step="0.1" value={estudo[k]} onChange={e=>f(k,e.target.value)}
               style={{ width:'100%', textAlign:'center', fontSize:20, fontWeight:900, background:'transparent', border:'none', outline:'none', color:c, fontFamily:'Barlow Condensed, sans-serif' }}/>
@@ -284,7 +284,7 @@ function EstudoGols({ estudo, onChange, onSave, saving }) {
           {[{l:'Jogo aberto',k:'origem_jogo_aberto'},{l:'Bola parada',k:'origem_bola_parada'},{l:'Contra-ataque',k:'origem_contra_ataque'},{l:'Outros',k:'origem_outros'}].map(({l,k})=>(
             <div key={k} style={{ background:'#f0fdf4', borderRadius:8, padding:'8px 10px' }}>
               <input type="number" min="0" value={estudo[k]} onChange={e=>f(k,e.target.value)}
-                style={{ width:'100%', textAlign:'center', fontSize:16, fontWeight:900, color:GFC, background:'transparent', border:'none', outline:'none', fontFamily:'Barlow Condensed, sans-serif' }}/>
+                style={{ width:'100%', textAlign:'center', fontSize:16, fontWeight:900, color:BRAND_PRIMARY, background:'transparent', border:'none', outline:'none', fontFamily:'Barlow Condensed, sans-serif' }}/>
               <p style={{ fontSize:9, color:'#94a3b8', textAlign:'center', marginTop:2 }}>{l}</p>
             </div>
           ))}
@@ -293,7 +293,7 @@ function EstudoGols({ estudo, onChange, onSave, saving }) {
           {l:`Jogo aberto (${Math.round(estudo.origem_jogo_aberto/totalMarcados*100)}%)`,v:estudo.origem_jogo_aberto},
           {l:`Bola parada (${Math.round(estudo.origem_bola_parada/totalMarcados*100)}%)`,v:estudo.origem_bola_parada},
           {l:`Contra-ataque (${Math.round(estudo.origem_contra_ataque/totalMarcados*100)}%)`,v:estudo.origem_contra_ataque},
-        ].map(({l,v})=><MBar key={l} label={l} value={v} max={totalMarcados} color={GFC}/>)}
+        ].map(({l,v})=><MBar key={l} label={l} value={v} max={totalMarcados} color={BRAND_PRIMARY}/>)}
       </div>
 
       {/* Origens sofridos */}
@@ -330,7 +330,7 @@ function GerenciadorRodadas({ rodadas, onChange, onSave, saving }) {
     <div>
       <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:12 }}>
         {rodadas.map((r,i)=>(
-          <span key={i} style={{ background:'#f4f8fc', color:GFC, padding:'5px 12px', borderRadius:8, fontSize:11, fontWeight:700, display:'flex', alignItems:'center', gap:8 }}>
+          <span key={i} style={{ background:'#f4f8fc', color:BRAND_PRIMARY, padding:'5px 12px', borderRadius:8, fontSize:11, fontWeight:700, display:'flex', alignItems:'center', gap:8 }}>
             {r} <span onClick={()=>rem(i)} style={{ cursor:'pointer', color:'#94a3b8' }}>✕</span>
           </span>
         ))}
@@ -496,7 +496,7 @@ export default function DesempenhoPage() {
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:24, flexWrap:'wrap', gap:12 }}>
           <div>
             <p style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'3px', color:'#94a3b8', marginBottom:6 }}>CIC · Confiança</p>
-            <h1 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:36, fontWeight:900, textTransform:'uppercase', color:GFC, letterSpacing:1, lineHeight:1 }}>
+            <h1 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:36, fontWeight:900, textTransform:'uppercase', color:BRAND_PRIMARY, letterSpacing:1, lineHeight:1 }}>
               Análise de Desempenho
             </h1>
             <p style={{ fontSize:12, color:'#94a3b8', marginTop:5 }}>
@@ -515,9 +515,9 @@ export default function DesempenhoPage() {
             </button>
             {/* Tabs */}
             <div style={{ display:'flex', background:'#f4f8fc', borderRadius:10, padding:4 }}>
-                <button onClick={()=>setTab('proprio')} style={{ padding:'8px 20px', fontSize:12, fontWeight:700, borderRadius:8, border:'none', cursor:'pointer', background:tab==='proprio'?GFC:'#f4f8fc', color:tab==='proprio'?'#fff':GFC }}>Confiança</button>
-                <button onClick={()=>setTab('adversario')} style={{ padding:'8px 20px', fontSize:12, fontWeight:700, borderRadius:8, border:'none', cursor:'pointer', background:tab==='adversario'?GFC:'#f4f8fc', color:tab==='adversario'?'#fff':GFC }}>Adversários</button>
-                <button onClick={()=>setTab('xml')} style={{ padding:'8px 20px', fontSize:12, fontWeight:700, borderRadius:8, border:'none', cursor:'pointer', background:tab==='xml'?GFC:'#f4f8fc', color:tab==='xml'?'#fff':GFC }}>🗂 XML</button>
+                <button onClick={()=>setTab('proprio')} style={{ padding:'8px 20px', fontSize:12, fontWeight:700, borderRadius:8, border:'none', cursor:'pointer', background:tab==='proprio'?BRAND_PRIMARY:'#f4f8fc', color:tab==='proprio'?'#fff':BRAND_PRIMARY }}>Confiança</button>
+                <button onClick={()=>setTab('adversario')} style={{ padding:'8px 20px', fontSize:12, fontWeight:700, borderRadius:8, border:'none', cursor:'pointer', background:tab==='adversario'?BRAND_PRIMARY:'#f4f8fc', color:tab==='adversario'?'#fff':BRAND_PRIMARY }}>Adversários</button>
+                <button onClick={()=>setTab('xml')} style={{ padding:'8px 20px', fontSize:12, fontWeight:700, borderRadius:8, border:'none', cursor:'pointer', background:tab==='xml'?BRAND_PRIMARY:'#f4f8fc', color:tab==='xml'?'#fff':BRAND_PRIMARY }}>🗂 XML</button>
               </div>
           </div>
         </div>
@@ -539,12 +539,12 @@ export default function DesempenhoPage() {
                 <div style={{ ...S.card, padding:14 }}>
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
                     <p style={{ fontSize:11, fontWeight:900, color:'#10233b', textTransform:'uppercase' }}>Adversários</p>
-                    <button onClick={()=>setEditandoAdv(!editandoAdv)} style={{ border:'none', background:'none', color:GFC, fontSize:10, fontWeight:700, cursor:'pointer' }}>{editandoAdv?'Cancelar':'+ Novo'}</button>
+                    <button onClick={()=>setEditandoAdv(!editandoAdv)} style={{ border:'none', background:'none', color:BRAND_PRIMARY, fontSize:10, fontWeight:700, cursor:'pointer' }}>{editandoAdv?'Cancelar':'+ Novo'}</button>
                   </div>
                   <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
                     {adversarios.map(a=>(
                       <div key={a.id} onClick={()=>loadAdversario(a)} 
-                        style={{ padding:'10px 12px', borderRadius:10, cursor:'pointer', background:adversarioAtivo?.id===a.id?'#f0fdf4':'transparent', color:adversarioAtivo?.id===a.id?GFC:'#52677e', transition:'all 0.2s' }}>
+                        style={{ padding:'10px 12px', borderRadius:10, cursor:'pointer', background:adversarioAtivo?.id===a.id?'#f0fdf4':'transparent', color:adversarioAtivo?.id===a.id?BRAND_PRIMARY:'#52677e', transition:'all 0.2s' }}>
                         <p style={{ fontSize:13, fontWeight:700 }}>{a.nome}</p>
                         <p style={{ fontSize:10, opacity:0.6 }}>{a.formacao||'4-3-3'}</p>
                       </div>
@@ -574,7 +574,7 @@ export default function DesempenhoPage() {
 
                 {/* Cabeçalho adversário */}
                 <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:20 }}>
-                  <div style={{ width:44, height:44, borderRadius:12, background:GFC, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:900, fontSize:18 }}>
+                  <div style={{ width:44, height:44, borderRadius:12, background:BRAND_PRIMARY, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:900, fontSize:18 }}>
                     {adversarioAtivo.nome[0]}
                   </div>
                   <div>
@@ -609,7 +609,7 @@ export default function DesempenhoPage() {
                 </Card>
 
                 {/* ── OFENSIVO ── */}
-                <SectionDiv label="Análise Wyscout — Categorias Ofensivas" badge="OFENSIVO" color={GFC} bg="#f0fdf4"/>
+                <SectionDiv label="Análise Wyscout — Categorias Ofensivas" badge="OFENSIVO" color={BRAND_PRIMARY} bg="#f0fdf4"/>
 
                 <Card title="⚡ Ataques" sub="Prints individuais por jogo (jogo a jogo)"
                   action={<span style={{ fontSize:9, background:'#f4f8fc', color:'#64748b', borderRadius:6, padding:'3px 9px', fontWeight:700 }}>jogo a jogo</span>}>

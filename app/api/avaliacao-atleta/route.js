@@ -1,7 +1,7 @@
 import { sql } from '@vercel/postgres'
 import * as XLSX from 'xlsx'
 import sharp from 'sharp'
-import { getGuaraniSportsbase } from '@/lib/guarani-sportsbase-store'
+import { getClubSportsbase } from '@/lib/club-sportsbase-store'
 import { aggregateIScoutGames, analyzeIScoutPlayer, parseIScoutRows } from '@/data/iscout-analysis'
 import { buildScoutDataCorrelation } from '@/app/lib/scouting/scoutDataCorrelation'
 import { ensureLigaJogadoresSchema } from '@/lib/league-dataset-schema'
@@ -132,7 +132,7 @@ export async function GET(request) {
             liga:row.liga || aggregate?.metadata?.liga || '',
           }
           const freshAggregate = aggregateIScoutGames(rawGames, metadata)
-          const [guarani, serieC] = await Promise.all([getGuaraniSportsbase(), latestLeaguePlayers()])
+          const [clubData, serieC] = await Promise.all([getClubSportsbase(), latestLeaguePlayers()])
           const refreshedAnalysis = analyzeIScoutPlayer({
             player:freshAggregate.player,
             games:freshAggregate.games,
@@ -140,11 +140,11 @@ export async function GET(request) {
               ...freshAggregate.context,
               serieCSource:serieC.source,
               serieCUpdatedAt:serieC.uploadedAt,
-              guaraniUpdatedAt:guarani.uploads?.players?.uploadedAt || guarani.uploads?.updatedAt || null,
+              clubUpdatedAt:clubData.uploads?.players?.uploadedAt || clubData.uploads?.updatedAt || null,
             },
-            guaraniPlayers:guarani.players || [],
+            clubPlayers:clubData.players || [],
             serieCPlayers:serieC.players || [],
-            guaraniModel:guarani.model || guarani.summary?.model || null,
+            clubModel:clubData.model || clubData.summary?.model || null,
           })
           row.analysis_json = refreshedAnalysis
           row.aggregate_json = { ...aggregate, player:freshAggregate.player, context:freshAggregate.context, metadata }
@@ -224,7 +224,7 @@ export async function POST(request) {
     const photoData = await normalizePhoto(photo)
     const allGames = readIScoutFile(Buffer.from(await file.arrayBuffer()))
     const aggregate = aggregateIScoutGames(allGames, metadata)
-    const [guarani, serieC] = await Promise.all([getGuaraniSportsbase(), latestLeaguePlayers()])
+    const [clubData, serieC] = await Promise.all([getClubSportsbase(), latestLeaguePlayers()])
     const analysis = analyzeIScoutPlayer({
       player:aggregate.player,
       games:aggregate.games,
@@ -232,11 +232,11 @@ export async function POST(request) {
         ...aggregate.context,
         serieCSource:serieC.source,
         serieCUpdatedAt:serieC.uploadedAt,
-        guaraniUpdatedAt:guarani.uploads?.players?.uploadedAt || guarani.uploads?.updatedAt || null,
+        clubUpdatedAt:clubData.uploads?.players?.uploadedAt || clubData.uploads?.updatedAt || null,
       },
-      guaraniPlayers:guarani.players || [],
+      clubPlayers:clubData.players || [],
       serieCPlayers:serieC.players || [],
-      guaraniModel:guarani.model || guarani.summary?.model || null,
+      clubModel:clubData.model || clubData.summary?.model || null,
     })
 
     const saved = await sql`

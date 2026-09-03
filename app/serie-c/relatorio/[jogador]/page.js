@@ -39,8 +39,8 @@ export default function RelatorioAtletaPage() {
   const players = data?.players || []
   const goalkeepers = (data?.goalkeepers || []).map(asGoalkeeper)
   const excluded = useMemo(() => new Set(data?.reportExcludedPlayers || []), [data?.reportExcludedPlayers])
-  const lineSquad = useMemo(() => players.filter(p => p.is_guarani && !excluded.has(p.player)), [players, excluded])
-  const gkSquad = useMemo(() => goalkeepers.filter(p => p.is_guarani && !excluded.has(p.player)), [goalkeepers, excluded])
+  const lineSquad = useMemo(() => players.filter(p => p.is_club && !excluded.has(p.player)), [players, excluded])
+  const gkSquad = useMemo(() => goalkeepers.filter(p => p.is_club && !excluded.has(p.player)), [goalkeepers, excluded])
   const squad = useMemo(() => [...lineSquad, ...gkSquad], [lineSquad, gkSquad])
   const leagueLine = players
   const leagueGk = goalkeepers

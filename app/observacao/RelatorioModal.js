@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import * as XLSX from 'xlsx'
 import { exportToCustomExcel } from './excelExport'
 
-const GFC = '#0a66b7'
+const BRAND_PRIMARY = '#0a66b7'
 const DARK = '#10233b'
 
 /* ─── LISTAS (espelham o Excel) ─────────────────────────────────── */
@@ -24,7 +24,7 @@ const OPCOES_PONTOS = ['Aceleração','Agilidade','Ambidestria','Biotipo','Bola 
 
 const EMPTY_JOGADOR = { numero:'', nome:'', posicao:'', nasc:'', gols:0, avaliar:false, time_nome:'' }
 const EMPTY_AVALIACAO = {
-  avaliacao_jogo:'', nota_jogo:'', cedido_guarani:'Não', recomendacao:'', prioridade:'',
+  avaliacao_jogo:'', nota_jogo:'', cedido_clube:'Não', recomendacao:'', prioridade:'',
   sugere_retorno:'', altura:'', pe_preferido:'', nivel_maturacional:'', lesionou:'Não',
   pontos_fortes:['','','','',''], pontos_fracos:['','','','',''],
   obs_gerais:'', cig_previa:'', link_lances:'',
@@ -90,7 +90,7 @@ function TimeAutocomplete({ value, onChange, placeholder }) {
             </div>
           ))}
           {q.length >= 2 && !exact && (
-            <div onMouseDown={() => criar(q)} style={{ padding:'8px 12px', fontSize:11, cursor:'pointer', color:GFC, fontWeight:700, background:'#f0fdf4' }}>
+            <div onMouseDown={() => criar(q)} style={{ padding:'8px 12px', fontSize:11, cursor:'pointer', color:BRAND_PRIMARY, fontWeight:700, background:'#f0fdf4' }}>
               {creating ? 'Criando...' : `+ Cadastrar "${q}"`}
             </div>
           )}
@@ -170,7 +170,7 @@ function JogadorRow({ j, idx, onChange, time, label }) {
         onChange={e => onChange(idx, 'gols', +e.target.value)} />
       <button title={j.avaliar ? 'Remover avaliação' : 'Avaliar jogador'}
         onClick={() => onChange(idx, 'avaliar', !j.avaliar)}
-        style={{ ...S.btn(j.avaliar ? '#fff' : GFC, j.avaliar ? GFC : '#f0fdf4', GFC), width:32, height:32, padding:0, justifyContent:'center', borderRadius:8, flexShrink:0 }}>
+        style={{ ...S.btn(j.avaliar ? '#fff' : BRAND_PRIMARY, j.avaliar ? BRAND_PRIMARY : '#f0fdf4', BRAND_PRIMARY), width:32, height:32, padding:0, justifyContent:'center', borderRadius:8, flexShrink:0 }}>
         {j.avaliar ? '★' : '☆'}
       </button>
     </div>
@@ -187,7 +187,7 @@ function AvaliacaoForm({ jogador, avaliacao, onChange }) {
     <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
       {/* Cabeçalho Atleta */}
       <div style={{ display:'flex', alignItems:'center', gap:12, paddingBottom:12, borderBottom:'2px solid #e5edf5' }}>
-        <div style={{ width:48, height:48, borderRadius:12, background:GFC, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, fontWeight:900 }}>{jogador.numero||'?'}</div>
+        <div style={{ width:48, height:48, borderRadius:12, background:BRAND_PRIMARY, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, fontWeight:900 }}>{jogador.numero||'?'}</div>
         <div style={{ flex:1 }}>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             <h3 style={{ fontSize:16, fontWeight:900, color:DARK, margin:0 }}>{jogador.nome}</h3>
@@ -207,7 +207,7 @@ function AvaliacaoForm({ jogador, avaliacao, onChange }) {
 
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
         <div style={S.section}>
-          <p style={{ fontSize:12, fontWeight:800, color:GFC, marginBottom:12, display:'flex', alignItems:'center', gap:6 }}>📊 Avaliação do Jogo</p>
+          <p style={{ fontSize:12, fontWeight:800, color:BRAND_PRIMARY, marginBottom:12, display:'flex', alignItems:'center', gap:6 }}>📊 Avaliação do Jogo</p>
           <div style={{ ...S.row, gridTemplateColumns:'1fr 1fr' }}>
             <div>
               <label style={S.label}>Desempenho</label>
@@ -243,7 +243,7 @@ function AvaliacaoForm({ jogador, avaliacao, onChange }) {
         </div>
 
         <div style={S.section}>
-          <p style={{ fontSize:12, fontWeight:800, color:GFC, marginBottom:12, display:'flex', alignItems:'center', gap:6 }}>👤 Perfil Físico/Técnico</p>
+          <p style={{ fontSize:12, fontWeight:800, color:BRAND_PRIMARY, marginBottom:12, display:'flex', alignItems:'center', gap:6 }}>👤 Perfil Físico/Técnico</p>
           <div style={{ ...S.row, gridTemplateColumns:'1fr 1fr 1fr' }}>
             <div>
               <label style={S.label}>Altura (cm)</label>
@@ -277,12 +277,12 @@ function AvaliacaoForm({ jogador, avaliacao, onChange }) {
       {/* Capacidades */}
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
         <div style={S.section}>
-          <p style={{ fontSize:11, fontWeight:800, color:GFC, marginBottom:10 }}>⚡ Capacidades Físicas (1-10)</p>
+          <p style={{ fontSize:11, fontWeight:800, color:BRAND_PRIMARY, marginBottom:10 }}>⚡ Capacidades Físicas (1-10)</p>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
             {[['resistencia','Resistência'],['potencia','Potência'],['agilidade','Agilidade'],['biotipo','Biotipo'],['competitividade','Intensidade']].map(([k,l]) => (
               <div key={k} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'#fff', padding:'4px 8px', borderRadius:6, border:'1px solid #eef6f1' }}>
                 <span style={{ fontSize:10, fontWeight:600, color:'#52677e' }}>{l}</span>
-                <select value={avaliacao.cap_fisicas?.[k]||''} style={{ border:'none', fontSize:10, fontWeight:700, color:GFC, background:'transparent', outline:'none' }} onChange={e => updCF(k, e.target.value)}>
+                <select value={avaliacao.cap_fisicas?.[k]||''} style={{ border:'none', fontSize:10, fontWeight:700, color:BRAND_PRIMARY, background:'transparent', outline:'none' }} onChange={e => updCF(k, e.target.value)}>
                   <option value=''>-</option>
                   {NOTAS_CAPACIDADE.map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
@@ -291,12 +291,12 @@ function AvaliacaoForm({ jogador, avaliacao, onChange }) {
           </div>
         </div>
         <div style={S.section}>
-          <p style={{ fontSize:11, fontWeight:800, color:GFC, marginBottom:10 }}>⚽ Capacidades Técnicas (1-10)</p>
+          <p style={{ fontSize:11, fontWeight:800, color:BRAND_PRIMARY, marginBottom:10 }}>⚽ Capacidades Técnicas (1-10)</p>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
             {[['passe_curto','Passe Curto'],['passe_longo','Passe Longo'],['tecnica_posicao','Técnica Pos.'],['perna_nao_dom','Perna Ñ Dom.'],['dominio','Domínio'],['desempenho_funcao','Desempenho'],['comportamento_sem_bola','S/ Bola'],['inteligencia','Decisão']].map(([k,l]) => (
               <div key={k} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'#fff', padding:'4px 8px', borderRadius:6, border:'1px solid #eef6f1' }}>
                 <span style={{ fontSize:10, fontWeight:600, color:'#52677e' }}>{l}</span>
-                <select value={avaliacao.cap_tecnicas?.[k]||''} style={{ border:'none', fontSize:10, fontWeight:700, color:GFC, background:'transparent', outline:'none' }} onChange={e => updCT(k, e.target.value)}>
+                <select value={avaliacao.cap_tecnicas?.[k]||''} style={{ border:'none', fontSize:10, fontWeight:700, color:BRAND_PRIMARY, background:'transparent', outline:'none' }} onChange={e => updCT(k, e.target.value)}>
                   <option value=''>-</option>
                   {NOTAS_CAPACIDADE.map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
@@ -1203,7 +1203,7 @@ export default function RelatorioModal({ jogo, onClose, onSaved, canEdit = true 
 
   const tabStyle = (t) => ({
     padding:'8px 14px', borderRadius:8, border:'none', cursor:'pointer', fontFamily:'inherit',
-    fontSize:11, fontWeight:700, background: aba===t ? GFC : 'transparent', color: aba===t ? '#fff' : '#5a7a62',
+    fontSize:11, fontWeight:700, background: aba===t ? BRAND_PRIMARY : 'transparent', color: aba===t ? '#fff' : '#5a7a62',
   })
 
   const countAv = paraAvaliar.length
@@ -1217,7 +1217,7 @@ export default function RelatorioModal({ jogo, onClose, onSaved, canEdit = true 
       <div style={{ position:'relative', marginLeft:'auto', width:'min(900px,98vw)', height:'100vh', background:'#fff', display:'flex', flexDirection:'column', boxShadow:'-4px 0 32px rgba(0,0,0,0.15)', overflow:'hidden' }}>
 
         {/* Header */}
-        <div style={{ background:GFC, padding:'16px 20px', flexShrink:0 }}>
+        <div style={{ background:BRAND_PRIMARY, padding:'16px 20px', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
             <div>
               <p style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.6)', textTransform:'uppercase', letterSpacing:2 }}>Relatório de Observação · CIC Confiança</p>
@@ -1240,13 +1240,13 @@ export default function RelatorioModal({ jogo, onClose, onSaved, canEdit = true 
         {/* Content */}
         <div style={{ flex:1, overflowY:'auto', padding:'20px 24px', background:'#fff' }}>
           {!ready ? (
-            <div style={{ display:'flex', justifyContent:'center', padding:60, color:GFC }}>Carregando dados...</div>
+            <div style={{ display:'flex', justifyContent:'center', padding:60, color:BRAND_PRIMARY }}>Carregando dados...</div>
           ) : (
             <>
               {aba === 'cabecalho' && (
                 <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
                   <div style={S.section}>
-                    <p style={{ fontSize:12, fontWeight:800, color:GFC, marginBottom:12 }}>📍 Informações da Partida</p>
+                    <p style={{ fontSize:12, fontWeight:800, color:BRAND_PRIMARY, marginBottom:12 }}>📍 Informações da Partida</p>
                     <div style={{ ...S.row, gridTemplateColumns:'1fr 1fr 1fr' }}>
                       <div><label style={S.label}>Competição</label><input value={competicao} style={S.input} onChange={e=>setCompeticao(e.target.value)} /></div>
                       <div><label style={S.label}>Temporada</label><input value={temporada} style={S.input} onChange={e=>setTemporada(e.target.value)} /></div>
@@ -1273,7 +1273,7 @@ export default function RelatorioModal({ jogo, onClose, onSaved, canEdit = true 
                   </div>
 
                   <div style={S.section}>
-                    <p style={{ fontSize:12, fontWeight:800, color:GFC, marginBottom:12 }}>🎭 Nível da Partida (1-10)</p>
+                    <p style={{ fontSize:12, fontWeight:800, color:BRAND_PRIMARY, marginBottom:12 }}>🎭 Nível da Partida (1-10)</p>
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12 }}>
                       {[
                         ['Gramado', nivelGramado, setNivelGramado],
@@ -1301,15 +1301,15 @@ export default function RelatorioModal({ jogo, onClose, onSaved, canEdit = true 
               {(aba === 'sumula_m' || aba === 'sumula_v') && (
                 <div>
                   <div style={{ background:'#f0fdf4', padding:'10px 14px', borderRadius:10, marginBottom:12, border:'1px solid #d6e5f0', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                    <p style={{ fontSize:11, color:GFC, fontWeight:700, margin:0 }}>Marque a estrela (★) para os atletas que deseja avaliar detalhadamente.</p>
+                    <p style={{ fontSize:11, color:BRAND_PRIMARY, fontWeight:700, margin:0 }}>Marque a estrela (★) para os atletas que deseja avaliar detalhadamente.</p>
                     <button
                       onClick={() => setImportarModal(aba === 'sumula_m' ? 'M' : 'V')}
-                      style={{ ...S.btn('#fff', GFC, GFC), fontSize:11, padding:'6px 12px', flexShrink:0 }}>
+                      style={{ ...S.btn('#fff', BRAND_PRIMARY, BRAND_PRIMARY), fontSize:11, padding:'6px 12px', flexShrink:0 }}>
                       ⚡ Importar Escalação
                     </button>
                   </div>
                   
-                  <p style={{ fontSize:11, fontWeight:900, color:GFC, textTransform:'uppercase', letterSpacing:1, marginBottom:8 }}>Titulares</p>
+                  <p style={{ fontSize:11, fontWeight:900, color:BRAND_PRIMARY, textTransform:'uppercase', letterSpacing:1, marginBottom:8 }}>Titulares</p>
                   <div style={{ display:'grid', gridTemplateColumns:'40px 1fr 130px 90px 60px 50px 36px', gap:6, paddingBottom:6, borderBottom:'2px solid #e5edf5', marginBottom:4 }}>
                     {['Nº','Nome','Posição','Nasc.','⚽','Aval.',''].map(h=><span key={h} style={{ fontSize:9, fontWeight:700, color:'#94a3b8' }}>{h}</span>)}
                   </div>
@@ -1318,14 +1318,14 @@ export default function RelatorioModal({ jogo, onClose, onSaved, canEdit = true 
                       onChange={(idx,f,v) => handleSumulaChange(aba==='sumula_m'?setSumulaM:setSumulaV, aba==='sumula_m'?sumulaM:sumulaV, idx, f, v)} />
                   ))}
                   
-                  <p style={{ fontSize:11, fontWeight:900, color:GFC, textTransform:'uppercase', letterSpacing:1, marginTop:24, marginBottom:8 }}>Reservas Utilizados / Banco</p>
+                  <p style={{ fontSize:11, fontWeight:900, color:BRAND_PRIMARY, textTransform:'uppercase', letterSpacing:1, marginTop:24, marginBottom:8 }}>Reservas Utilizados / Banco</p>
                   {(aba==='sumula_m'?resM:resV).map((j, i) => (
                     <JogadorRow key={i} idx={i} j={j} time={aba==='sumula_m'?timeMandante:timeVisitante}
                       onChange={(idx,f,v) => handleSumulaChange(aba==='sumula_m'?setResM:setResV, aba==='sumula_m'?resM:resV, idx, f, v)} />
                   ))}
                   
                   <button onClick={() => (aba==='sumula_m'?setResM:setResV)(prev => [...prev, {...EMPTY_JOGADOR, time_nome:aba==='sumula_m'?timeMandante:timeVisitante}])}
-                    style={{ ...S.btn(GFC, '#f0fdf4', GFC), marginTop:12, width:'100%', justifyContent:'center' }}>+ Adicionar Jogador</button>
+                    style={{ ...S.btn(BRAND_PRIMARY, '#f0fdf4', BRAND_PRIMARY), marginTop:12, width:'100%', justifyContent:'center' }}>+ Adicionar Jogador</button>
                 </div>
               )}
 
@@ -1355,21 +1355,21 @@ export default function RelatorioModal({ jogo, onClose, onSaved, canEdit = true 
         {/* Footer Actions */}
         <div style={{ padding:'16px 24px', background:'#f7fcf9', borderTop:'1px solid #e5edf5', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
           <div style={{ display:'flex', gap:8 }}>
-            <button onClick={exportarPDF} disabled={exportando} style={S.btn(GFC, '#fff', GFC)}>
+            <button onClick={exportarPDF} disabled={exportando} style={S.btn(BRAND_PRIMARY, '#fff', BRAND_PRIMARY)}>
               📄 {exportando ? 'Gerando...' : 'PDF'}
             </button>
-            <button onClick={exportarExcel} disabled={exportando} style={S.btn(GFC, '#fff', GFC)}>
+            <button onClick={exportarExcel} disabled={exportando} style={S.btn(BRAND_PRIMARY, '#fff', BRAND_PRIMARY)}>
               📊 {exportando ? 'Gerando...' : 'Excel'}
             </button>
           </div>
           
           <div style={{ display:'flex', gap:12, alignItems:'center' }}>
-            {salvando && <span style={{ fontSize:11, color:GFC, fontWeight:700, display:'flex', alignItems:'center', gap:4 }}>
-              <span style={{ width:6, height:6, borderRadius:'50%', background:GFC, display:'inline-block' }} /> Salvando...
+            {salvando && <span style={{ fontSize:11, color:BRAND_PRIMARY, fontWeight:700, display:'flex', alignItems:'center', gap:4 }}>
+              <span style={{ width:6, height:6, borderRadius:'50%', background:BRAND_PRIMARY, display:'inline-block' }} /> Salvando...
             </span>}
             <button onClick={onClose} style={S.btn('#64748b', 'transparent', '#c0d8c4')}>{canEdit ? 'Cancelar' : 'Fechar'}</button>
             {canEdit && (
-              <button onClick={handleSave} disabled={salvando || !ready} style={{ ...S.btn('#fff', GFC, GFC), padding:'10px 24px' }}>
+              <button onClick={handleSave} disabled={salvando || !ready} style={{ ...S.btn('#fff', BRAND_PRIMARY, BRAND_PRIMARY), padding:'10px 24px' }}>
                 {salvando ? 'Salvando...' : 'Salvar Relatório'}
               </button>
             )}

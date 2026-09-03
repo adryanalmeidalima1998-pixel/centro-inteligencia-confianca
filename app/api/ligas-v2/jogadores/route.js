@@ -7,8 +7,9 @@ import { NextResponse } from 'next/server'
 import { sql } from '@vercel/postgres'
 import { SPORTSBASE_METRIC_INDEX } from '@/data/sportsbase-map'
 import { enrichPlayersWithFoot, matchesPlayerFoot } from '@/data/player-foot'
+import { mergeProviderDatasets } from '@/data/provider-data-fusion'
 import { attachCanonicalPlayers } from '@/app/lib/playerMaster'
-import { evaluateGuaraniMarketContext, getGuaraniLeagueMarketPolicy } from '@/data/guarani-market-context'
+import { evaluateClubMarketContext, getClubLeagueMarketPolicy } from '@/data/club-market-context'
 import { ensureLigaJogadoresSchema } from '@/lib/league-dataset-schema'
 
 const SPORTSBASE_DATA_KEYS = [...new Set([
@@ -108,8 +109,8 @@ export async function GET(req) {
   const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
   const limit = Math.max(0, Math.min(1000, parseInt(searchParams.get('limit') || '50')))
   const ordemKey = VALID_KEYS.includes(ordem) ? ordem : 'minutos'
-  const guaraniContext = ['confianca','guarani'].includes(searchParams.get('contexto'))
-  const viableOnly = guaraniContext && searchParams.get('somenteViaveis') !== '0'
+  const clubContext = ['confianca'].includes(searchParams.get('contexto'))
+  const viableOnly = clubContext && searchParams.get('somenteViaveis') !== '0'
   const withCanonical = searchParams.get('canonical') !== '0'
 
   try {
@@ -132,16 +133,31 @@ export async function GET(req) {
       .filter(([, sources]) => sourceFilter ? Boolean(sources[sourceFilter]) : Boolean(sources.sportsbase || sources.wyscout))
       .map(([slug]) => slug)
       .sort()
-    if (guaraniContext) availableLeagues = availableLeagues.filter(slug => getGuaraniLeagueMarketPolicy(slug).actionable)
+    if (clubContext) availableLeagues = availableLeagues.filter(slug => getClubLeagueMarketPolicy(slug).actionable)
 
     const isSummary = limit === 1 && !busca && !posicao && !posGrupo && !equipa && !pe && !pais && minMin === 0
     if (isSummary) {
       const selected = liga ? availableLeagues.filter(item => item === liga) : availableLeagues
-      const total = selected.reduce((sum, slugValue) => {
-        const sources = byMetaLeague.get(slugValue) || {}
-        const source = sourceFilter ? sources[sourceFilter] : (sources.sportsbase || sources.wyscout)
-        return sum + (parseInt(source?.player_count) || 0)
-      }, 0)
+      if (sourceFilter) {
+        const total = selected.reduce((sum, slugValue) => {
+          const sources = byMetaLeague.get(slugValue) || {}
+          return sum + (parseInt(sources[sourceFilter]?.player_count) || 0)
+        }, 0)
+        return NextResponse.json({ jogadores:[], total, page:1, pages:1, ligas:availableLeagues })
+      }
+      const summaryDatasets = await loadDatasets(selected, meta.rows)
+      let total = 0
+      for (const slugValue of selected) {
+        const sources = summaryDatasets.get(slugValue) || {}
+        if (sources.sportsbase && sources.wyscout) {
+          const sportsbasePlayers = enrichPlayersWithFoot(sources.sportsbase.data || [], sources.wyscout.data || [], 'wyscout')
+            .map(player=>({ ...player, _source_upload_at:sources.sportsbase.upload_at }))
+          const wyscoutPlayers = (sources.wyscout.data || []).map(player=>({ ...player, _source_upload_at:sources.wyscout.upload_at }))
+          total += mergeProviderDatasets(sportsbasePlayers, wyscoutPlayers).players.length
+        } else {
+          total += parseInt((sources.sportsbase || sources.wyscout)?.total || (sources.sportsbase || sources.wyscout)?.data?.length || 0) || 0
+        }
+      }
       return NextResponse.json({ jogadores:[], total, page:1, pages:1, ligas:availableLeagues })
     }
 
@@ -150,10 +166,37 @@ export async function GET(req) {
     let players = []
     for (const leagueSlug of selectedLeagues) {
       const sources = byLeague.get(leagueSlug) || {}
-      const selectedSource = sourceFilter ? sources[sourceFilter] : (sources.sportsbase || sources.wyscout)
+      if (sourceFilter) {
+        const selectedSource = sources[sourceFilter]
+        if (!selectedSource) continue
+        const base = selectedSource.fonte === 'sportsbase'
+          ? enrichPlayersWithFoot(selectedSource.data || [], sources.wyscout?.data || [], 'wyscout')
+          : (selectedSource.data || [])
+        players.push(...base.map(player => ({
+          ...player, _liga:leagueSlug, _fonte:selectedSource.fonte, _upload_at:selectedSource.upload_at,
+        })))
+        continue
+      }
+
+      if (sources.sportsbase && sources.wyscout) {
+        const sportsbasePlayers = enrichPlayersWithFoot(sources.sportsbase.data || [], sources.wyscout.data || [], 'wyscout')
+          .map(player=>({ ...player, _liga:leagueSlug, _fonte:'sportsbase', _source_upload_at:sources.sportsbase.upload_at }))
+        const wyscoutPlayers = (sources.wyscout.data || [])
+          .map(player=>({ ...player, _liga:leagueSlug, _fonte:'wyscout', _source_upload_at:sources.wyscout.upload_at }))
+        const merged = mergeProviderDatasets(sportsbasePlayers, wyscoutPlayers)
+        players.push(...merged.players.map(player=>({
+          ...player,
+          _liga:leagueSlug,
+          _fonte:player._fonte || 'combined',
+          _upload_at:[sources.sportsbase.upload_at, sources.wyscout.upload_at].filter(Boolean).sort().slice(-1)[0] || null,
+        })))
+        continue
+      }
+
+      const selectedSource = sources.sportsbase || sources.wyscout
       if (!selectedSource) continue
       const base = selectedSource.fonte === 'sportsbase'
-        ? enrichPlayersWithFoot(selectedSource.data || [], sources.wyscout?.data || [], 'wyscout')
+        ? enrichPlayersWithFoot(selectedSource.data || [], [], 'sportsbase')
         : (selectedSource.data || [])
       players.push(...base.map(player => ({
         ...player, _liga:leagueSlug, _fonte:selectedSource.fonte, _upload_at:selectedSource.upload_at,
@@ -189,8 +232,8 @@ export async function GET(req) {
       players = players.filter(player => String(player.pais || player.nacionalidade || '').toLowerCase().includes(value))
     }
 
-    if (guaraniContext) {
-      players = players.map(player => ({ ...player, _market:evaluateGuaraniMarketContext(player, player._liga) }))
+    if (clubContext) {
+      players = players.map(player => ({ ...player, _market:evaluateClubMarketContext(player, player._liga) }))
       if (viableOnly) players = players.filter(player => player._market?.actionable)
     }
 
@@ -227,7 +270,7 @@ export async function GET(req) {
     const response = NextResponse.json({
       jogadores:projected, total, page, pages:limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1,
       ligas:availableLeagues,
-      context:guaraniContext ? { name:'Confiança 2027 · Série D → Série C', viableOnly } : null,
+      context:clubContext ? { name:'Confiança 2027 · Série D → Série C', viableOnly } : null,
     })
     response.headers.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=90')
     return response

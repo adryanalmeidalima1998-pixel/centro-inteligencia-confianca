@@ -11,7 +11,7 @@ export async function PATCH(request, { params }) {
     const position = body.position === '' || body.position === null || body.position === undefined ? null : Number(body.position)
 
     const res = await sql`
-      UPDATE serie_c_guarani_matches
+      UPDATE serie_c_club_matches
       SET round = ${round}, position = ${position}
       WHERE id = ${id}
       RETURNING id, round, position
@@ -28,7 +28,7 @@ export async function PATCH(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const { id } = await params
-    await sql`DELETE FROM serie_c_guarani_matches WHERE id = ${id}`
+    await sql`DELETE FROM serie_c_club_matches WHERE id = ${id}`
     return NextResponse.json({ ok: true })
   } catch (err) {
     return NextResponse.json({ error: err.message || 'Falha ao excluir.' }, { status: 500 })

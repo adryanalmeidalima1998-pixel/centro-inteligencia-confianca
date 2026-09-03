@@ -10,7 +10,7 @@ import { EmptyState, ErrorState, Loading } from '../../components/serie-c/ui'
 import { DashboardKpiCard } from '../../components/serie-c/competition'
 import { FilterShell, SectionHeader } from '../../components/serie-c/professional'
 import { findMetricColumn, findMetricColumnAny, formatMetricValue, formatNumberBR, toNumber } from '../../../lib/serieC'
-import { formatMatchDate, isGuaraniMatch } from '../../../lib/serieCMatch'
+import { formatMatchDate, isClubMatch } from '../../../lib/serieCMatch'
 
 const STYLE = `.bc { font-family: 'Barlow Condensed', sans-serif; }`
 
@@ -56,11 +56,11 @@ function MatchCard({ match }) {
     { label: 'Índice', metric: 'Índice' },
   ].slice(0, 3)
   return (
-    <Link href={`/serie-c/partidas/${match.id}`} className={`group block overflow-hidden rounded-2xl border bg-white shadow-[0_8px_30px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-[0_12px_36px_rgba(15,23,42,0.08)] ${isGuaraniMatch(match) ? 'border-emerald-200 ring-1 ring-emerald-100' : 'border-slate-200/80'}`}>
+    <Link href={`/serie-c/partidas/${match.id}`} className={`group block overflow-hidden rounded-2xl border bg-white shadow-[0_8px_30px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-[0_12px_36px_rgba(15,23,42,0.08)] ${isClubMatch(match) ? 'border-emerald-200 ring-1 ring-emerald-100' : 'border-slate-200/80'}`}>
       <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
         <div className="flex items-center gap-2">
           <span className="rounded-lg bg-emerald-50 px-2 py-1 text-[9px] font-black uppercase tracking-wider text-emerald-700">Rodada {match.round || '-'}</span>
-          {isGuaraniMatch(match) && <span className="rounded-lg bg-emerald-600 px-2 py-1 text-[8px] font-black uppercase tracking-wider text-white">Confiança</span>}
+          {isClubMatch(match) && <span className="rounded-lg bg-emerald-600 px-2 py-1 text-[8px] font-black uppercase tracking-wider text-white">Confiança</span>}
         </div>
         <span className="text-[10px] font-semibold text-slate-400">{formatMatchDate(match.match_date)}</span>
       </div>
@@ -103,7 +103,7 @@ export default function SerieCPartidasPage() {
   const [round, setRound] = useState('')
   const [team, setTeam] = useState('')
   const [search, setSearch] = useState('')
-  const [onlyGuarani, setOnlyGuarani] = useState(false)
+  const [onlyClub, setOnlyClub] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [file, setFile] = useState(null)
@@ -148,7 +148,7 @@ export default function SerieCPartidasPage() {
       const response = await fetch('/api/serie-c/competition-matches', { method: 'POST', body: form, signal: AbortSignal.timeout(60000) })
       const payload = await response.json()
       if (!response.ok || payload.error) throw new Error(payload.error || 'Falha ao importar.')
-      setImportStatus({ type: 'ok', message: `${payload.imported} partidas importadas/atualizadas em ${payload.rounds} rodadas.${payload.xgMatches ? ` ${payload.xgMatches} com xG reconhecido.` : ''}${payload.guaraniTimelineMatches ? ` ${payload.guaraniTimelineMatches} sincronizadas com a Linha do Tempo do Confiança.` : ''}` })
+      setImportStatus({ type: 'ok', message: `${payload.imported} partidas importadas/atualizadas em ${payload.rounds} rodadas.${payload.xgMatches ? ` ${payload.xgMatches} com xG reconhecido.` : ''}${(payload.clubTimelineMatches ?? payload.clubTimelineMatches) ? ` ${payload.clubTimelineMatches ?? payload.clubTimelineMatches} sincronizadas com a Linha do Tempo do Confiança.` : ''}` })
       await load({ preserveRound: false })
     } catch (err) {
       setImportStatus({ type: 'error', message: err?.name === 'TimeoutError' ? 'A importação excedeu 60 segundos.' : err.message })
@@ -162,11 +162,11 @@ export default function SerieCPartidasPage() {
     return matches.filter(match => {
       if (round && String(match.round) !== String(round)) return false
       if (team && match.home_team !== team && match.away_team !== team) return false
-      if (onlyGuarani && !isGuaraniMatch(match)) return false
+      if (onlyClub && !isClubMatch(match)) return false
       if (query && !`${match.home_team} ${match.away_team} ${match.match_label}`.toLowerCase().includes(query)) return false
       return true
     })
-  }, [matches, round, team, onlyGuarani, search])
+  }, [matches, round, team, onlyClub, search])
 
   const filteredGoals = filtered.reduce((sum, match) => sum + Number(match.home_score || 0) + Number(match.away_score || 0), 0)
   const latestImported = matches[0]?.imported_at
@@ -198,7 +198,7 @@ export default function SerieCPartidasPage() {
                 <option value="">Todos os times</option>
                 {teams.map(value => <option key={value} value={value}>{value}</option>)}
               </select>
-              <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500"><input type="checkbox" checked={onlyGuarani} onChange={event => setOnlyGuarani(event.target.checked)} /> Só Confiança</label>
+              <label className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500"><input type="checkbox" checked={onlyClub} onChange={event => setOnlyClub(event.target.checked)} /> Só Confiança</label>
             </FilterShell>
           }
         />

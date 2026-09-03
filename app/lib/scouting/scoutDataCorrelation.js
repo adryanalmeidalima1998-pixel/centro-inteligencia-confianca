@@ -109,11 +109,11 @@ function metricByKey(analysis, key) {
 
 function dataEvidence(concept, analysis) {
   const metrics = concept.metricKeys.map(key=>metricByKey(analysis, key)).filter(Boolean)
-    .filter(m=>m.percentileSerieC != null || m.percentileGuarani != null)
+    .filter(m=>m.percentileSerieC != null || m.percentileClub != null)
   if (!metrics.length) return null
 
   const ranked = metrics.map(m => {
-    const values = [m.percentileSerieC, m.percentileGuarani].filter(v=>v!=null).map(Number)
+    const values = [m.percentileSerieC, m.percentileClub].filter(v=>v!=null).map(Number)
     const percentile = values.length ? values.reduce((a,b)=>a+b,0)/values.length : null
     return { ...m, combinedPercentile:percentile }
   }).filter(m=>m.combinedPercentile != null)
@@ -144,7 +144,7 @@ function metricSummary(data) {
   return data.metrics.slice(0,3).map(m => {
     const parts = [m.label]
     if (m.percentileSerieC != null) parts.push(`SÉRIE C P${Math.round(m.percentileSerieC)}`)
-    if (m.percentileGuarani != null) parts.push(`ADC P${Math.round(m.percentileGuarani)}`)
+    if (m.percentileClub != null) parts.push(`ADC P${Math.round(m.percentileClub)}`)
     return parts.join(' · ')
   }).join(' | ')
 }
@@ -182,7 +182,7 @@ function collectMatches(report, analysis) {
       tone:meta.tone,
       dataPercentile:data?.percentile ?? null,
       dataDirection:data?.direction || null,
-      metrics:data?.metrics?.map(m=>({ key:m.key, label:m.label, percentileSerieC:m.percentileSerieC, percentileGuarani:m.percentileGuarani })) || [],
+      metrics:data?.metrics?.map(m=>({ key:m.key, label:m.label, percentileSerieC:m.percentileSerieC, percentileClub:m.percentileClub })) || [],
       dataText:metricSummary(data),
       reading:readingCopy(kind, concept, observed, data),
     })

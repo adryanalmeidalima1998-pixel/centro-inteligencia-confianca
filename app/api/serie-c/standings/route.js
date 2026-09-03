@@ -76,16 +76,16 @@ export async function GET(request) {
       })),
       timeline: timelineResult.rows.map(row => {
         const rows = Array.isArray(row.rows) ? row.rows : []
-        const guarani = rows.find(item => String(item?.team || '').toLocaleLowerCase('pt-BR').includes('confianca')) || null
+        const clubStandingRow = rows.find(item => String(item?.team || '').toLocaleLowerCase('pt-BR').includes('confianca')) || null
         return {
           round: Number(row.round),
           referenceDate: row.reference_date,
-          position: guarani?.position ?? null,
-          points: guarani?.points ?? null,
-          xg: guarani?.xg ?? null,
-          xga: guarani?.xga ?? null,
-          xgDiff: guarani && Number.isFinite(Number(guarani.xg)) && Number.isFinite(Number(guarani.xga)) ? Number(guarani.xg) - Number(guarani.xga) : null,
-          xPoints: guarani?.xPoints ?? null,
+          position: clubStandingRow?.position ?? null,
+          points: clubStandingRow?.points ?? null,
+          xg: clubStandingRow?.xg ?? null,
+          xga: clubStandingRow?.xga ?? null,
+          xgDiff: clubStandingRow && Number.isFinite(Number(clubStandingRow.xg)) && Number.isFinite(Number(clubStandingRow.xga)) ? Number(clubStandingRow.xg) - Number(clubStandingRow.xga) : null,
+          xPoints: clubStandingRow?.xPoints ?? null,
           reportData: row.report_data && typeof row.report_data === 'object' ? row.report_data : {},
         }
       }),
@@ -172,19 +172,19 @@ export async function POST(request) {
                 source_page, reference_date, rows, report_data, uploaded_at
     `
 
-    const guaraniRow = validation.rows.find(row => String(row.team || '').toLocaleLowerCase('pt-BR').includes('confianca'))
-    if (guaraniRow?.position) {
+    const clubRow = validation.rows.find(row => String(row.team || '').toLocaleLowerCase('pt-BR').includes('confianca'))
+    if (clubRow?.position) {
       try {
         await sql`
           UPDATE serie_c_uploads
-          SET guarani_position = ${Number(guaraniRow.position)}
+          SET club_position = ${Number(clubRow.position)}
           WHERE season = ${season} AND competition = ${competition} AND round = ${round}
         `
       } catch (_) {}
       try {
         await sql`
-          UPDATE serie_c_guarani_matches
-          SET position = ${Number(guaraniRow.position)}
+          UPDATE serie_c_club_matches
+          SET position = ${Number(clubRow.position)}
           WHERE season = ${season} AND competition = ${competition} AND round = ${round}
         `
       } catch (_) {}

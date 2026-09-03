@@ -178,7 +178,7 @@ function normNome(n) {
 }
 
 // ─── NAME SIMILARITY ENGINE ───────────────────────────────────────────────────
-const NAME_MAP_KEY = 'guarani_name_map_v1'
+const NAME_MAP_KEY = 'confianca_name_map_v1'
 
 function loadNameMap() {
   try { return JSON.parse(localStorage.getItem(NAME_MAP_KEY) || '{}') } catch { return {} }
@@ -664,11 +664,11 @@ async function parseTeamStatsFile(file, matchDate, adversario) {
     const raw  = XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true })
 
     // Skip first 3 rows (header row 0 + 2 average rows)
-    const guaraniRows = raw.slice(3).filter(row =>
+    const clubRows = raw.slice(3).filter(row =>
       row && row[TS_IDX.equipa] && String(row[TS_IDX.equipa]).toLowerCase().includes('confianca')
     )
 
-    if (!guaraniRows.length) {
+    if (!clubRows.length) {
       return { error: 'Nenhuma linha do Confiança encontrada. Verifique a coluna "Equipa".' }
     }
 
@@ -677,13 +677,13 @@ async function parseTeamStatsFile(file, matchDate, adversario) {
 
     if (matchDate) {
       const target = _normDate(matchDate)
-      matchRow = guaraniRows.find(row => _normDate(row[TS_IDX.data]) === target)
+      matchRow = clubRows.find(row => _normDate(row[TS_IDX.data]) === target)
     }
     if (!matchRow && adversario) {
       const adv = normAdv(adversario).slice(0, 6)
-      matchRow = guaraniRows.find(row => normAdv(String(row[TS_IDX.jogo]||'')).includes(adv))
+      matchRow = clubRows.find(row => normAdv(String(row[TS_IDX.jogo]||'')).includes(adv))
     }
-    if (!matchRow) matchRow = guaraniRows[0]
+    if (!matchRow) matchRow = clubRows[0]
 
     const g = idx => parseFloat(matchRow[idx] || 0) || 0
 
@@ -702,7 +702,7 @@ async function parseTeamStatsFile(file, matchDate, adversario) {
         duelos_ganhos: g(TS_IDX.duelos_ganhos),
         duelos_pct:    g(TS_IDX.duelos_pct),
       },
-      allGames: guaraniRows.map(row => ({
+      allGames: clubRows.map(row => ({
         data: _normDate(row[TS_IDX.data]),
         jogo: String(row[TS_IDX.jogo] || ''),
         gols: row[TS_IDX.gols],

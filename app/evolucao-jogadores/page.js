@@ -34,7 +34,7 @@ import {
 import AppShell from '../components/layout/AppShell'
 import { LEAGUES } from '@/data/leagues'
 
-const GFC = '#0a66b7'
+const BRAND_PRIMARY = '#0a66b7'
 const POSITION_ORDER = ['Goleiro', 'Zagueiro', 'Lateral', 'Volante', 'Meia', 'Extremo', 'Atacante']
 
 const POSITION_META = {
@@ -335,7 +335,7 @@ function MarketBadge({ market, full = false }) {
   )
 }
 
-function SummaryCard({ icon: Icon, label, value, helper, color = GFC }) {
+function SummaryCard({ icon: Icon, label, value, helper, color = BRAND_PRIMARY }) {
   return (
     <div className="cig-card" style={{ background: '#fff', border: '1px solid #e5efe8', borderRadius: 14, padding: 16, minWidth: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
@@ -384,7 +384,7 @@ function LeagueMultiSelect({ value, onChange }) {
               <Search size={14} style={{ position: 'absolute', left: 9, top: 9, color: '#94a3b8' }} />
               <input value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar liga ou país" style={{ ...selectStyle, paddingLeft: 29 }} />
             </div>
-            <button type="button" onClick={() => onChange([])} style={{ width: '100%', marginTop: 7, border: 0, borderRadius: 8, padding: '8px 9px', background: value.length === 0 ? '#ecfdf5' : '#f8fafc', color: value.length === 0 ? GFC : '#475569', fontSize: 10, fontWeight: 800, cursor: 'pointer', textAlign: 'left' }}>
+            <button type="button" onClick={() => onChange([])} style={{ width: '100%', marginTop: 7, border: 0, borderRadius: 8, padding: '8px 9px', background: value.length === 0 ? '#ecfdf5' : '#f8fafc', color: value.length === 0 ? BRAND_PRIMARY : '#475569', fontSize: 10, fontWeight: 800, cursor: 'pointer', textAlign: 'left' }}>
               <span style={{ display: 'inline-flex', width: 19 }}>{value.length === 0 && <Check size={13} />}</span> Todas as ligas com dados
             </button>
           </div>
@@ -392,8 +392,8 @@ function LeagueMultiSelect({ value, onChange }) {
             {filtered.map(league => {
               const checked = selected.has(league.slug)
               return (
-                <button key={league.slug} type="button" onClick={() => toggle(league.slug)} style={{ width: '100%', border: 0, borderRadius: 8, padding: '8px 9px', background: checked ? '#f0fdf4' : '#fff', color: checked ? GFC : '#334155', fontSize: 10, fontWeight: checked ? 800 : 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
-                  <span style={{ width: 17, height: 17, border: `1px solid ${checked ? GFC : '#cbd5e1'}`, borderRadius: 5, display: 'grid', placeItems: 'center', background: checked ? GFC : '#fff', color: '#fff', flexShrink: 0 }}>{checked && <Check size={11} />}</span>
+                <button key={league.slug} type="button" onClick={() => toggle(league.slug)} style={{ width: '100%', border: 0, borderRadius: 8, padding: '8px 9px', background: checked ? '#f0fdf4' : '#fff', color: checked ? BRAND_PRIMARY : '#334155', fontSize: 10, fontWeight: checked ? 800 : 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
+                  <span style={{ width: 17, height: 17, border: `1px solid ${checked ? BRAND_PRIMARY : '#cbd5e1'}`, borderRadius: 5, display: 'grid', placeItems: 'center', background: checked ? BRAND_PRIMARY : '#fff', color: '#fff', flexShrink: 0 }}>{checked && <Check size={11} />}</span>
                   <span>{league.bandeira}</span>
                   <span>{league.nome}</span>
                 </button>
@@ -402,7 +402,7 @@ function LeagueMultiSelect({ value, onChange }) {
           </div>
           <div style={{ padding: 9, borderTop: '1px solid #e7efe9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 9, color: '#64748b' }}>{value.length ? `${value.length} selecionada(s)` : 'Sem restrição'}</span>
-            <button type="button" onClick={() => setOpen(false)} style={{ border: 0, borderRadius: 7, padding: '6px 10px', background: GFC, color: '#fff', fontSize: 9.5, fontWeight: 800, cursor: 'pointer' }}>Concluir</button>
+            <button type="button" onClick={() => setOpen(false)} style={{ border: 0, borderRadius: 7, padding: '6px 10px', background: BRAND_PRIMARY, color: '#fff', fontSize: 9.5, fontWeight: 800, cursor: 'pointer' }}>Concluir</button>
           </div>
         </div>
       )}
@@ -426,7 +426,7 @@ function PlayerRow({ player, onSelect }) {
       onMouseLeave={event => { event.currentTarget.style.background = '#fff' }}
     >
       <span style={{ textAlign: 'center' }}>
-        <span className="bc" style={{ display: 'block', fontSize: 16, fontWeight: 900, color: player.displayRank <= 3 ? GFC : '#64748b' }}>#{player.displayRank}</span>
+        <span className="bc" style={{ display: 'block', fontSize: 16, fontWeight: 900, color: player.displayRank <= 3 ? BRAND_PRIMARY : '#64748b' }}>#{player.displayRank}</span>
         <span title="Ranking global da posição na liga" style={{ display: 'block', fontSize: 8, fontWeight: 800, color: '#94a3b8' }}>liga #{player.rankCurrent}</span>
       </span>
       <span style={{ minWidth: 0 }}>
@@ -530,7 +530,7 @@ function AlertsPanel({ alerts, onSelect }) {
           <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase', color: '#3d8b5e' }}>Alertas automáticos de scouting</p>
           <h2 style={{ fontSize: 15, color: '#173f26', marginTop: 3 }}>Mudanças que merecem nova observação</h2>
         </div>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 9px', borderRadius: 999, background: '#f0fdf4', color: GFC, fontSize: 9.5, fontWeight: 900 }}><BellRing size={13} /> {total}</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 9px', borderRadius: 999, background: '#f0fdf4', color: BRAND_PRIMARY, fontSize: 9.5, fontWeight: 900 }}><BellRing size={13} /> {total}</span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(235px, 1fr))', gap: 9 }}>
         {Object.entries(ALERT_META).map(([key, meta]) => {
@@ -643,7 +643,7 @@ function PlayerModal({ selection, onClose }) {
           </div>
 
           <div style={{ marginTop: 14, border: '1px solid #e7efe9', borderRadius: 12, padding: 13, display: 'flex', alignItems: 'flex-start', gap: 9 }}>
-            <Gauge size={17} color={GFC} style={{ marginTop: 1, flexShrink: 0 }} />
+            <Gauge size={17} color={BRAND_PRIMARY} style={{ marginTop: 1, flexShrink: 0 }} />
             <div>
               <p style={{ fontSize: 10, fontWeight: 900, color: '#173f26' }}>Leitura da confiança</p>
               <p style={{ fontSize: 9, color: '#64748b', marginTop: 3, lineHeight: 1.45 }}>{confidence.reason || 'Sem informação de confiança.'} O status “tendência” é usado quando a direção do IAP ainda não possui amostra suficiente para ser tratada como evolução confirmada.</p>
@@ -1436,10 +1436,10 @@ export default function EvolucaoJogadoresPage() {
             </p>
           </div>
           <div className="cig-header-actions" style={{ display: 'flex', gap: 8 }}>
-            <button onClick={loadReport} disabled={loading} style={{ border: '1px solid #bdd9c5', background: '#fff', color: GFC, borderRadius: 9, padding: '9px 13px', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 800, cursor: loading ? 'wait' : 'pointer' }}>
+            <button onClick={loadReport} disabled={loading} style={{ border: '1px solid #bdd9c5', background: '#fff', color: BRAND_PRIMARY, borderRadius: 9, padding: '9px 13px', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 800, cursor: loading ? 'wait' : 'pointer' }}>
               <RefreshCw size={14} className={loading ? 'spin' : ''} /> Atualizar
             </button>
-            <button onClick={exportPdf} disabled={!report?.leagues?.length || exporting} style={{ border: 0, background: !report?.leagues?.length ? '#94a3b8' : GFC, color: '#fff', borderRadius: 9, padding: '9px 14px', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 800, cursor: exporting ? 'wait' : 'pointer' }}>
+            <button onClick={exportPdf} disabled={!report?.leagues?.length || exporting} style={{ border: 0, background: !report?.leagues?.length ? '#94a3b8' : BRAND_PRIMARY, color: '#fff', borderRadius: 9, padding: '9px 14px', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 800, cursor: exporting ? 'wait' : 'pointer' }}>
               <Download size={14} /> {exporting ? 'Gerando PDF...' : 'Gerar PDF das ligas selecionadas'}
             </button>
           </div>
@@ -1517,7 +1517,7 @@ export default function EvolucaoJogadoresPage() {
         {loading ? (
           <div style={{ minHeight: 360, display: 'grid', placeItems: 'center', background: '#fff', border: '1px solid #e2ece5', borderRadius: 16 }}>
             <div style={{ textAlign: 'center', color: '#64748b' }}>
-              <RefreshCw size={28} color={GFC} style={{ animation: 'spin 1s linear infinite' }} />
+              <RefreshCw size={28} color={BRAND_PRIMARY} style={{ animation: 'spin 1s linear infinite' }} />
               <p style={{ fontSize: 11, fontWeight: 800, marginTop: 10 }}>Calculando evolução, confiança, ranking e participação...</p>
             </div>
           </div>
@@ -1534,7 +1534,7 @@ export default function EvolucaoJogadoresPage() {
 
             <section style={{ margin: '4px 0 16px', border: '1px solid #dce9e0', borderRadius: 14, padding: '14px 15px', background: '#fff' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, display: 'grid', placeItems: 'center', background: '#ecfdf5', color: GFC, flexShrink: 0 }}><CalendarRange size={17} /></div>
+                <div style={{ width: 34, height: 34, borderRadius: 10, display: 'grid', placeItems: 'center', background: '#ecfdf5', color: BRAND_PRIMARY, flexShrink: 0 }}><CalendarRange size={17} /></div>
                 <div>
                   <p style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase', color: '#3d8b5e' }}>Leitura de scouting do recorte</p>
                   <h2 style={{ fontSize: 14, color: '#173f26', marginTop: 3 }}>Critério de seleção da shortlist</h2>

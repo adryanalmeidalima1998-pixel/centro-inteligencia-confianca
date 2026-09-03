@@ -5,7 +5,7 @@ import { getLeaguesByContinent } from '@/data/leagues'
 import { useState, useRef, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 
-const GFC = '#0a66b7'
+const BRAND_PRIMARY = '#0a66b7'
 
 // Cache de logos em memória por slug
 const LOGO_CACHE = {}
@@ -19,7 +19,7 @@ function LeagueCard({ liga }) {
     ? { background:'#ecfeff', color:'#0f766e' }
     : sources[0] === 'wyscout'
       ? { background:'#e8f1ff', color:'#2563eb' }
-      : { background:'#edf8f1', color:GFC }
+      : { background:'#edf8f1', color:BRAND_PRIMARY }
   const [logo,      setLogo]      = useState(LOGO_CACHE[liga.slug] || null)
   const [uploading, setUploading] = useState(false)
   const [loaded,    setLoaded]    = useState(!!LOGO_CACHE[liga.slug])
@@ -61,7 +61,7 @@ function LeagueCard({ liga }) {
   return (
     <div
       style={{ background: '#fff', borderRadius: 12, border: '1px solid #e8f4ec', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, transition: 'all 0.15s', cursor: 'pointer' }}
-      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(10,102,183,0.12)'; e.currentTarget.style.borderColor = GFC }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(10,102,183,0.12)'; e.currentTarget.style.borderColor = BRAND_PRIMARY }}
       onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = '#e8f4ec' }}
     >
       {/* Logo clicável — NÃO navega */}
@@ -76,7 +76,7 @@ function LeagueCard({ liga }) {
           overflow: 'hidden', position: 'relative',
           transition: 'border-color 0.15s',
         }}
-        onMouseEnter={e => { if (!logo) e.currentTarget.style.borderColor = GFC }}
+        onMouseEnter={e => { if (!logo) e.currentTarget.style.borderColor = BRAND_PRIMARY }}
         onMouseLeave={e => { if (!logo) e.currentTarget.style.borderColor = '#c0d8c8' }}
       >
         {logo
@@ -107,7 +107,7 @@ function LeagueCard({ liga }) {
       <Link href={`/ligas-v2/${liga.slug}`} style={{ textDecoration: 'none', minWidth: 0, flex: 1 }}>
         <p style={{ fontSize: 13, fontWeight: 700, color: '#1a2e1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{liga.nome}</p>
         <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 10, background: liga.tipo === 'copa' ? '#fef3c7' : '#f0fdf4', color: liga.tipo === 'copa' ? '#92400e' : GFC, fontWeight: 700, padding: '1px 6px', borderRadius: 10 }}>
+          <span style={{ fontSize: 10, background: liga.tipo === 'copa' ? '#fef3c7' : '#f0fdf4', color: liga.tipo === 'copa' ? '#92400e' : BRAND_PRIMARY, fontWeight: 700, padding: '1px 6px', borderRadius: 10 }}>
             {liga.tipo === 'copa' ? 'Copa' : 'Liga'}
           </span>
           <span style={{ fontSize: 9, background: sourceStyle.background, color: sourceStyle.color, fontWeight: 800, padding: '2px 6px', borderRadius: 10 }}>{source}</span>

@@ -91,7 +91,10 @@ export default function PlayerMasterPage() {
   useEffect(() => { if (id) load() }, [id])
 
   const leagueRadar = useMemo(() => (data?.analysis?.radar || []).filter(item => Number.isFinite(Number(item.leaguePercentile))).slice(0,8).map(item => ({ subject:item.label, candidate:item.leaguePercentile, benchmark:50 })), [data])
-  const guaraniRadar = useMemo(() => (data?.analysis?.radar || []).filter(item => Number.isFinite(Number(item.playerVsGuarani)) && Number.isFinite(Number(item.guaraniAverage))).slice(0,8).map(item => ({ subject:item.label, candidate:item.playerVsGuarani, benchmark:item.guaraniAverage })), [data])
+  const clubRadar = useMemo(() => (data?.analysis?.radar || [])
+    .filter(item => Number.isFinite(Number(item.playerVsClub)) && Number.isFinite(Number(item.clubAverage)))
+    .slice(0,8)
+    .map(item => ({ subject:item.label, candidate:item.playerVsClub, benchmark:item.clubAverage })), [data])
   const profileBands = useMemo(() => Object.entries(data?.latest?._iap_por_perfil || {}).map(([profile, raw]) => { const adjusted = adjustRelativeIndex(raw, data?.levels?.confidence || 0); return { profile, raw:adjusted.rawIndex, adjusted:adjusted.adjustedIndex, grade:relativeGradeFromIndex(adjusted.adjustedIndex) } }).sort((a,b) => b.adjusted - a.adjusted), [data])
 
   async function saveLevels() {
@@ -157,7 +160,7 @@ export default function PlayerMasterPage() {
 
     <div style={{ display:'grid', gridTemplateColumns:'repeat(2,minmax(0,1fr))', gap:15, marginBottom:15 }} className="scout-two-col">
       <RadarPanel title="Radar · mesma posição na liga" subtitle={`${analysis?.groupSize || 0} jogadores elegíveis; referência roxa = mediana.`} data={leagueRadar} candidateName={player.nome} benchmarkName="Mediana da liga" />
-      <RadarPanel title="Radar · mesma posição no Confiança" subtitle={`${analysis?.guaraniGroupSize || data.guarani?.players || 0} referências internas; não altera a faixa relativa da liga.`} data={guaraniRadar} candidateName={player.nome} benchmarkName="Média Confiança" />
+      <RadarPanel title="Radar · mesma posição no Confiança" subtitle={`${analysis?.clubGroupSize ?? analysis?.clubGroupSize ?? data.club?.players ?? data.club?.players ?? 0} referências internas; não altera a faixa relativa da liga.`} data={clubRadar} candidateName={player.nome} benchmarkName="Média Confiança" />
     </div>
 
     <div style={{ display:'grid', gridTemplateColumns:'minmax(0,1fr) minmax(0,1fr)', gap:15, marginBottom:15 }} className="scout-two-col">

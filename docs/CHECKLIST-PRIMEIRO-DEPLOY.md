@@ -1,14 +1,8 @@
-# Checklist do primeiro deploy
+# Checklist de deploy — documento legado
 
-- [ ] Criar banco Postgres/Neon novo do Confiança.
-- [ ] Criar Blob novo ou conectar o storage desejado.
-- [ ] Definir `NEXTAUTH_SECRET` e senhas fortes.
-- [ ] Testar os quatro perfis de acesso.
-- [ ] Abrir Corpo Técnico e confirmar o elenco inicial.
-- [ ] Corrigir/complete número, peso, altura, pé e contratos internamente.
-- [ ] Fazer primeiro upload das planilhas Sportsbase/Wyscout em Mercado.
-- [ ] Validar um upload de GPS no Corpo Técnico.
-- [ ] Validar geração de PDF em cada área utilizada.
-- [ ] Configurar Sportmonks se Programação/Classificação forem usadas.
-- [ ] Configurar a chave de extração estruturada caso as funções que processam PDFs/DOCX sejam utilizadas.
-- [ ] Confirmar notificações/e-mail apenas se forem necessárias.
+Use a versão atual:
+
+- [`technical/08-DEPLOY-OPERACAO.md`](technical/08-DEPLOY-OPERACAO.md)
+- [`technical/16-STATUS-FUNCIONAL.md`](technical/16-STATUS-FUNCIONAL.md)
+
+Este arquivo foi mantido apenas para compatibilidade com referências anteriores.

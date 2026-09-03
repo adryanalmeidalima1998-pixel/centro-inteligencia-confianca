@@ -3,6 +3,9 @@ import { buildProfileBands, estimateCompetitiveLevels, competitiveLevelLabel, LE
 import { normNome } from '@/app/lib/cigJogadores'
 import { calcularIAP } from '@/lib/iap-engine'
 import { resolveGrupo } from '@/data/iap-profiles'
+import { buildPlayerIdentity } from '@/lib/player-identity'
+
+export { buildPlayerIdentity } from '@/lib/player-identity'
 
 const normalize = value => String(value || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
 const num = (value, fallback = null) => value === null || value === undefined || value === '' ? fallback : Number.isFinite(Number(value)) ? Number(value) : fallback
@@ -13,26 +16,6 @@ let ensurePlayerMasterPromise = null
 function seasonYear(season) {
   const match = String(season || '').match(/20\d{2}/)
   return match ? Number(match[0]) : new Date().getFullYear()
-}
-
-export function buildPlayerIdentity(player = {}, season = '') {
-  const name = normNome(player.nome || player.jogador || player.Jogador)
-  const birthDate = player.data_nascimento || player.nascimento || player.birth_date || player['Data de nascimento'] || ''
-  let birthDateNorm = ''
-  if (birthDate) {
-    const parsed = new Date(birthDate)
-    if (Number.isFinite(parsed.getTime())) birthDateNorm = parsed.toISOString().slice(0, 10)
-  }
-  const year = seasonYear(season || player.temporada)
-  const age = num(player.idade)
-  const birthYear = num(player.ano_nascimento, age ? year - age : null)
-  const nationality = normalize(player.pais || player.nacionalidade || player.nationality)
-  const position = normalize(String(player.posicao || '').split(',')[0])
-  const stable = birthDateNorm || (birthYear ? String(birthYear) : '')
-  const identityKey = stable
-    ? [name, stable].join('|')
-    : [name, nationality || 'na', position || 'na'].join('|')
-  return { identityKey, name, birthDate: birthDateNorm || null, birthYear, nationality }
 }
 
 export function buildSourcePlayerKey(player = {}, provider = '', leagueSlug = '', season = '') {

@@ -266,7 +266,7 @@ export default function ProgramacaoPage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/guarani')
+      const res = await fetch('/api/club-calendar')
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
       if (data.error) throw new Error(data.error)
@@ -349,7 +349,7 @@ export default function ProgramacaoPage() {
               <button
                 onClick={loadData}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-500 hover:text-sky-700 hover:border-sky-200 hover:bg-sky-50 transition-all shadow-sm"
-                title="Atualizar via Sportmonks"
+                title="Atualizar calendário"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
                   className={`w-3.5 h-3.5 flex-shrink-0 ${loading ? 'animate-spin' : ''}`}>

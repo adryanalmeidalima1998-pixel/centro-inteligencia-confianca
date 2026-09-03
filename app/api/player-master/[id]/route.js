@@ -3,7 +3,7 @@ import { sql } from '@vercel/postgres'
 import { ensurePlayerMaster } from '@/app/lib/playerMaster'
 import { competitiveLevelLabel, classifyLevelQuadrant, estimateCompetitiveLevels, LEVELING_METHODOLOGY_VERSION, robustnessFromScore } from '@/data/competitive-levels'
 import { buildSportsbaseProfilePayload, buildWyscoutProfilePayload } from '@/data/player-profile'
-import { getGuaraniSportsbase } from '@/lib/guarani-sportsbase-store'
+import { getClubSportsbase } from '@/lib/club-sportsbase-store'
 import { getLeague } from '@/data/leagues'
 import { getSportsbaseMetric } from '@/data/sportsbase-map'
 import { ensureLigaJogadoresSchema } from '@/lib/league-dataset-schema'
@@ -61,16 +61,16 @@ export async function GET(request, { params }) {
       .sort((a, b) => (a.provider === 'sportsbase' ? -1 : 1) - (b.provider === 'sportsbase' ? -1 : 1) || new Date(b.upload_at).getTime() - new Date(a.upload_at).getTime() || Number(b.minutes) - Number(a.minutes))[0] || sources[0] || null
     let analysis = null
     let leaguePlayers = []
-    let guarani = { players:[], games:[], model:null }
+    let clubData = { players:[], games:[], model:null }
 
     if (latest) {
       const dataset = await latestLeagueDataset(latest.league_slug, latest.provider)
       leaguePlayers = Array.isArray(dataset?.data) ? dataset.data : []
       const rawPlayer = latest.raw_data || {}
-      guarani = await getGuaraniSportsbase()
+      clubData = await getClubSportsbase()
       analysis = latest.provider === 'wyscout'
-        ? buildWyscoutProfilePayload(rawPlayer, leaguePlayers, guarani.players || [], guarani.model || guarani.summary?.model)
-        : buildSportsbaseProfilePayload(rawPlayer, leaguePlayers, guarani.players || [], guarani.model || guarani.summary?.model)
+        ? buildWyscoutProfilePayload(rawPlayer, leaguePlayers, clubData.players || [], clubData.model || clubData.summary?.model)
+        : buildSportsbaseProfilePayload(rawPlayer, leaguePlayers, clubData.players || [], clubData.model || clubData.summary?.model)
     }
 
     const instantEstimate = latest
@@ -163,7 +163,7 @@ export async function GET(request, { params }) {
       analysis,
       pizza:buildPizza(analysis),
       scatter,
-      guarani:{ players:(guarani.players || []).length, games:(guarani.games || []).length },
+      club:{ players:(clubData.players || []).length, games:(clubData.games || []).length },
     })
   } catch (error) {
     console.error('[player-master-detail]', error)

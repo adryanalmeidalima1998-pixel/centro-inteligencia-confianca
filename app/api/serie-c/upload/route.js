@@ -54,7 +54,8 @@ export async function POST(request) {
     const competition = String(form.get('competition') || 'Brasileiro Série C').trim()
     const round = Number(form.get('round'))
     const uploadDate = form.get('uploadDate') ? String(form.get('uploadDate')) : null
-    const guaraniPosition = form.get('guaraniPosition') ? Number(form.get('guaraniPosition')) : null
+    const clubPositionRaw = form.get('clubPosition') ?? form.get('clubPosition')
+    const clubPosition = clubPositionRaw ? Number(clubPositionRaw) : null
 
     const teamsFile = form.get('teamsFile')
     const playersFile = form.get('playersFile')
@@ -70,10 +71,10 @@ export async function POST(request) {
     // Upsert do upload da rodada (substitui se a mesma rodada/temporada/competição já existir,
     // preservando o histórico das outras rodadas).
     const uploadRes = await sql`
-      INSERT INTO serie_c_uploads (season, competition, round, guarani_position, upload_date)
-      VALUES (${season}, ${competition}, ${round}, ${guaraniPosition}, ${uploadDate})
+      INSERT INTO serie_c_uploads (season, competition, round, club_position, upload_date)
+      VALUES (${season}, ${competition}, ${round}, ${clubPosition}, ${uploadDate})
       ON CONFLICT (season, competition, round) DO UPDATE SET
-        guarani_position = COALESCE(EXCLUDED.guarani_position, serie_c_uploads.guarani_position),
+        club_position = COALESCE(EXCLUDED.club_position, serie_c_uploads.club_position),
         upload_date = COALESCE(EXCLUDED.upload_date, serie_c_uploads.upload_date),
         uploaded_at = NOW()
       RETURNING id
@@ -93,10 +94,10 @@ export async function POST(request) {
       await sql`DELETE FROM serie_c_team_stats WHERE upload_id = ${uploadId}`
       teamsCount = await bulkInsert(
         'serie_c_team_stats',
-        ['upload_id', 'team', 'is_guarani', 'metrics'],
+        ['upload_id', 'team', 'is_club', 'metrics'],
         'metrics',
         records,
-        r => [uploadId, r.team, r.isGuarani, JSON.stringify(r.metrics)]
+        r => [uploadId, r.team, r.isClub, JSON.stringify(r.metrics)]
       )
     }
 
@@ -110,10 +111,10 @@ export async function POST(request) {
       await sql`DELETE FROM serie_c_player_stats WHERE upload_id = ${uploadId}`
       playersCount = await bulkInsert(
         'serie_c_player_stats',
-        ['upload_id', 'player', 'team', 'is_guarani', 'position', 'age', 'minutes', 'metrics'],
+        ['upload_id', 'player', 'team', 'is_club', 'position', 'age', 'minutes', 'metrics'],
         'metrics',
         records,
-        r => [uploadId, r.player, r.team, r.isGuarani, r.position, r.age, r.minutes, JSON.stringify(r.metrics)]
+        r => [uploadId, r.player, r.team, r.isClub, r.position, r.age, r.minutes, JSON.stringify(r.metrics)]
       )
     }
 
@@ -127,10 +128,10 @@ export async function POST(request) {
       await sql`DELETE FROM serie_c_goalkeeper_stats WHERE upload_id = ${uploadId}`
       goalkeepersCount = await bulkInsert(
         'serie_c_goalkeeper_stats',
-        ['upload_id', 'player', 'team', 'is_guarani', 'age', 'minutes', 'metrics'],
+        ['upload_id', 'player', 'team', 'is_club', 'age', 'minutes', 'metrics'],
         'metrics',
         records,
-        r => [uploadId, r.player, r.team, r.isGuarani, r.age, r.minutes, JSON.stringify(r.metrics)]
+        r => [uploadId, r.player, r.team, r.isClub, r.age, r.minutes, JSON.stringify(r.metrics)]
       )
     }
 
@@ -163,7 +164,7 @@ export async function GET() {
   try {
     await ensureSerieCTables()
     const res = await sql`
-      SELECT id, season, competition, round, guarani_position, upload_date, uploaded_at
+      SELECT id, season, competition, round, club_position, upload_date, uploaded_at
       FROM serie_c_uploads
       ORDER BY season DESC, round DESC
     `

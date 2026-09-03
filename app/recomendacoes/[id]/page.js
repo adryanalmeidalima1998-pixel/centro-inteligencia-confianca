@@ -6,7 +6,7 @@ import { calculateSportsbasePercentile, formatSportsbaseMetric, getMetricEligibi
 import Link from 'next/link'
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts'
 
-const GFC = '#0a66b7'
+const BRAND_PRIMARY = '#0a66b7'
 
 // ── Perfis (mesmos da página de recomendações) ──────────────
 const PERFIS = {
@@ -229,7 +229,7 @@ export default function RecomendacaoAtletaPage() {
     setLoading(true)
     Promise.all([
       fetch(`/api/ligas-v2/jogadores?busca=${encodeURIComponent(nome)}&limit=0&minMin=0`).then(r=>r.json()),
-      fetch('/api/elenco-guarani').then(r=>r.json()),
+      fetch('/api/club-sportsbase?view=players').then(r=>r.json()),
     ]).then(([ligaData, elencoData]) => {
       const jogs = ligaData.jogadores || []
       // Achar o jogador exato
@@ -275,7 +275,7 @@ export default function RecomendacaoAtletaPage() {
   }, [jogador, samePosLiga, radarKeys])
 
   // Dados para radar Confiança (mapear chaves)
-  const samePosGuarani = useMemo(() => {
+  const samePosClub = useMemo(() => {
     if (!elencoGua.length) return []
     const posGrupo = grupoKey
     return elencoGua.filter(p => {
@@ -286,11 +286,11 @@ export default function RecomendacaoAtletaPage() {
     })
   }, [elencoGua, grupoKey])
 
-  const radarGuarani = useMemo(() => {
-    if (!jogador || !samePosGuarani.length) return []
+  const radarClub = useMemo(() => {
+    if (!jogador || !samePosClub.length) return []
     return radarKeys.map(k => {
       const elencoKey = LIGA_TO_ELENCO[k] || k
-      const arr = samePosGuarani.map(p => parseFloat(p[elencoKey])||0)
+      const arr = samePosClub.map(p => parseFloat(p[elencoKey])||0)
       const rawVal = parseFloat(jogador[k])
       const val = isNaN(rawVal) ? 0 : rawVal
       const candidateEligible = calcNativeMetricPct(jogador, k, samePosLiga)
@@ -298,7 +298,7 @@ export default function RecomendacaoAtletaPage() {
       const pct = candidateEligible === null ? null : calculateSportsbasePercentile(val, arr, metric ? metric.higherIsBetter : !INVERTED.has(k))
       return { metric:METRIC_LABELS[k]||k, value:Number.isFinite(pct)?pct:0, percentile:pct, raw:val, formatted:formatNativeValue(val,k) }
     })
-  }, [jogador, samePosGuarani, samePosLiga, radarKeys])
+  }, [jogador, samePosClub, samePosLiga, radarKeys])
 
   const avgIndexLiga = useMemo(() => {
     return jogador ? (calcNativeMetricPct(jogador, 'indice', samePosLiga) ?? 0) : 0
@@ -317,7 +317,7 @@ export default function RecomendacaoAtletaPage() {
       <div style={{ padding:60, textAlign:'center' }}>
         <p style={{ fontSize:24, marginBottom:8 }}>🔍</p>
         <p style={{ fontSize:16, fontWeight:700, color:'#1a2e1a', marginBottom:8 }}>Atleta não encontrado</p>
-        <Link href="/recomendacoes" style={{ color:GFC, fontSize:13, fontWeight:700 }}>← Voltar</Link>
+        <Link href="/recomendacoes" style={{ color:BRAND_PRIMARY, fontSize:13, fontWeight:700 }}>← Voltar</Link>
       </div>
     </AppShell>
   )
@@ -329,7 +329,7 @@ export default function RecomendacaoAtletaPage() {
       <div style={{ background:'#f1f5f9', minHeight:'100vh' }}>
 
         {/* HEADER ESTILO FM */}
-        <div style={{ background:`linear-gradient(135deg, ${GFC} 0%, #052f57 100%)`, padding:'0 0 0 0' }}>
+        <div style={{ background:`linear-gradient(135deg, ${BRAND_PRIMARY} 0%, #052f57 100%)`, padding:'0 0 0 0' }}>
           {/* Breadcrumb */}
           <div style={{ padding:'10px 28px', borderBottom:'1px solid rgba(255,255,255,0.1)' }}>
             <Link href="/recomendacoes" style={{ fontSize:11, color:'rgba(255,255,255,0.6)', fontWeight:700, textDecoration:'none' }}>
@@ -392,7 +392,7 @@ export default function RecomendacaoAtletaPage() {
               <button key={id} onClick={()=>setActiveTab(id)} style={{
                 padding:'10px 18px', border:'none', cursor:'pointer', fontSize:12, fontWeight:700,
                 background: activeTab===id ? '#fff' : 'transparent',
-                color: activeTab===id ? GFC : 'rgba(255,255,255,0.65)',
+                color: activeTab===id ? BRAND_PRIMARY : 'rgba(255,255,255,0.65)',
                 borderRadius: activeTab===id ? '8px 8px 0 0' : 0,
                 transition:'all 0.15s',
               }}>{label}</button>
@@ -418,11 +418,11 @@ export default function RecomendacaoAtletaPage() {
                       <span style={{ fontSize:18 }}>{p.icon}</span>
                       <div style={{ flex:1 }}>
                         <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
-                          <span style={{ fontSize:11, fontWeight:700, color: i===0 ? GFC : '#475569' }}>{p.label}</span>
+                          <span style={{ fontSize:11, fontWeight:700, color: i===0 ? BRAND_PRIMARY : '#475569' }}>{p.label}</span>
                           {i===0 && <ScoutBadge pct={Math.round(p.score)} />}
                         </div>
                         <div style={{ height:5, background:'#f1f5f9', borderRadius:99 }}>
-                          <div style={{ width:`${Math.min(100,p.score)}%`, height:'100%', background: i===0?GFC:'#94a3b8', borderRadius:99 }} />
+                          <div style={{ width:`${Math.min(100,p.score)}%`, height:'100%', background: i===0?BRAND_PRIMARY:'#94a3b8', borderRadius:99 }} />
                         </div>
                       </div>
                     </div>
@@ -487,7 +487,7 @@ export default function RecomendacaoAtletaPage() {
                     <PolarGrid stroke="#e2e8f0" />
                     <PolarAngleAxis dataKey="metric" tick={{ fontSize:11, fill:'#475569', fontWeight:600 }} />
                     <Tooltip formatter={(v,n,{payload})=>[`${payload?.formatted??'—'} (${Number.isFinite(payload?.percentile)?`P${payload.percentile}`:'amostra insuficiente'})`,'']} />
-                    <Radar dataKey="value" stroke={GFC} fill={GFC} fillOpacity={0.28} strokeWidth={2} dot={{ fill:GFC, r:3 }} />
+                    <Radar dataKey="value" stroke={BRAND_PRIMARY} fill={BRAND_PRIMARY} fillOpacity={0.28} strokeWidth={2} dot={{ fill:BRAND_PRIMARY, r:3 }} />
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
@@ -534,7 +534,7 @@ export default function RecomendacaoAtletaPage() {
                   <PolarGrid stroke="#e2e8f0" />
                   <PolarAngleAxis dataKey="metric" tick={{ fontSize:11, fill:'#475569', fontWeight:600 }} />
                   <Tooltip formatter={(v,n,{payload})=>[`${payload?.formatted??'—'} (${Number.isFinite(payload?.percentile)?`P${payload.percentile}`:'amostra insuficiente'})`,'']} />
-                  <Radar dataKey="value" name={jogador.nome} stroke={GFC} fill={GFC} fillOpacity={0.3} strokeWidth={2} />
+                  <Radar dataKey="value" name={jogador.nome} stroke={BRAND_PRIMARY} fill={BRAND_PRIMARY} fillOpacity={0.3} strokeWidth={2} />
                 </RadarChart>
               </ResponsiveContainer>
               <div style={{ display:'flex', flexDirection:'column', gap:8, marginTop:16 }}>
@@ -558,12 +558,12 @@ export default function RecomendacaoAtletaPage() {
             <div style={{ background:'#fff', borderRadius:12, padding:20, border:'1px solid #e2e8f0' }}>
               <p style={{ fontSize:10, fontWeight:900, color:'#94a3b8', textTransform:'uppercase', letterSpacing:1, marginBottom:2 }}>Vs Elenco Confiança</p>
               <p style={{ fontSize:11, color:'#94a3b8', marginBottom:16 }}>
-                {samePosGuarani.length > 0 ? `${samePosGuarani.length} atletas do Confiança · mesmo grupo posicional` : 'Importe o elenco do Confiança para habilitar esta comparação'}
+                {samePosClub.length > 0 ? `${samePosClub.length} atletas do Confiança · mesmo grupo posicional` : 'Importe o elenco do Confiança para habilitar esta comparação'}
               </p>
-              {samePosGuarani.length > 0 ? (
+              {samePosClub.length > 0 ? (
                 <>
                   <ResponsiveContainer width="100%" height={320}>
-                    <RadarChart data={radarGuarani} cx="50%" cy="50%" outerRadius="75%">
+                    <RadarChart data={radarClub} cx="50%" cy="50%" outerRadius="75%">
                       <PolarGrid stroke="#e2e8f0" />
                       <PolarAngleAxis dataKey="metric" tick={{ fontSize:11, fill:'#475569', fontWeight:600 }} />
                       <Tooltip formatter={(v,n,{payload})=>[`${payload?.formatted??'—'} (${Number.isFinite(payload?.percentile)?`P${payload.percentile}`:'amostra insuficiente'})`,'']} />
@@ -571,7 +571,7 @@ export default function RecomendacaoAtletaPage() {
                     </RadarChart>
                   </ResponsiveContainer>
                   <div style={{ display:'flex', flexDirection:'column', gap:8, marginTop:16 }}>
-                    {radarGuarani.map(d => (
+                    {radarClub.map(d => (
                       <div key={d.metric} style={{ display:'flex', alignItems:'center', gap:10 }}>
                         <span style={{ width:80, fontSize:11, color:'#64748b', fontWeight:600 }}>{d.metric}</span>
                         <div style={{ flex:1, height:6, background:'#f1f5f9', borderRadius:99 }}>
@@ -587,7 +587,7 @@ export default function RecomendacaoAtletaPage() {
                 <div style={{ textAlign:'center', padding:40, border:'2px dashed #e2e8f0', borderRadius:10 }}>
                   <p style={{ fontSize:24, marginBottom:8 }}>👥</p>
                   <p style={{ fontSize:13, fontWeight:700, color:'#475569', marginBottom:6 }}>Elenco não importado</p>
-                  <Link href="/elenco" style={{ fontSize:12, color:GFC, fontWeight:700 }}>→ Importar Elenco</Link>
+                  <Link href="/elenco" style={{ fontSize:12, color:BRAND_PRIMARY, fontWeight:700 }}>→ Importar Elenco</Link>
                 </div>
               )}
             </div>

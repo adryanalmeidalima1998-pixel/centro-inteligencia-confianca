@@ -7,29 +7,26 @@ import { NextResponse } from 'next/server'
 import { sql } from '@vercel/postgres'
 import { ensureSerieCTables } from '../../../../lib/serieCDb'
 import { parseWorkbookFile, buildMatchRecords } from '../../../../lib/serieCParse'
+import { matchDateKey } from '../../../../lib/serieCMatch'
 import { normTeamName, valueFromMetricAny } from '../../../../lib/serieC'
+import { isCurrentClubIdentity } from '../../../../lib/club-config'
 
 export const maxDuration = 60
 
 const XG_ALIASES = ['Golos esperados', 'Gols esperados', 'xG', 'Expected goals']
 
-function isoDateKey(value) {
-  if (!value) return ''
-  const date = value instanceof Date ? value : new Date(value)
-  return Number.isNaN(date.getTime()) ? String(value).slice(0, 10) : date.toISOString().slice(0, 10)
-}
 
-function guaraniXgFromCompetition(row) {
-  const homeIsGuarani = normTeamName(row.home_team).includes('CONFIANÇA') || normTeamName(row.home_code) === 'CON'
-  const awayIsGuarani = normTeamName(row.away_team).includes('CONFIANÇA') || normTeamName(row.away_code) === 'CON'
-  if (!homeIsGuarani && !awayIsGuarani) return null
-  const ownMetrics = homeIsGuarani ? row.home_metrics : row.away_metrics
-  const oppMetrics = homeIsGuarani ? row.away_metrics : row.home_metrics
+function clubXgFromCompetition(row) {
+  const homeIsClub = isCurrentClubIdentity(row.home_team, row.home_code)
+  const awayIsClub = isCurrentClubIdentity(row.away_team, row.away_code)
+  if (!homeIsClub && !awayIsClub) return null
+  const ownMetrics = homeIsClub ? row.home_metrics : row.away_metrics
+  const oppMetrics = homeIsClub ? row.away_metrics : row.home_metrics
   const xg = valueFromMetricAny(ownMetrics, XG_ALIASES)
   const xga = valueFromMetricAny(oppMetrics, XG_ALIASES)
   if (xg === null && xga === null) return null
   return {
-    opponent: homeIsGuarani ? row.away_team : row.home_team,
+    opponent: homeIsClub ? row.away_team : row.home_team,
     xg,
     xga,
     xgDiff: xg !== null && xga !== null ? xg - xga : null,
@@ -45,12 +42,12 @@ export async function GET(request) {
 
     const res = season
       ? await sql`
-          SELECT * FROM serie_c_guarani_matches
+          SELECT * FROM serie_c_club_matches
           WHERE season = ${season} AND competition = ${competition}
           ORDER BY round ASC NULLS LAST, match_date ASC
         `
       : await sql`
-          SELECT * FROM serie_c_guarani_matches
+          SELECT * FROM serie_c_club_matches
           WHERE competition = ${competition}
           ORDER BY season DESC, round ASC NULLS LAST, match_date ASC
         `
@@ -65,9 +62,9 @@ export async function GET(request) {
       const xgMap = new Map()
       const xgByOpponent = new Map()
       for (const row of xgRes.rows) {
-        const info = guaraniXgFromCompetition(row)
+        const info = clubXgFromCompetition(row)
         if (!info) continue
-        const date = isoDateKey(row.match_date)
+        const date = matchDateKey(row.match_date)
         const opponent = normTeamName(info.opponent)
         const enriched = { ...info, date }
         xgMap.set(`${date}|${opponent}`, enriched)
@@ -76,7 +73,7 @@ export async function GET(request) {
         xgByOpponent.set(opponent, bucket)
       }
       matches = matches.map(match => {
-        const date = isoDateKey(match.match_date)
+        const date = matchDateKey(match.match_date)
         const opponent = normTeamName(match.opponent)
         let info = xgMap.get(`${date}|${opponent}`)
         if (!info) {
@@ -127,7 +124,7 @@ export async function POST(request) {
         params.push(season, competition, r.matchDate, r.mando, r.opponent, r.score, JSON.stringify(r.metrics))
       })
       const queryText = `
-        INSERT INTO serie_c_guarani_matches (season, competition, match_date, mando, opponent, score, metrics)
+        INSERT INTO serie_c_club_matches (season, competition, match_date, mando, opponent, score, metrics)
         VALUES ${placeholders.join(', ')}
         ON CONFLICT (season, competition, match_date, opponent) DO UPDATE SET
           mando = EXCLUDED.mando,

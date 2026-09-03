@@ -2,13 +2,13 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 
 /* ── Constants ────────────────────────────────────────────────── */
-const GFC  = '#0a66b7'
+const BRAND_PRIMARY  = '#0a66b7'
 const RED  = '#c62828'
 const AMB  = '#b45309'
-const GFC2 = '#eaf4fd'
+const BRAND_DARK = '#eaf4fd'
 const PURP = '#6a1b9a'
 
-const GUARANI_ROSTER = new Set([
+const CLUB_ROSTER = new Set([
   'Rafael Pascoal','Matheus Emiliano','Cadu','João Fernandes',
   'Ludke','Weriton','Enzo Rocha','Marcelo Nunes','Lucas Cunha','Alisson','Renilson','Matheus Julião','Mandovani','Eduardo Moura','Adryan','Valdir',
   'Ícaro','Gustavo Nicola','Guilherme Nunes','Lorran','Madison','Breyner','Paulo Henrique','Fabrício Oya','Patrick Ferreira','Gabriel Souza','Kelvyn','Iago',
@@ -118,7 +118,7 @@ function parsePlayerXml(doc) {
     const duels  = groupMap['duels']      || []
     if (!playerMap[name]) {
       playerMap[name] = {
-        name, number:num, team: GUARANI_ROSTER.has(name)?'Confiança':'Palmeiras',
+        name, number:num, team: CLUB_ROSTER.has(name)?'Confiança':'Palmeiras',
         touches:0, passes:0, passesLong:0, crosses:0, smartPasses:0,
         duelsOff:0, duelsDef:0, duelsAerial:0,
         plus:0, minus:0, keyPass:0, assist:0, goals:0, underPressure:0,
@@ -753,7 +753,7 @@ function VideoPlayerWithDraw({ videoUrl, activeClip, onEnded, onManualClip }) {
             </button>
             {markStart!==null && (
               <button onClick={handleMarkEnd}
-                style={{ background:GFC, color:'#fff', border:'none', borderRadius:6, padding:'5px 9px', fontSize:9, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+                style={{ background:BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:6, padding:'5px 9px', fontSize:9, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
                 ⏹ Fim
               </button>
             )}
@@ -786,12 +786,12 @@ function VideoPlayerWithDraw({ videoUrl, activeClip, onEnded, onManualClip }) {
               <input
                 type="range" min={0} max={10} step={1} value={freezeSecs}
                 onChange={e => setFreezeSecs(Number(e.target.value))}
-                style={{ width:70, accentColor:GFC, cursor:'pointer' }}
+                style={{ width:70, accentColor:BRAND_PRIMARY, cursor:'pointer' }}
               />
-              <span style={{ fontSize:11, fontWeight:900, color:GFC, fontFamily:"'Barlow Condensed',sans-serif", minWidth:22, textAlign:'right' }}>{freezeSecs}s</span>
+              <span style={{ fontSize:11, fontWeight:900, color:BRAND_PRIMARY, fontFamily:"'Barlow Condensed',sans-serif", minWidth:22, textAlign:'right' }}>{freezeSecs}s</span>
             </div>
             <button onClick={handleExportClip} disabled={exporting}
-              style={{ background: exporting ? '#555' : GFC, color:'#fff', border:'none', borderRadius:8, padding:'7px 14px',
+              style={{ background: exporting ? '#555' : BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:8, padding:'7px 14px',
                 fontSize:10, fontWeight:700, cursor: exporting?'wait':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6,
                 opacity: exporting ? 0.8 : 1 }}>
               {exporting
@@ -832,12 +832,12 @@ function VideoPlayerWithDraw({ videoUrl, activeClip, onEnded, onManualClip }) {
 
 /* ── Clip helpers ─────────────────────────────────────────────── */
 function catColor(text) {
-  if (TEAM_CATEGORIES.offensive.includes(text)) return GFC
+  if (TEAM_CATEGORIES.offensive.includes(text)) return BRAND_PRIMARY
   if (TEAM_CATEGORIES.defensive.includes(text)) return RED
   return AMB
 }
 function ClipCard({ clip, isActive, onClick, showPlayer }) {
-  const color    = clip.team ? (clip.team==='Confiança'?GFC:RED) : catColor(clip.text||'')
+  const color    = clip.team ? (clip.team==='Confiança'?BRAND_PRIMARY:RED) : catColor(clip.text||'')
   const label    = clip.text || clip.name || ''
   const subAttrs = clip.attrs?.filter(a=>['Golo','Assistência','Passe decisivo','Bom','Plus'].includes(a))||[]
   return (
@@ -878,21 +878,21 @@ function PhaseDashboard({ teamData }) {
   const offPct    = Math.round((offSecs/totalSecs)*100)
   const defPct    = Math.round((defSecs/totalSecs)*100)
   const pairs = [
-    [{ l:'Fases ofensivas', v:offPhases.length, c:GFC },{ l:'Fases defensivas', v:defPhases.length, c:RED }],
-    [{ l:'Remates', v:events.filter(e=>e.text==='Remate').length, c:GFC },{ l:'Remates sofridos', v:events.filter(e=>e.text==='Remates sofridos').length, c:RED }],
-    [{ l:'Oportunidades', v:events.filter(e=>e.text==='Oportunidades de golo').length, c:GFC },{ l:'Oport. cedidas', v:events.filter(e=>e.text==='oportunidades de golo contra').length, c:RED }],
-    [{ l:'Cruzamentos', v:events.filter(e=>e.text==='Cruzamento').length, c:GFC },{ l:'Cruz. sofridos', v:events.filter(e=>e.text==='Cruzamentos sofridos').length, c:RED }],
-    [{ l:'Cantos ganhos', v:events.filter(e=>e.text==='Cantos ofensivos').length, c:GFC },{ l:'Cantos cedidos', v:events.filter(e=>e.text==='Cantos concedidos').length, c:RED }],
+    [{ l:'Fases ofensivas', v:offPhases.length, c:BRAND_PRIMARY },{ l:'Fases defensivas', v:defPhases.length, c:RED }],
+    [{ l:'Remates', v:events.filter(e=>e.text==='Remate').length, c:BRAND_PRIMARY },{ l:'Remates sofridos', v:events.filter(e=>e.text==='Remates sofridos').length, c:RED }],
+    [{ l:'Oportunidades', v:events.filter(e=>e.text==='Oportunidades de golo').length, c:BRAND_PRIMARY },{ l:'Oport. cedidas', v:events.filter(e=>e.text==='oportunidades de golo contra').length, c:RED }],
+    [{ l:'Cruzamentos', v:events.filter(e=>e.text==='Cruzamento').length, c:BRAND_PRIMARY },{ l:'Cruz. sofridos', v:events.filter(e=>e.text==='Cruzamentos sofridos').length, c:RED }],
+    [{ l:'Cantos ganhos', v:events.filter(e=>e.text==='Cantos ofensivos').length, c:BRAND_PRIMARY },{ l:'Cantos cedidos', v:events.filter(e=>e.text==='Cantos concedidos').length, c:RED }],
   ]
   return (
     <div style={{ marginTop:14 }}>
       <p style={{ fontSize:9, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'1px', marginBottom:8 }}>📊 Resumo do jogo</p>
       <div style={{ marginBottom:10 }}>
         <div style={{ display:'flex', justifyContent:'space-between', fontSize:9, fontWeight:700, marginBottom:4 }}>
-          <span style={{ color:GFC }}>⚔️ Ataque {offPct}%</span><span style={{ color:RED }}>🛡️ Defesa {defPct}%</span>
+          <span style={{ color:BRAND_PRIMARY }}>⚔️ Ataque {offPct}%</span><span style={{ color:RED }}>🛡️ Defesa {defPct}%</span>
         </div>
         <div style={{ display:'flex', height:7, borderRadius:99, overflow:'hidden' }}>
-          <div style={{ width:`${offPct}%`, background:GFC }} />
+          <div style={{ width:`${offPct}%`, background:BRAND_PRIMARY }} />
           <div style={{ flex:1, background:'#e5edf5' }} />
           <div style={{ width:`${defPct}%`, background:RED }} />
         </div>
@@ -920,21 +920,21 @@ function RatingsPanel({ playerData, onSelectClip, showPlayer }) {
   const filtered = playerData.players.filter(p=>p.team===teamFilter)
     .sort((a,b) => sort==='rating' ? parseFloat(b.rating)-parseFloat(a.rating) : sort==='net' ? b.net-a.net : b.touches-a.touches)
   const maxT  = Math.max(...filtered.map(p=>p.touches),1)
-  const color = teamFilter==='Confiança' ? GFC : RED
+  const color = teamFilter==='Confiança' ? BRAND_PRIMARY : RED
   return (
     <div>
       <div style={{ display:'flex', gap:6, marginBottom:10, flexWrap:'wrap', alignItems:'center' }}>
         {['Confiança','Palmeiras'].map(t=>(
-          <button key={t} onClick={()=>setTeamFilter(t)} style={{ padding:'5px 12px', fontSize:10, fontWeight:700, borderRadius:8, fontFamily:'inherit', background:teamFilter===t?(t==='Confiança'?GFC:RED):'#f4f8fc', color:teamFilter===t?'#fff':'#64748b', border:'none', cursor:'pointer' }}>{t}</button>
+          <button key={t} onClick={()=>setTeamFilter(t)} style={{ padding:'5px 12px', fontSize:10, fontWeight:700, borderRadius:8, fontFamily:'inherit', background:teamFilter===t?(t==='Confiança'?BRAND_PRIMARY:RED):'#f4f8fc', color:teamFilter===t?'#fff':'#64748b', border:'none', cursor:'pointer' }}>{t}</button>
         ))}
         <div style={{ display:'flex', gap:3, marginLeft:'auto' }}>
           {[['rating','★'],['net','+/−'],['touches','👟']].map(([k,l])=>(
-            <button key={k} onClick={()=>setSort(k)} style={{ padding:'4px 8px', fontSize:9, fontWeight:700, borderRadius:6, fontFamily:'inherit', background:sort===k?GFC:'#f4f8fc', color:sort===k?'#fff':'#64748b', border:'none', cursor:'pointer' }}>{l}</button>
+            <button key={k} onClick={()=>setSort(k)} style={{ padding:'4px 8px', fontSize:9, fontWeight:700, borderRadius:6, fontFamily:'inherit', background:sort===k?BRAND_PRIMARY:'#f4f8fc', color:sort===k?'#fff':'#64748b', border:'none', cursor:'pointer' }}>{l}</button>
           ))}
         </div>
       </div>
       {filtered.map((p,i)=>{
-        const rNum=parseFloat(p.rating); const rCol=rNum>=7?GFC:rNum>=5?AMB:RED; const isExp=expanded===p.name
+        const rNum=parseFloat(p.rating); const rCol=rNum>=7?BRAND_PRIMARY:rNum>=5?AMB:RED; const isExp=expanded===p.name
         const keyClips=p.clips.filter(c=>c.attrs.some(a=>['Plus','Bom','Golo','Assistência','Passe decisivo'].includes(a)))
         return (
           <div key={p.name} style={{ marginBottom:6 }}>
@@ -944,7 +944,7 @@ function RatingsPanel({ playerData, onSelectClip, showPlayer }) {
               <div style={{ width:50, height:4, background:'#f4f8fc', borderRadius:99, overflow:'hidden', flexShrink:0 }}>
                 <div style={{ width:`${(p.touches/maxT)*100}%`, height:'100%', background:color }} />
               </div>
-              <span style={{ fontSize:9, color:p.net>=0?GFC:RED, fontWeight:700, flexShrink:0 }}>{p.net>=0?`+${p.net}`:p.net}</span>
+              <span style={{ fontSize:9, color:p.net>=0?BRAND_PRIMARY:RED, fontWeight:700, flexShrink:0 }}>{p.net>=0?`+${p.net}`:p.net}</span>
               <div style={{ width:30, height:30, borderRadius:'50%', background:`${rCol}18`, border:`2px solid ${rCol}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                 <span style={{ fontSize:11, fontWeight:900, color:rCol, fontFamily:"'Barlow Condensed',sans-serif" }}>{p.rating}</span>
               </div>
@@ -1077,7 +1077,7 @@ export default function XmlAnalyzer() {
       <div style={{ background:'#fff', borderRadius:12, border:'1px solid #e5edf5', padding:'12px 16px' }}>
         <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
           <button onClick={()=>videoFileRef.current?.click()}
-            style={{ background:videoFile?'#10233b':GFC, color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
+            style={{ background:videoFile?'#10233b':BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
             🎬 {videoFile?videoFile.slice(0,24)+(videoFile.length>24?'…':''):'Carregar vídeo MP4'}
           </button>
           <input ref={videoFileRef} type="file" accept="video/*" style={{ display:'none' }} onChange={e=>{const f=e.target.files[0];if(f)handleVideoFile(f);e.target.value=''}} />
@@ -1085,14 +1085,14 @@ export default function XmlAnalyzer() {
           <div style={{ width:1, height:24, background:'#e5edf5' }} />
 
           <button onClick={()=>teamXmlRef.current?.click()}
-            style={{ background:teamFile?GFC2:'#f4f8fc', color:teamFile?GFC:'#64748b', border:`1px solid ${teamFile?GFC:'#e5edf5'}`, borderRadius:8, padding:'6px 12px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
+            style={{ background:teamFile?BRAND_DARK:'#f4f8fc', color:teamFile?BRAND_PRIMARY:'#64748b', border:`1px solid ${teamFile?BRAND_PRIMARY:'#e5edf5'}`, borderRadius:8, padding:'6px 12px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
             {loading.team?'⏳':teamFile?'✅':'📋'} {teamFile?'Eventos carregados':'XML Eventos de Equipe'}
           </button>
           <input ref={teamXmlRef} type="file" accept=".xml" style={{ display:'none' }} onChange={e=>{const f=e.target.files[0];if(f)handleTeamXml(f);e.target.value=''}} />
           {error.team&&<span style={{ fontSize:9, color:RED }}>⚠️ {error.team}</span>}
 
           <button onClick={()=>playerXmlRef.current?.click()}
-            style={{ background:playerFile?GFC2:'#f4f8fc', color:playerFile?GFC:'#64748b', border:`1px solid ${playerFile?GFC:'#e5edf5'}`, borderRadius:8, padding:'6px 12px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
+            style={{ background:playerFile?BRAND_DARK:'#f4f8fc', color:playerFile?BRAND_PRIMARY:'#64748b', border:`1px solid ${playerFile?BRAND_PRIMARY:'#e5edf5'}`, borderRadius:8, padding:'6px 12px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:5 }}>
             {loading.player?'⏳':playerFile?'✅':'👤'} {playerFile?'Jogadores carregados':'XML Jogadores'}
           </button>
           <input ref={playerXmlRef} type="file" accept=".xml" style={{ display:'none' }} onChange={e=>{const f=e.target.files[0];if(f)handlePlayerXml(f);e.target.value=''}} />
@@ -1129,9 +1129,9 @@ export default function XmlAnalyzer() {
               return (
                 <div style={{ marginTop:8, display:'flex', gap:6, justifyContent:'flex-end' }}>
                   {idx>0 && <button onClick={()=>setActiveClip(displayClips[idx-1])}
-                    style={{ background:'#f4f8fc', border:'none', borderRadius:6, padding:'5px 10px', fontSize:10, cursor:'pointer', fontFamily:'inherit', color:GFC, fontWeight:700 }}>◀ Ant.</button>}
+                    style={{ background:'#f4f8fc', border:'none', borderRadius:6, padding:'5px 10px', fontSize:10, cursor:'pointer', fontFamily:'inherit', color:BRAND_PRIMARY, fontWeight:700 }}>◀ Ant.</button>}
                   {idx<displayClips.length-1 && <button onClick={()=>setActiveClip(displayClips[idx+1])}
-                    style={{ background:GFC, border:'none', borderRadius:6, padding:'5px 10px', fontSize:10, cursor:'pointer', fontFamily:'inherit', color:'#fff', fontWeight:700 }}>Próx. ▶</button>}
+                    style={{ background:BRAND_PRIMARY, border:'none', borderRadius:6, padding:'5px 10px', fontSize:10, cursor:'pointer', fontFamily:'inherit', color:'#fff', fontWeight:700 }}>Próx. ▶</button>}
                 </div>
               )
             })()}
@@ -1146,7 +1146,7 @@ export default function XmlAnalyzer() {
               {hasXml ? (
                 <>
                   {[['clips','🎬 Clips',!!teamData],['ratings','⭐ Jogadores',!!playerData]].map(([k,l,enabled])=>(
-                    <button key={k} onClick={()=>enabled&&setRightTab(k)} style={{ padding:'5px 12px', fontSize:10, fontWeight:700, borderRadius:8, fontFamily:'inherit', background:rightTab===k?GFC:'#f4f8fc', color:rightTab===k?'#fff':enabled?'#64748b':'#c0d8c4', border:'none', cursor:enabled?'pointer':'not-allowed', opacity:enabled?1:0.5 }}>{l}</button>
+                    <button key={k} onClick={()=>enabled&&setRightTab(k)} style={{ padding:'5px 12px', fontSize:10, fontWeight:700, borderRadius:8, fontFamily:'inherit', background:rightTab===k?BRAND_PRIMARY:'#f4f8fc', color:rightTab===k?'#fff':enabled?'#64748b':'#c0d8c4', border:'none', cursor:enabled?'pointer':'not-allowed', opacity:enabled?1:0.5 }}>{l}</button>
                   ))}
                 </>
               ) : (
@@ -1165,7 +1165,7 @@ export default function XmlAnalyzer() {
                   </p>
                   <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:8 }}>
                     {freeCats.map(cat => {
-                      const colors = {'Ataque':GFC,'Golo':'#2e7d32','Defesa':RED,'Falta':'#b71c1c','Set piece':AMB,'Transição':PURP}
+                      const colors = {'Ataque':BRAND_PRIMARY,'Golo':'#2e7d32','Defesa':RED,'Falta':'#b71c1c','Set piece':AMB,'Transição':PURP}
                       const c = colors[cat] || '#455a64'
                       return (
                         <button key={cat} onClick={() => {
@@ -1239,7 +1239,7 @@ export default function XmlAnalyzer() {
                       ))}
                     </div>
                     {teamFilter!=='player' && allCategories.map(cat=>{
-                      const c = TEAM_CATEGORIES.offensive.includes(cat)?GFC:TEAM_CATEGORIES.defensive.includes(cat)?RED:AMB
+                      const c = TEAM_CATEGORIES.offensive.includes(cat)?BRAND_PRIMARY:TEAM_CATEGORIES.defensive.includes(cat)?RED:AMB
                       return (
                         <button key={cat} onClick={()=>setCatFilter(catFilter===cat?null:cat)} style={{ padding:'3px 8px', fontSize:9, fontWeight:700, borderRadius:6, fontFamily:'inherit', background:catFilter===cat?c:'#f4f8fc', color:catFilter===cat?'#fff':'#64748b', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:3, whiteSpace:'nowrap' }}>
                           {CAT_ICONS[cat]||'•'} {cat} ({allTeamClips.filter(e=>e.text===cat).length})

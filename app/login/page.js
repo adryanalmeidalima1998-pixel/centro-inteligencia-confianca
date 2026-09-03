@@ -20,10 +20,10 @@ function LoginForm(){
  async function submit(e){e.preventDefault();setError('');setLoading(true);const r=await signIn('credentials',{email,password,redirect:false});setLoading(false);if(r?.error)setError('E-mail ou senha incorretos.')}
  return <main className="min-h-screen bg-[#071b36] text-white grid lg:grid-cols-[1.15fr_.85fr]">
   <section className="hidden lg:flex relative overflow-hidden p-12 flex-col justify-between border-r border-white/10">
-   <img src="/confianca.svg" alt="" className="absolute -right-40 top-10 w-[620px] opacity-[0.055]"/>
+   <img src="/confianca.png" alt="" className="absolute -right-40 top-10 w-[620px] opacity-[0.055]"/>
    <Link href="/" className="relative inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[.2em] text-slate-400 hover:text-white"><ArrowLeft size={15}/> Centro de Inteligência</Link>
    <div className="relative max-w-xl">
-    <div className="w-20 h-20 rounded-2xl bg-white p-2 mb-7"><img src="/confianca.svg" alt="Confiança"/></div>
+    <div className="w-20 h-20 rounded-2xl bg-white p-2 mb-7"><img src="/confianca.png" alt="Confiança"/></div>
     <p className="text-[10px] font-black uppercase tracking-[.35em] text-sky-300">Associação Desportiva Confiança</p>
     <h1 className="text-5xl font-black tracking-[-.04em] leading-[1] mt-3">Centro de<br/>Inteligência</h1>
     <p className="mt-5 text-sm leading-7 text-slate-400">Acesso seguro aos ambientes de performance, futebol, análise e recrutamento.</p>

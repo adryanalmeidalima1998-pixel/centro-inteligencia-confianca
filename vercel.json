@@ -5,7 +5,7 @@
       "schedule": "0 10 * * *"
     },
     {
-      "path": "/api/notificacoes?secret=guarani-cig-cron-2026",
+      "path": "/api/notificacoes",
       "schedule": "0 8 * * 1"
     }
   ]

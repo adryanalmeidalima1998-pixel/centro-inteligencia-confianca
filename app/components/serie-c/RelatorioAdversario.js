@@ -96,7 +96,7 @@ function Matrix({data,title,tone='green'}){
 }
 
 function TeamBenchmark({teams,opponent}){
-  const gua=teams.find(t=>t.is_guarani)
+  const gua=teams.find(t=>t.is_club)
   const opp=teams.find(t=>sameTeam(t.team,opponent))
   if(!gua||!opp)return <div className="rounded-2xl border border-dashed border-gray-200 p-5 text-[9px] text-gray-400">Não encontrei o adversário na planilha de times da rodada atual para o benchmark da Série C.</div>
   const rows=METRICS.map(def=>{
@@ -117,8 +117,8 @@ function directLast10Rows(opp,gua){
     ['Chutes',of.shots,gf.shots,0],['Chutes no alvo',of.onTarget,gf.onTarget,0],['xG',of.xg,gf.xg,2],['Conversão',conv(os,of),conv(gs,gf),'pct'],
   ].filter(r=>r[1]!==undefined&&r[1]!==null)
 }
-function Last10Comparison({opponent,guarani}){
-  const rows=directLast10Rows(opponent,guarani)
+function Last10Comparison({opponent,clubReport}){
+  const rows=directLast10Rows(opponent,clubReport)
   return <div className="overflow-hidden rounded-2xl border border-gray-100"><div className="grid grid-cols-[1.3fr_.7fr_.7fr] bg-gray-50 px-3 py-2 text-[7px] font-black uppercase tracking-wider text-gray-400"><span>Últimos 10</span><span>{opponent.team}</span><span>Confiança</span></div>{rows.map(([l,a,b,d])=><div key={l} className="grid grid-cols-[1.3fr_.7fr_.7fr] border-t border-gray-50 px-3 py-2 text-[8px]"><b className="text-gray-700">{l}</b><span className="font-black">{d==='pct'?pct(a*100):fmt(a,d)}</span><span className="font-bold text-emerald-700">{b===undefined||b===null?'—':d==='pct'?pct(b*100):fmt(b,d)}</span></div>)}</div>
 }
 
@@ -136,8 +136,8 @@ function IndividualHighlights({data,team,roster=[]}){
   const all=data?.players||[],gks=(data?.goalkeepers||[]).map(x=>({...x,position:'GK',isGoalkeeper:true}))
   const rosterNames=(roster||[]).map(x=>x.player).filter(Boolean)
   const active=p=>rosterNames.length<5||rosterNames.some(n=>sameAthlete(n,p.player,[]))
-  const opp=all.filter(p=>sameTeam(p.team,team)&&active(p)),gua=all.filter(p=>p.is_guarani)
-  const oppG=gks.filter(p=>sameTeam(p.team,team)&&active(p)),guaG=gks.filter(p=>p.is_guarani)
+  const opp=all.filter(p=>sameTeam(p.team,team)&&active(p)),gua=all.filter(p=>p.is_club)
+  const oppG=gks.filter(p=>sameTeam(p.team,team)&&active(p)),guaG=gks.filter(p=>p.is_club)
   const ol=squadLeaders(opp),gl=squadLeaders(gua),og=goalkeeperLeaders(oppG),gg=goalkeeperLeaders(guaG)
   const candidates=[...opp.map(p=>playerCardData(p,opp,all,ol,false)),...oppG.map(p=>playerCardData(p,oppG,gks,og,true))].filter(x=>(Number(x.player.minutes)||0)>=300).sort((a,b)=>b.score-a.score).slice(0,5)
   const guaCards=[...gua.map(p=>playerCardData(p,gua,all,gl,false)),...guaG.map(p=>playerCardData(p,guaG,gks,gg,true))]
@@ -151,7 +151,7 @@ function IndividualHighlights({data,team,roster=[]}){
   })}</div>
 }
 
-export default function RelatorioAdversario({report,data,guaraniLast10=null}){
+export default function RelatorioAdversario({report,data,clubLast10=null}){
   const r=report?.parsedData||report||{}
   const team=report?.team||r.team||'Adversário'
   const crest=r.crestDataUrl||null
@@ -203,7 +203,7 @@ export default function RelatorioAdversario({report,data,guaraniLast10=null}){
     </Page>
 
     <Page number={6} total={totalPages} title={team} crest={crest} subtitle="Comparação direta com o Confiança + plano de jogo">
-      <div className="grid grid-cols-2 gap-5"><div><h3 className="mb-2 text-[9px] font-black uppercase tracking-wider text-gray-700">Últimos 10 · PDF x PDF</h3><Last10Comparison opponent={r} guarani={guaraniLast10}/><p className="mt-2 text-[7px] leading-relaxed text-gray-400">A comparação usa o mesmo recorte de 10 jogos sempre que o PDF do Confiança estiver salvo.</p></div><div><h3 className="mb-2 text-[9px] font-black uppercase tracking-wider text-gray-700">Benchmark atual da Série C</h3><TeamBenchmark teams={data?.teams||[]} opponent={team}/><p className="mt-2 text-[7px] leading-relaxed text-gray-400">Este quadro usa a planilha atual da competição e fica separado do recorte Wyscout das últimas 10.</p></div></div>
+      <div className="grid grid-cols-2 gap-5"><div><h3 className="mb-2 text-[9px] font-black uppercase tracking-wider text-gray-700">Últimos 10 · PDF x PDF</h3><Last10Comparison opponent={r} clubReport={clubLast10}/><p className="mt-2 text-[7px] leading-relaxed text-gray-400">A comparação usa o mesmo recorte de 10 jogos sempre que o PDF do Confiança estiver salvo.</p></div><div><h3 className="mb-2 text-[9px] font-black uppercase tracking-wider text-gray-700">Benchmark atual da Série C</h3><TeamBenchmark teams={data?.teams||[]} opponent={team}/><p className="mt-2 text-[7px] leading-relaxed text-gray-400">Este quadro usa a planilha atual da competição e fica separado do recorte Wyscout das últimas 10.</p></div></div>
       <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4"><h3 className="text-[9px] font-black uppercase tracking-wider text-emerald-700">Plano de jogo sugerido a partir dos dados</h3><div className="mt-3 grid grid-cols-2 gap-3 text-[8px] leading-relaxed text-gray-700"><p>• Direcionar ações ofensivas para <b>{exposure?corridorLabel(exposure.key,true):'o corredor de maior exposição identificado'}</b>, sobretudo após recuperação curta.</p><p>• Preparar a pressão considerando a estrutura <b>{r.formations?.[0]?.formation||'principal'}</b> e sua frequência no recorte.</p><p>• Controlar <b>{attack?corridorLabel(attack.key):'o corredor de maior volume'}</b>, onde o rival concentra mais cruzamentos.</p><p>• Nas transições, atacar as zonas de maior perda e evitar faltas nas zonas de maior incidência mostradas na matriz.</p><p>• Atenção aos principais criadores do recorte: <b>{creators.slice(0,2).map(x=>x.player).join(' e ')||'ver quadro de criação'}</b>.</p><p>• Nas bolas paradas, priorizar marcação dos alvos com maior xG/gols e antecipar o pé/lado dos principais cobradores.</p></div></div>
     </Page>
 

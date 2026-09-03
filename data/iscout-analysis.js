@@ -641,7 +641,7 @@ function deriveFunctionalProfile(metrics, group) {
     for (const [key, weight] of items) {
       total += weight
       const metric = lookup.get(key)
-      const value = metric?.percentileSerieC ?? metric?.percentileGuarani
+      const value = metric?.percentileSerieC ?? metric?.percentileClub
       if (value != null) { weighted += value * weight; used += weight }
     }
     return { name, score:used ? Math.round(weighted/used) : 0, coverage:total ? Math.round((used/total)*100) : 0 }
@@ -661,40 +661,42 @@ function similarity(player, candidate, metrics, seriePool) {
   return Math.max(0, Math.round(100 - diffs.reduce((a,b)=>a+b,0)/diffs.length))
 }
 
-export function analyzeIScoutPlayer({ player, games = [], context = {}, guaraniPlayers = [], serieCPlayers = [], guaraniModel = null }) {
+export function analyzeIScoutPlayer({ player, games = [], context = {}, clubPlayers = [], serieCPlayers = [], clubModel = null }) {
+  const resolvedClubPlayers = Array.isArray(clubPlayers) ? clubPlayers : []
+  const resolvedClubModel = clubModel
   const role = positionRole(player.posicao) || 'DMF'
   const group = positionGroup(role)
   const metricDefs = (POSITION_METRICS[role] || POSITION_METRICS.DMF).map(([key, weight]) => ({
     key, weight, higherIsBetter: METRIC_CATALOG[key]?.higherIsBetter !== false, ...METRIC_CATALOG[key],
   }))
-  const guaraniPool = samePositionPool(guaraniPlayers, group, role)
+  const clubPool = samePositionPool(resolvedClubPlayers, group, role)
   const seriePool = samePositionPool(serieCPlayers, group, role)
-  const prioritySet = modelPrioritySet(guaraniModel)
+  const prioritySet = modelPrioritySet(resolvedClubModel)
   let weightedFit = 0
   let fitWeight = 0
   let serieWeighted = 0
   let serieWeight = 0
-  let guaraniWeighted = 0
-  let guaraniWeight = 0
+  let clubWeighted = 0
+  let clubWeight = 0
 
   const metrics = metricDefs.map(def => {
     const value = metricNumber(player?.[def.key])
     const pSerie = percentile(value, seriePool, def.key, def.higherIsBetter)
-    const pGfc = percentile(value, guaraniPool, def.key, def.higherIsBetter)
-    const available = [pSerie, pGfc].filter(v => v != null)
-    const contextScore = pSerie != null && pGfc != null ? pSerie * .62 + pGfc * .38 : available[0] ?? null
+    const pClub = percentile(value, clubPool, def.key, def.higherIsBetter)
+    const available = [pSerie, pClub].filter(v => v != null)
+    const contextScore = pSerie != null && pClub != null ? pSerie * .62 + pClub * .38 : available[0] ?? null
     const priority = prioritySet.has(def.key)
     const effectiveWeight = def.weight * (priority ? 1.25 : 1)
     if (contextScore != null) { weightedFit += contextScore * effectiveWeight; fitWeight += effectiveWeight }
     if (pSerie != null) { serieWeighted += pSerie * def.weight; serieWeight += def.weight }
-    if (pGfc != null) { guaraniWeighted += pGfc * def.weight; guaraniWeight += def.weight }
+    if (pClub != null) { clubWeighted += pClub * def.weight; clubWeight += def.weight }
     return {
       ...def,
       value: value !== null ? round(value, def.format === 'percent' ? 1 : 2) : null,
       percentileSerieC: pSerie,
-      percentileGuarani: pGfc,
+      percentileClub: pClub,
       avgSerieC: average(seriePool, def.key),
-      avgGuarani: average(guaraniPool, def.key),
+      avgClub: average(clubPool, def.key),
       priority,
     }
   })
@@ -703,11 +705,11 @@ export function analyzeIScoutPlayer({ player, games = [], context = {}, guaraniP
   const rawFit = fitWeight ? weightedFit / fitWeight : 0
   const fitScore = Math.round(rawFit * (.88 + .12 * (sample.score/100)))
   const serieCScore = serieWeight ? Math.round(serieWeighted / serieWeight) : 0
-  const guaraniScore = guaraniWeight ? Math.round(guaraniWeighted / guaraniWeight) : 0
-  const eligible = metrics.filter(m => m.percentileSerieC != null || m.percentileGuarani != null)
+  const clubScore = clubWeight ? Math.round(clubWeighted / clubWeight) : 0
+  const eligible = metrics.filter(m => m.percentileSerieC != null || m.percentileClub != null)
   const ranked = eligible.map(metric => ({
     metric,
-    percentile: metric.percentileSerieC ?? metric.percentileGuarani ?? null,
+    percentile: metric.percentileSerieC ?? metric.percentileClub ?? null,
   })).filter(item => item.percentile != null)
 
   const strongest = ranked
@@ -724,7 +726,7 @@ export function analyzeIScoutPlayer({ player, games = [], context = {}, guaraniP
 
   const profile = deriveFunctionalProfile(metrics, group)
 
-  const squadMatches = guaraniPool
+  const squadMatches = clubPool
     .map(candidate => ({
       nome: candidate.nome, posicao: candidate.posicao, minutos: candidate.minutos,
       similarity: similarity(player, candidate, metricDefs, seriePool),
@@ -786,8 +788,8 @@ export function analyzeIScoutPlayer({ player, games = [], context = {}, guaraniP
     fitLabel: fitLabel(fitScore),
     serieCScore,
     serieCLevel: levelLabel(serieCScore),
-    guaraniScore,
-    guaraniLevel: guaraniScore >= 80 ? 'DESTAQUE FRENTE AO ELENCO' : guaraniScore >= 65 ? 'ACIMA DO PADRÃO DO ELENCO' : guaraniScore >= 50 ? 'COMPETITIVO NO ELENCO' : guaraniScore >= 35 ? 'ABAIXO DO PADRÃO DO ELENCO' : 'BAIXO NO RECORTE DO ELENCO',
+    clubScore,
+    clubLevel: clubScore >= 80 ? 'DESTAQUE FRENTE AO ELENCO' : clubScore >= 65 ? 'ACIMA DO PADRÃO DO ELENCO' : clubScore >= 50 ? 'COMPETITIVO NO ELENCO' : clubScore >= 35 ? 'ABAIXO DO PADRÃO DO ELENCO' : 'BAIXO NO RECORTE DO ELENCO',
     sample,
     profile,
     player,
@@ -801,11 +803,11 @@ export function analyzeIScoutPlayer({ player, games = [], context = {}, guaraniP
       caution:'OS INDICADORES DESCREVEM O DESEMPENHO RELATIVO À FUNÇÃO E AO CONTEXTO DE REFERÊNCIA. ASPECTOS COGNITIVOS, COMPORTAMENTAIS E DE MODELO DE JOGO NÃO SÃO INFERIDOS AUTOMATICAMENTE PELOS NÚMEROS.',
     },
     squadMatches,
-    pool: { serieC:seriePool.length, guarani:guaraniPool.length },
-    model: guaraniModel ? {
-      identity: guaraniModel.identity || null,
+    pool: { serieC:seriePool.length, club:clubPool.length },
+    model: resolvedClubModel ? {
+      identity: resolvedClubModel.identity || null,
       priorities: [...prioritySet],
-      sampleGames: guaraniModel.sampleGames || 0,
+      sampleGames: resolvedClubModel.sampleGames || 0,
     } : null,
     games: games.map(game => ({ jogo:game.jogo, competition:game.competition, date:game.date, posicao:game.posicao, minutos:n(game.minutos) }))
       .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))),

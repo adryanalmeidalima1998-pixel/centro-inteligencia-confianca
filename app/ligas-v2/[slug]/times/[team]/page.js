@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -18,13 +18,13 @@ import { SPORTSBASE_TEAM_DIMENSIONS, SPORTSBASE_TEAM_METRICS } from '@/data/spor
 import { WYSCOUT_TEAM_DIMENSIONS, WYSCOUT_TEAM_METRICS } from '@/data/wyscout-team-analytics'
 import { playerProfilePath } from '@/data/player-route'
 
-const GFC='#0a66b7'
+const BRAND_PRIMARY='#0a66b7'
 const profileHref=(slug,player)=>player?._canonical_id?`/database/${player._canonical_id}`:playerProfilePath(slug,player)
 const fmt=(value,decimals=2)=>Number.isFinite(Number(value))?Number(value).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:decimals}):'—'
 
 function PositionBadge({ value }) {
   const first=String(value||'—').split(',')[0].trim()
-  return <span style={{fontSize:9,fontWeight:900,padding:'3px 6px',borderRadius:5,background:'#eef7f1',color:GFC}}>{first}</span>
+  return <span style={{fontSize:9,fontWeight:900,padding:'3px 6px',borderRadius:5,background:'#eef7f1',color:BRAND_PRIMARY}}>{first}</span>
 }
 
 function PercentileBadge({ value }) {
@@ -47,8 +47,8 @@ function DimensionCards({ team, dimensions }) {
     {Object.entries(dimensions).map(([key,item])=>{
       const value=Number(team.dimensions?.[key])||0
       return <div key={key} style={{background:'#fff',border:'1px solid #dbe7f2',borderRadius:11,padding:'12px 14px'}}>
-        <div style={{display:'flex',justifyContent:'space-between',gap:8,alignItems:'center'}}><p style={{fontSize:10,fontWeight:800,color:'#334155'}}>{item.label}</p><span style={{fontSize:16,fontWeight:900,color:GFC}}>{Math.round(value)}</span></div>
-        <div style={{height:6,background:'#e8f4ec',borderRadius:999,overflow:'hidden',marginTop:8}}><div style={{height:'100%',width:`${Math.max(0,Math.min(100,value))}%`,background:GFC,borderRadius:999}}/></div>
+        <div style={{display:'flex',justifyContent:'space-between',gap:8,alignItems:'center'}}><p style={{fontSize:10,fontWeight:800,color:'#334155'}}>{item.label}</p><span style={{fontSize:16,fontWeight:900,color:BRAND_PRIMARY}}>{Math.round(value)}</span></div>
+        <div style={{height:6,background:'#e8f4ec',borderRadius:999,overflow:'hidden',marginTop:8}}><div style={{height:'100%',width:`${Math.max(0,Math.min(100,value))}%`,background:BRAND_PRIMARY,borderRadius:999}}/></div>
       </div>
     })}
   </div>
@@ -88,7 +88,7 @@ function SquadTable({ players, slug, source }) {
     <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:760}}>
       <thead><tr>{headers.map(header=><th key={header} style={{padding:'8px 10px',fontSize:9,color:'#94a3b8',fontWeight:800,textAlign:header==='Jogador'?'left':'center',borderBottom:'1px solid #edf4ef'}}>{header}</th>)}</tr></thead>
       <tbody>{players.map((player,index)=><tr key={`${player.nome}-${index}`} style={{background:index%2?'#fcfdfc':'#fff',borderBottom:'1px solid #f1f5f2'}}>
-        <td style={{padding:'9px 10px'}}><Link href={profileHref(slug, player)} style={{fontSize:11,fontWeight:800,color:GFC,textDecoration:'none'}}>{player.nome}</Link></td>
+        <td style={{padding:'9px 10px'}}><Link href={profileHref(slug, player)} style={{fontSize:11,fontWeight:800,color:BRAND_PRIMARY,textDecoration:'none'}}>{player.nome}</Link></td>
         <td style={{padding:'9px 10px',textAlign:'center'}}><PositionBadge value={player.posicao}/></td>
         <td style={{padding:'9px 10px',textAlign:'center',fontSize:10,color:'#64748b'}}>{player.idade||'—'}</td>
         <td style={{padding:'9px 10px',textAlign:'center',fontSize:10,fontWeight:700,color:'#334155'}}>{Math.round(Number(player.minutos)||0)}</td>
@@ -109,14 +109,14 @@ function Leaders({ leaders, slug }) {
     {leaders.map(item=><div key={item.key} style={{background:'#fff',border:'1px solid #dbe7f2',borderRadius:12,overflow:'hidden'}}>
       <div style={{padding:'10px 13px',background:'#f8fdf9',borderBottom:'1px solid #edf4ef'}}><p style={{fontSize:11,fontWeight:900,color:'#10233b'}}>{item.label}</p></div>
       {item.players.map((player,index)=><div key={`${player.nome}-${index}`} style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,padding:'9px 13px',borderBottom:'1px solid #f1f5f2'}}>
-        <div><p style={{fontSize:10.5,fontWeight:800,color:index===0?GFC:'#334155'}}>{index+1}. <Link href={profileHref(slug, player)} style={{color:'inherit',textDecoration:'none'}}>{player.nome}</Link></p><p style={{fontSize:9,color:'#94a3b8',marginTop:2}}>{String(player.posicao||'').split(',')[0]} · {Math.round(player.minutos||0)} min</p></div>
-        <span style={{fontSize:14,fontWeight:900,color:index===0?GFC:'#10233b'}}>{fmt(player.value,(player._rate||item.key==='xg')?2:0)}</span>
+        <div><p style={{fontSize:10.5,fontWeight:800,color:index===0?BRAND_PRIMARY:'#334155'}}>{index+1}. <Link href={profileHref(slug, player)} style={{color:'inherit',textDecoration:'none'}}>{player.nome}</Link></p><p style={{fontSize:9,color:'#94a3b8',marginTop:2}}>{String(player.posicao||'').split(',')[0]} · {Math.round(player.minutos||0)} min</p></div>
+        <span style={{fontSize:14,fontWeight:900,color:index===0?BRAND_PRIMARY:'#10233b'}}>{fmt(player.value,(player._rate||item.key==='xg')?2:0)}</span>
       </div>)}
     </div>)}
   </div>
 }
 
-export default function TimePage() {
+function TimePageInner() {
   const params=useParams()
   const searchParams=useSearchParams()
   const sourcePreference=searchParams.get('source') || 'auto'
@@ -149,7 +149,7 @@ export default function TimePage() {
   const radar=useMemo(()=>data?.team?Object.entries(data?.source==='wyscout'?WYSCOUT_TEAM_DIMENSIONS:SPORTSBASE_TEAM_DIMENSIONS).map(([key,item])=>({subject:item.label.replace('Eficiência de ',''),value:Number(data.team.dimensions?.[key])||0,fullMark:100})):[],[data])
 
   if(loading) return <AppShell><div style={{padding:60,textAlign:'center',color:'#94a3b8'}}>Carregando perfil estatístico da equipe...</div></AppShell>
-  if(!data?.team) return <AppShell><div style={{padding:60,textAlign:'center'}}><p style={{fontSize:28}}>⚠️</p><p style={{fontWeight:800,color:'#b91c1c',marginTop:8}}>Equipe não encontrada no upload atual</p><Link href={`/ligas-v2/${slug}`} style={{display:'inline-block',marginTop:12,color:GFC,fontSize:12}}>← Voltar à liga</Link></div></AppShell>
+  if(!data?.team) return <AppShell><div style={{padding:60,textAlign:'center'}}><p style={{fontSize:28}}>⚠️</p><p style={{fontWeight:800,color:'#b91c1c',marginTop:8}}>Equipe não encontrada no upload atual</p><Link href={`/ligas-v2/${slug}`} style={{display:'inline-block',marginTop:12,color:BRAND_PRIMARY,fontSize:12}}>← Voltar à liga</Link></div></AppShell>
 
   const team=data.team
   return <AppShell><div style={{padding:'32px 32px 48px',maxWidth:1300}}>
@@ -160,7 +160,7 @@ export default function TimePage() {
         <div style={{width:62,height:62,borderRadius:14,background:'linear-gradient(135deg,#064b82,#008044)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28}}>🏟️</div>
         <div><h1 style={{fontSize:24,fontWeight:900,color:'#10233b'}}>{teamName}</h1><p style={{fontSize:11,color:'#94a3b8',marginTop:4}}>{liga?.nome} · {data.source==='wyscout'?'Wyscout':'Sportsbase'} · {team.players_total} jogadores · upload {data.upload_at?new Date(data.upload_at).toLocaleDateString('pt-BR'):'—'}</p></div>
       </div>
-      <div style={{background:'#eaf4fd',border:'1px solid #bbf7d0',borderRadius:12,padding:'9px 14px',textAlign:'center'}}><p style={{fontSize:22,fontWeight:900,color:GFC}}>{fmt(team.profile_score,0)}</p><p style={{fontSize:9,fontWeight:900,color:'#15803d'}}>PERFIL #{team.profile_rank} DE {data.league_teams}</p></div>
+      <div style={{background:'#eaf4fd',border:'1px solid #bbf7d0',borderRadius:12,padding:'9px 14px',textAlign:'center'}}><p style={{fontSize:22,fontWeight:900,color:BRAND_PRIMARY}}>{fmt(team.profile_score,0)}</p><p style={{fontSize:9,fontWeight:900,color:'#15803d'}}>PERFIL #{team.profile_rank} DE {data.league_teams}</p></div>
     </div>
 
     <div style={{padding:'10px 13px',background:'#fff7ed',border:'1px solid #fed7aa',borderRadius:10,fontSize:10,color:'#9a3412',lineHeight:1.5,marginBottom:18}}><b>Escopo:</b> esta tela descreve o perfil agregado do elenco a partir do arquivo de jogadores. Ela não substitui dados coletivos de jogo como posse, PPDA, altura do bloco ou confrontos contra adversários.</div>
@@ -175,7 +175,7 @@ export default function TimePage() {
     </div>
 
     <div style={{display:'flex',gap:4,background:'#f8fdf9',borderRadius:10,padding:4,width:'fit-content',marginBottom:18,flexWrap:'wrap'}}>
-      {[['perfil','📊 Perfil'],['metricas','📋 Métricas'],['destaques','⭐ Destaques'],['elenco','👥 Elenco']].map(([key,label])=><button key={key} onClick={()=>setTab(key)} style={{padding:'8px 16px',border:'none',borderRadius:8,cursor:'pointer',fontSize:11,fontWeight:800,background:tab===key?GFC:'transparent',color:tab===key?'#fff':'#64748b'}}>{label}</button>)}
+      {[['perfil','📊 Perfil'],['metricas','📋 Métricas'],['destaques','⭐ Destaques'],['elenco','👥 Elenco']].map(([key,label])=><button key={key} onClick={()=>setTab(key)} style={{padding:'8px 16px',border:'none',borderRadius:8,cursor:'pointer',fontSize:11,fontWeight:800,background:tab===key?BRAND_PRIMARY:'transparent',color:tab===key?'#fff':'#64748b'}}>{label}</button>)}
     </div>
 
     {tab==='perfil'&&<div>
@@ -183,7 +183,7 @@ export default function TimePage() {
       <div style={{display:'grid',gridTemplateColumns:'minmax(330px,1.1fr) minmax(300px,.9fr)',gap:16,alignItems:'stretch'}}>
         <div style={{background:'#fff',border:'1px solid #dbe7f2',borderRadius:12,padding:14,height:390}}>
           <h3 style={{fontSize:12,fontWeight:900,color:'#10233b',marginBottom:4}}>Radar do perfil relativo à liga</h3><p style={{fontSize:9.5,color:'#94a3b8'}}>100 = topo do campeonato no conjunto de métricas da dimensão.</p>
-          <div style={{height:330}}><ResponsiveContainer width="100%" height="100%"><RadarChart data={radar}><PolarGrid/><PolarAngleAxis dataKey="subject" tick={{fontSize:9}}/><PolarRadiusAxis domain={[0,100]} tick={{fontSize:8}}/><Radar dataKey="value" stroke={GFC} fill={GFC} fillOpacity={0.28}/><Tooltip/></RadarChart></ResponsiveContainer></div>
+          <div style={{height:330}}><ResponsiveContainer width="100%" height="100%"><RadarChart data={radar}><PolarGrid/><PolarAngleAxis dataKey="subject" tick={{fontSize:9}}/><PolarRadiusAxis domain={[0,100]} tick={{fontSize:8}}/><Radar dataKey="value" stroke={BRAND_PRIMARY} fill={BRAND_PRIMARY} fillOpacity={0.28}/><Tooltip/></RadarChart></ResponsiveContainer></div>
         </div>
         <div style={{background:'#fff',border:'1px solid #dbe7f2',borderRadius:12,padding:15}}>
           <h3 style={{fontSize:12,fontWeight:900,color:'#10233b',marginBottom:13}}>Composição e dependência</h3>
@@ -212,4 +212,13 @@ export default function TimePage() {
 
     {data.methodology&&<p style={{fontSize:9,color:'#94a3b8',lineHeight:1.5,marginTop:16}}>{data.methodology}</p>}
   </div></AppShell>
+}
+
+
+export default function TimePage() {
+  return (
+    <Suspense fallback={<AppShell><div style={{padding:60,textAlign:'center',color:'#94a3b8'}}>Carregando perfil estatístico da equipe...</div></AppShell>}>
+      <TimePageInner />
+    </Suspense>
+  )
 }

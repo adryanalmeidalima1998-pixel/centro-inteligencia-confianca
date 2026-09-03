@@ -1,6 +1,7 @@
 import { calculateSportsbasePercentile, getMetricEligibility } from '@/data/sportsbase-map'
 import { SPORTSBASE_SELECTION_ROLES, getRoleSuitability } from '@/data/sportsbase-selection'
 import { getWyscoutMetric } from '@/data/wyscout-map'
+import { adaptiveRolePool, calibrateRoleCandidates } from '@/data/selection-score-utils'
 
 const round = (value, decimals = 1) => {
   const factor = 10 ** decimals
@@ -62,23 +63,12 @@ const ROLE_METRICS = {
   ],
 }
 
-function adaptivePool(players, role) {
-  const candidates = players.filter(player=>getRoleSuitability(player,role)>0)
-  if (!candidates.length) return { candidates:[], minimumMinutes:0, maxMinutes:0, factor:0 }
-  const maxMinutes = Math.max(...candidates.map(player=>Number(player.minutos)||0))
-  const targetSize = role.slot === 'GK' ? 3 : 7
-  const floor = maxMinutes >= 540 ? 270 : maxMinutes >= 360 ? 180 : 90
-  for (const factor of [.45,.40,.35,.30,.25,.20]) {
-    const minimumMinutes = Math.max(floor,Math.round(maxMinutes * factor / 90) * 90)
-    const eligible = candidates.filter(player=>(Number(player.minutos)||0)>=minimumMinutes)
-    if (eligible.length >= targetSize) return { candidates:eligible, minimumMinutes, maxMinutes:Math.round(maxMinutes), factor }
-  }
-  const floorEligible = candidates.filter(player=>(Number(player.minutos)||0)>=floor)
-  return { candidates:floorEligible.length ? floorEligible : candidates, minimumMinutes:floorEligible.length ? floor : 0, maxMinutes:Math.round(maxMinutes), factor:floorEligible.length ? floor/maxMinutes : 0 }
+function rolePool(players, role) {
+  return adaptiveRolePool(players, { ...role, suitability:player=>getRoleSuitability(player, role) })
 }
 
 function scoreRole(players, role) {
-  const pool = adaptivePool(players,role)
+  const pool = rolePool(players,role)
   const metrics = ROLE_METRICS[role.slot] || []
   const totalWeight = metrics.reduce((sum,[,weight])=>sum+weight,0)
   const values = {}
@@ -90,7 +80,7 @@ function scoreRole(players, role) {
       .map(player=>player[key])
   }
 
-  const ranked = pool.candidates.map(player=>{
+  const raw = pool.candidates.map(player=>{
     let weighted=0
     let covered=0
     const breakdown=[]
@@ -107,24 +97,26 @@ function scoreRole(players, role) {
       breakdown.push({key,label:metric.label,percentile,value:player[key],weight})
     }
     const coverage = totalWeight ? covered / totalWeight : 0
-    if (!covered || coverage < .50) return null
+    if (!covered || coverage < .58) return null
     const performance = weighted / covered
     const suitability = getRoleSuitability(player,role)
-    const sampleBase = Math.max(900,pool.minimumMinutes*2)
-    const sample = Math.min(100,58+42*Math.min(1,(Number(player.minutos)||0)/sampleBase))
-    const score = performance*.88 + sample*.07 + suitability*100*.05
     const ordered=[...breakdown].sort((a,b)=>b.percentile-a.percentile)
     return {
       ...player,
       _slot:role.slot,_role_label:role.label,_grupo:role.group,
-      _score:round(score),_performance_score:round(performance),_sample_confidence:round(sample,0),
-      _coverage:round(coverage*100,0),_suitability:round(suitability*100,0),_score_breakdown:breakdown,
-      _strengths:ordered.filter(item=>item.percentile>=70).slice(0,3),
-      _watchouts:[...breakdown].sort((a,b)=>a.percentile-b.percentile).filter(item=>item.percentile<=35).slice(0,2),
+      _raw_performance:round(performance),
+      _coverage:round(coverage*100,0),
+      _suitability:round(suitability*100,0),
+      _score_breakdown:breakdown,
+      _strengths:ordered.filter(item=>item.percentile>=72).slice(0,3),
+      _watchouts:[...breakdown].sort((a,b)=>a.percentile-b.percentile).filter(item=>item.percentile<=28).slice(0,2),
       _sample_minimum:pool.minimumMinutes,
+      _sample_target:pool.sampleTarget,
+      _source_model:'wyscout-role-percentiles',
     }
-  }).filter(Boolean).sort((a,b)=>b._score-a._score)
-  return { ...pool, ranked }
+  }).filter(Boolean)
+
+  return { ...pool, ranked:calibrateRoleCandidates(raw) }
 }
 
 export function buildWyscoutRolePools(players = []) {

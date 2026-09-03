@@ -47,10 +47,10 @@ function sharedPercentile(value, values, higherIsBetter = true) {
   return calculateSportsbasePercentile(Number(value), values, higherIsBetter)
 }
 
-export function buildSportsbaseProfilePayload(player, leaguePlayers = [], guaraniPlayers = [], model = null) {
+export function buildSportsbaseProfilePayload(player, leaguePlayers = [], clubPlayers = [], model = null) {
   const group = sportsbaseGroup(player)
   const leagueGroup = leaguePlayers.filter(item => sportsbaseGroup(item) === group)
-  const guaraniGroup = guaraniPlayers.filter(item => sportsbaseGroup(item) === group)
+  const clubGroup = clubPlayers.filter(item => sportsbaseGroup(item) === group)
   const minimum = getSuggestedMinimumMinutes(leagueGroup.length ? leagueGroup : leaguePlayers)
   const keys = RADAR_BY_GROUP[group] || FALLBACK_METRICS
   const radar = []
@@ -65,14 +65,14 @@ export function buildSportsbaseProfilePayload(player, leaguePlayers = [], guaran
       ? sharedPercentile(playerValue, leagueValues, metric.higherIsBetter !== false)
       : null
 
-    const combined = [...leagueGroup, ...guaraniGroup]
+    const combined = [...leagueGroup, ...clubGroup]
     const combinedMinimum = getSuggestedMinimumMinutes(combined.length ? combined : leagueGroup)
     const combinedValues = eligibleValues(combined, metric, combinedMinimum)
     const playerCombinedEligible = getMetricEligibility(player, metric, { players: combined, selectedMinimum: combinedMinimum })
-    const playerVsGuarani = playerCombinedEligible.eligible
+    const playerVsClub = playerCombinedEligible.eligible
       ? sharedPercentile(playerValue, combinedValues, metric.higherIsBetter !== false)
       : null
-    const guaraniPercentiles = guaraniGroup.map(item => {
+    const clubPercentiles = clubGroup.map(item => {
       const eligibility = getMetricEligibility(item, metric, { players: combined, selectedMinimum: combinedMinimum })
       return eligibility.eligible
         ? sharedPercentile(Number(item?.[key]), combinedValues, metric.higherIsBetter !== false)
@@ -86,8 +86,8 @@ export function buildSportsbaseProfilePayload(player, leaguePlayers = [], guaran
       type: metric.type,
       value: Number.isFinite(playerValue) ? playerValue : null,
       leaguePercentile,
-      playerVsGuarani,
-      guaraniAverage: guaraniPercentiles.length ? Math.round(average(guaraniPercentiles)) : null,
+      playerVsClub,
+      clubAverage: clubPercentiles.length ? Math.round(average(clubPercentiles)) : null,
       eligible: playerEligible.eligible,
       reason: playerEligible.reason || null,
       higherIsBetter: metric.higherIsBetter !== false,
@@ -107,7 +107,7 @@ export function buildSportsbaseProfilePayload(player, leaguePlayers = [], guaran
     source: 'sportsbase',
     group,
     groupSize: leagueGroup.length,
-    guaraniGroupSize: guaraniGroup.length,
+    clubGroupSize: clubGroup.length,
     minimumMinutes: minimum,
     radar,
     centralStats,
@@ -137,10 +137,10 @@ const WYSCOUT_CENTRAL_KEYS = [
   'passes_chave_90','passes_prog_90','dribles_90','duelos_def_pct','intercecoes_90','duelos_aereos_pct',
 ]
 
-export function buildWyscoutProfilePayload(player, leaguePlayers = [], guaraniPlayers = [], model = null) {
+export function buildWyscoutProfilePayload(player, leaguePlayers = [], clubPlayers = [], model = null) {
   const group = getWyscoutPositionGroup(player?.posicao)
   const leagueGroup = leaguePlayers.filter(item => getWyscoutPositionGroup(item?.posicao) === group)
-  const guaraniGroup = guaraniPlayers.filter(item => sportsbaseGroup(item) === group)
+  const clubGroup = clubPlayers.filter(item => sportsbaseGroup(item) === group)
   const minimum = getSuggestedWyscoutMinimumMinutes(leagueGroup.length ? leagueGroup : leaguePlayers)
   const keys = WYSCOUT_RADAR_BY_GROUP[group] || WYSCOUT_CENTRAL_KEYS.slice(0,6)
   const radar = []
@@ -155,19 +155,19 @@ export function buildWyscoutProfilePayload(player, leaguePlayers = [], guaraniPl
       ? calculateSportsbasePercentile(player[key], leagueValues, metric.higherIsBetter)
       : null
 
-    const combined = [...leagueGroup, ...guaraniGroup].filter(item=>Number.isFinite(Number(item?.[key])))
+    const combined = [...leagueGroup, ...clubGroup].filter(item=>Number.isFinite(Number(item?.[key])))
     const combinedValues = combined.map(item=>Number(item[key])).filter(Number.isFinite)
-    const playerVsGuarani = combinedValues.length
+    const playerVsClub = combinedValues.length
       ? calculateSportsbasePercentile(player[key], combinedValues, metric.higherIsBetter)
       : null
-    const guaraniPercentiles = guaraniGroup.map(item=>Number.isFinite(Number(item?.[key]))
+    const clubPercentiles = clubGroup.map(item=>Number.isFinite(Number(item?.[key]))
       ? calculateSportsbasePercentile(item[key],combinedValues,metric.higherIsBetter)
       : null).filter(Number.isFinite)
 
     radar.push({
       key,label:metric.label.replace('/90','').replace('Precisão dos ','').replace(' bem-sucedidos',''),
       fullLabel:metric.label,type:metric.type,value:player?.[key] ?? null,
-      leaguePercentile,playerVsGuarani,guaraniAverage:guaraniPercentiles.length?Math.round(average(guaraniPercentiles)):null,
+      leaguePercentile,playerVsClub,clubAverage:clubPercentiles.length?Math.round(average(clubPercentiles)):null,
       eligible:playerEligibility.eligible,reason:playerEligibility.reason || null,higherIsBetter:metric.higherIsBetter !== false,
     })
   }
@@ -185,7 +185,7 @@ export function buildWyscoutProfilePayload(player, leaguePlayers = [], guaraniPl
   const ordered=[...radar].filter(item=>Number.isFinite(item.leaguePercentile)).sort((a,b)=>b.leaguePercentile-a.leaguePercentile)
 
   return {
-    source:'wyscout',group,groupSize:leagueGroup.length,guaraniGroupSize:guaraniGroup.length,minimumMinutes:minimum,radar,
+    source:'wyscout',group,groupSize:leagueGroup.length,clubGroupSize:clubGroup.length,minimumMinutes:minimum,radar,
     centralStats:WYSCOUT_CENTRAL_KEYS.map(key=>{const metric=getWyscoutMetric(key);return metric?{...metric,value:player?.[key]??null}:null}).filter(Boolean),
     scouting:{
       finalScore:fit,profile:`Wyscout · ${group || 'função'}`,profileScore:performance,tacticalScore:tactical,

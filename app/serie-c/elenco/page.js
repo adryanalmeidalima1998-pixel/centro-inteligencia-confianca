@@ -84,7 +84,7 @@ export default function SerieCElencoPage() {
   const [metricSearch, setMetricSearch] = useState('')
 
   const { data, loading, error } = useSerieCData({ round })
-  const allPlayers = (data?.players || []).filter(player => player.is_guarani)
+  const allPlayers = (data?.players || []).filter(player => player.is_club)
 
   const positions = useMemo(
     () => Array.from(new Set(allPlayers.map(player => player.position).filter(Boolean))).sort(),

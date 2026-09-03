@@ -21,8 +21,8 @@ export default function ColetivoPrintPage() {
   const excluded = useMemo(() => new Set(data?.reportExcludedPlayers || []), [data?.reportExcludedPlayers])
   const teams = data?.teams || []
   const squad = useMemo(() => [
-    ...(data?.players || []).filter(p => p.is_guarani && !excluded.has(p.player)),
-    ...(data?.goalkeepers || []).filter(p => p.is_guarani && !excluded.has(p.player)).map(p => ({ ...p, position:'GK', isGoalkeeper:true })),
+    ...(data?.players || []).filter(p => p.is_club && !excluded.has(p.player)),
+    ...(data?.goalkeepers || []).filter(p => p.is_club && !excluded.has(p.player)).map(p => ({ ...p, position:'GK', isGoalkeeper:true })),
   ], [data, excluded])
   const physical = useMemo(() => physicalReport(gps.aggregateSquad(squad.map(p => p.player))), [squad, gps.sessions, gps.aliases])
 
@@ -59,7 +59,7 @@ export default function ColetivoPrintPage() {
     </div>
 
     <div className="print-area mx-auto py-6 px-4">
-      <RelatorioColetivo teams={teams} seasonReport={data?.seasonReport} physical={physical} golsLado={golsLado} teamReport={teamReport} />
+      <RelatorioColetivo teams={teams} seasonReport={data?.seasonReport} teamMatchStats={data?.teamMatchStats} physical={physical} golsLado={golsLado} teamReport={teamReport} />
     </div>
   </div>
 }

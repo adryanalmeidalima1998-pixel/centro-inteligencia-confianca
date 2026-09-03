@@ -23,7 +23,7 @@ import {
 } from 'recharts'
 import { ChevronRight, Crown, Medal, ShieldCheck, Sparkles } from 'lucide-react'
 import { formatMetricValue, formatNumberBR, metricDisplayName } from '../../../lib/serieC'
-import { GuaraniTag } from './ui'
+import { ClubTag } from './ui'
 
 const GREEN = '#0a66b7'
 const GREEN_DARK = '#07579e'
@@ -95,7 +95,7 @@ export function PodiumCard({ title, description, entries, metric, emptyText = 'S
                 <p className="mt-3 truncate text-[11px] font-black text-gray-700">{entry.name}</p>
                 <div className="mt-1 flex items-center gap-1.5">
                   <span className="text-[9px] font-bold text-gray-400">{index + 1}º lugar</span>
-                  {entry.isGuarani && <GuaraniTag />}
+                  {entry.isClub && <ClubTag />}
                 </div>
               </div>
             )
@@ -110,7 +110,7 @@ export function EntitySpotlight({
   eyebrow,
   title,
   subtitle,
-  isGuarani,
+  isClub,
   metrics = [],
   select,
   footer,
@@ -122,7 +122,7 @@ export function EntitySpotlight({
           <p className="text-[8px] font-black uppercase tracking-[0.22em] text-sky-200">{eyebrow}</p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <h3 className="bc text-3xl font-black leading-none">{title || '-'}</h3>
-            {isGuarani && <span className="rounded-full bg-white/15 px-2 py-1 text-[8px] font-black uppercase tracking-widest">Confiança</span>}
+            {isClub && <span className="rounded-full bg-white/15 px-2 py-1 text-[8px] font-black uppercase tracking-widest">Confiança</span>}
           </div>
           {subtitle && <p className="mt-2 text-[10px] font-semibold text-sky-100/80">{subtitle}</p>}
         </div>
@@ -174,7 +174,7 @@ export function QuadrantScatter({ title, description, data, xKey, yKey, xMetric,
       <div className="rounded-xl border border-gray-100 bg-white p-3 text-[10px] shadow-xl">
         <div className="flex items-center gap-2">
           <p className="font-black text-gray-700">{item.name}</p>
-          {item.isGuarani && <GuaraniTag />}
+          {item.isClub && <ClubTag />}
         </div>
         <p className="mt-1 text-gray-500">{metricDisplayName(xMetric)}: <b>{formatMetricValue(xMetric, item[xKey])}</b></p>
         <p className="text-gray-500">{metricDisplayName(yMetric)}: <b>{formatMetricValue(yMetric, item[yKey])}</b></p>
@@ -191,8 +191,8 @@ export function QuadrantScatter({ title, description, data, xKey, yKey, xMetric,
           <ReferenceLine x={xAvg} stroke="#cbd5e1" strokeDasharray="5 5" />
           <ReferenceLine y={yAvg} stroke="#cbd5e1" strokeDasharray="5 5" />
           <Tooltip content={<TooltipContent />} />
-          <Scatter data={data.filter(d => !d.isGuarani)} fill={SLATE} fillOpacity={0.7} />
-          <Scatter data={data.filter(d => d.isGuarani)} fill={GREEN_DARK} />
+          <Scatter data={data.filter(d => !d.isClub)} fill={SLATE} fillOpacity={0.7} />
+          <Scatter data={data.filter(d => d.isClub)} fill={GREEN_DARK} />
         </ScatterChart>
       </ResponsiveContainer>
       <div className="mt-1 flex items-center justify-between text-[9px] font-semibold text-gray-400">
@@ -265,14 +265,14 @@ export function LeaderRows({ entries, metric, limit = 8, showTeam = true }) {
   return (
     <div className="space-y-2">
       {entries.slice(0, limit).map((entry, index) => (
-        <div key={`${entry.name}_${index}`} className={`rounded-xl border px-3 py-2.5 ${entry.isGuarani ? 'border-sky-100 bg-sky-50/70' : 'border-gray-100 bg-white'}`}>
+        <div key={`${entry.name}_${index}`} className={`rounded-xl border px-3 py-2.5 ${entry.isClub ? 'border-sky-100 bg-sky-50/70' : 'border-gray-100 bg-white'}`}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2">
               <span className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg text-[9px] font-black ${index < 3 ? 'bg-sky-600 text-white' : 'bg-gray-100 text-gray-500'}`}>{index + 1}</span>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <p className="truncate text-[10px] font-black text-gray-700">{entry.name}</p>
-                  {entry.isGuarani && <GuaraniTag />}
+                  {entry.isClub && <ClubTag />}
                 </div>
                 {showTeam && entry.team && <p className="truncate text-[8px] font-semibold text-gray-400">{entry.team}</p>}
               </div>

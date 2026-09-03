@@ -4,8 +4,8 @@ import { useSession } from 'next-auth/react'
 import AppShell from '../components/layout/AppShell'
 import { PLAYER_FOOT_OPTIONS, matchesPlayerFoot } from '@/data/player-foot'
 
-const GFC  = '#0a66b7'
-const GFC2 = '#eaf4fd'
+const BRAND_PRIMARY  = '#0a66b7'
+const BRAND_DARK = '#eaf4fd'
 const RED  = '#c62828'
 const AMB  = '#b45309'
 const BLUE = '#1565c0'
@@ -598,7 +598,7 @@ function OgolModal({ onClose, onSaved }) {
       <div style={{ background:'#fff', borderRadius:18, width:'100%', maxWidth:560, maxHeight:'92vh', overflowY:'auto', boxShadow:'0 20px 60px rgba(10,102,183,0.2)' }}>
 
         {/* Header */}
-        <div style={{ background:GFC, padding:'18px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', borderRadius:'18px 18px 0 0' }}>
+        <div style={{ background:BRAND_PRIMARY, padding:'18px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', borderRadius:'18px 18px 0 0' }}>
           <div>
             <p style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:3, color:'rgba(255,255,255,0.65)', marginBottom:2 }}>Cadastro via OGol</p>
             <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:900, color:'#fff', textTransform:'uppercase' }}>Colar Dados do OGol</h3>
@@ -654,7 +654,7 @@ function OgolModal({ onClose, onSaved }) {
             <button
               onClick={processar}
               disabled={loading || texto.trim().length < 50}
-              style={{ padding:'10px', borderRadius:9, border:'none', background: loading || texto.trim().length < 50 ? '#bfd8ea' : GFC, color:'#fff', fontSize:12, fontWeight:700, cursor: loading || texto.trim().length < 50 ? 'not-allowed' : 'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}
+              style={{ padding:'10px', borderRadius:9, border:'none', background: loading || texto.trim().length < 50 ? '#bfd8ea' : BRAND_PRIMARY, color:'#fff', fontSize:12, fontWeight:700, cursor: loading || texto.trim().length < 50 ? 'not-allowed' : 'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}
             >
               {loading
                 ? <><span style={{ width:14, height:14, border:'2px solid rgba(255,255,255,0.4)', borderTopColor:'#fff', borderRadius:'50%', display:'inline-block', animation:'spin 0.7s linear infinite' }} /> Processando...</>
@@ -680,7 +680,7 @@ function OgolModal({ onClose, onSaved }) {
                   <p style={{ fontSize:16, fontWeight:900, color:'#10233b', fontFamily:"'Barlow Condensed',sans-serif" }}>{atleta.apelido || atleta.nome}</p>
                   {atleta.apelido && atleta.nome !== atleta.apelido && <p style={{ fontSize:10, color:'#64748b' }}>{atleta.nome}</p>}
                   <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginTop:6 }}>
-                    {atleta.posicao      && <span style={{ fontSize:9, fontWeight:700, background:'#eaf4fd', color:GFC, border:'1px solid #b2dfca', borderRadius:5, padding:'2px 7px' }}>{atleta.posicao}</span>}
+                    {atleta.posicao      && <span style={{ fontSize:9, fontWeight:700, background:'#eaf4fd', color:BRAND_PRIMARY, border:'1px solid #b2dfca', borderRadius:5, padding:'2px 7px' }}>{atleta.posicao}</span>}
                     {atleta.posicao_secundaria && <span style={{ fontSize:9, fontWeight:700, background:'#f4f8fc', color:'#52677e', border:'1px solid #d6e5f0', borderRadius:5, padding:'2px 7px' }}>{atleta.posicao_secundaria}</span>}
                     {idade               && <span style={{ fontSize:9, fontWeight:700, background:'#f7fcf9', color:'#10233b', border:'1px solid #e5edf5', borderRadius:5, padding:'2px 7px' }}>{idade} anos</span>}
                     {atleta.pe_preferido && <span style={{ fontSize:9, fontWeight:700, background:'#f7fcf9', color:'#10233b', border:'1px solid #e5edf5', borderRadius:5, padding:'2px 7px' }}>🦶 {atleta.pe_preferido}</span>}
@@ -735,7 +735,7 @@ function OgolModal({ onClose, onSaved }) {
               Cancelar
             </button>
             {atleta && (
-              <button onClick={salvar} disabled={saving} style={{ padding:'9px 20px', borderRadius:8, border:'none', background: saving ? '#bfd8ea' : GFC, color:'#fff', fontSize:11, fontWeight:700, cursor: saving ? 'not-allowed' : 'pointer', fontFamily:'inherit' }}>
+              <button onClick={salvar} disabled={saving} style={{ padding:'9px 20px', borderRadius:8, border:'none', background: saving ? '#bfd8ea' : BRAND_PRIMARY, color:'#fff', fontSize:11, fontWeight:700, cursor: saving ? 'not-allowed' : 'pointer', fontFamily:'inherit' }}>
                 {saving ? 'Salvando...' : '✓ Cadastrar Atleta'}
               </button>
             )}

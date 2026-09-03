@@ -38,8 +38,8 @@ const RADAR_GROUPS = [
   { area: 'Disciplina', metrics: ['Faltas', 'Cartões amarelos', 'Cartões vermelhos'] },
 ]
 
-function metricRankInfo(teams, guaraniRow, metricName) {
-  const col = findMetricColumn(guaraniRow?.metrics, metricName)
+function metricRankInfo(teams, clubRow, metricName) {
+  const col = findMetricColumn(clubRow?.metrics, metricName)
   if (!col) return null
   const rows = teams
     .filter(t => t.metrics && isNumeric(t.metrics[col]))
@@ -47,9 +47,9 @@ function metricRankInfo(teams, guaraniRow, metricName) {
   if (!rows.length) return null
   const higher = higherIsBetter(col)
   const ranked = rankByMetric(rows, higher)
-  const me = ranked.find(r => r.team === guaraniRow.team)
+  const me = ranked.find(r => r.team === clubRow.team)
   const avg = averageOf(rows)
-  const value = toNumber(guaraniRow.metrics[col])
+  const value = toNumber(clubRow.metrics[col])
   return {
     key: col,
     label: col,
@@ -64,39 +64,39 @@ function metricRankInfo(teams, guaraniRow, metricName) {
   }
 }
 
-export default function SerieCGuaraniPage() {
+export default function SerieCClubPage() {
   const [round, setRound] = useState(null)
   const [mode, setMode] = useState('total')
   const { data, loading, error } = useSerieCData({ round })
 
   const teams = data?.teams || []
   const timeline = data?.timeline || []
-  const guaraniRow = teams.find(t => t.is_guarani)
-  const prevGuaraniRow = (data?.previousTeams || []).find(t => t.is_guarani)
+  const clubRow = teams.find(t => t.is_club)
+  const prevClubRow = (data?.previousTeams || []).find(t => t.is_club)
   const expected = data?.expectedPerformance || null
-  const seasonReport = data?.seasonReport?.guarani || null
+  const seasonReport = data?.seasonReport?.club || null
   const reportProfile = seasonReport?.profile || null
   const hasReportProfile = Boolean(reportProfile && Object.keys(reportProfile).length)
 
   const cards = useMemo(() => {
-    if (!guaraniRow) return []
+    if (!clubRow) return []
     return HEADLINE_METRICS
       .map(metricName => {
-        const info = metricRankInfo(teams, guaraniRow, metricName)
+        const info = metricRankInfo(teams, clubRow, metricName)
         if (!info) return null
-        const prevCol = findMetricColumn(prevGuaraniRow?.metrics, info.key)
-        const prevValue = prevCol ? toNumber(prevGuaraniRow?.metrics?.[prevCol]) : null
+        const prevCol = findMetricColumn(prevClubRow?.metrics, info.key)
+        const prevValue = prevCol ? toNumber(prevClubRow?.metrics?.[prevCol]) : null
         return { ...info, variationValue: variation(info.value, prevValue), group: metricGroup(info.label) }
       })
       .filter(Boolean)
-  }, [guaraniRow, prevGuaraniRow, teams])
+  }, [clubRow, prevClubRow, teams])
 
   const { forcas, alertas } = useMemo(() => {
-    if (!guaraniRow) return { forcas: [], alertas: [] }
+    if (!clubRow) return { forcas: [], alertas: [] }
     const all = []
-    for (const col of Object.keys(guaraniRow.metrics || {})) {
-      if (isIdentityColumn(col) || !isNumeric(guaraniRow.metrics[col])) continue
-      const info = metricRankInfo(teams, guaraniRow, col)
+    for (const col of Object.keys(clubRow.metrics || {})) {
+      if (isIdentityColumn(col) || !isNumeric(clubRow.metrics[col])) continue
+      const info = metricRankInfo(teams, clubRow, col)
       if (!info || info.total < 4) continue
       all.push(info)
     }
@@ -109,26 +109,26 @@ export default function SerieCGuaraniPage() {
       .sort((a, b) => (a.percentile ?? 100) - (b.percentile ?? 100))
       .slice(0, 8)
     return { forcas, alertas }
-  }, [guaraniRow, teams])
+  }, [clubRow, teams])
 
   const comparison = useMemo(() => {
-    if (!guaraniRow) return []
+    if (!clubRow) return []
     return COMPARISON_METRICS
-      .map(m => metricRankInfo(teams, guaraniRow, m))
+      .map(m => metricRankInfo(teams, clubRow, m))
       .filter(Boolean)
       .map(m => ({ label: m.label, diffPct: m.pctDiff ?? 0 }))
-  }, [guaraniRow, teams])
+  }, [clubRow, teams])
 
   const radarData = useMemo(() => {
-    if (!guaraniRow) return []
+    if (!clubRow) return []
     return RADAR_GROUPS.map(g => {
       const values = g.metrics
-        .map(m => metricRankInfo(teams, guaraniRow, m)?.percentile)
+        .map(m => metricRankInfo(teams, clubRow, m)?.percentile)
         .filter(v => v !== null && v !== undefined)
       if (!values.length) return null
       return { area: g.area, value: Math.round(values.reduce((a, b) => a + b, 0) / values.length) }
     }).filter(Boolean)
-  }, [guaraniRow, teams])
+  }, [clubRow, teams])
 
   const indexTrend = useMemo(() => {
     return timeline
@@ -192,8 +192,8 @@ export default function SerieCGuaraniPage() {
     return `Equipe com destaque competitivo em ${top3.join(', ')}.`
   }, [forcas])
 
-  const currentPosition = data?.upload?.guarani_position
-  const currentIndex = metricRankInfo(teams, guaraniRow, 'Índice')
+  const currentPosition = data?.upload?.club_position
+  const currentIndex = metricRankInfo(teams, clubRow, 'Índice')
 
   return (
     <AppShell>
@@ -214,14 +214,14 @@ export default function SerieCGuaraniPage() {
 
         {loading && <Loading />}
         {!loading && error && <ErrorState message={error} />}
-        {!loading && !error && !guaraniRow && (
+        {!loading && !error && !clubRow && (
           <EmptyState
             title="Nenhum upload encontrado ainda"
             description="Envie as 3 planilhas semanais na aba Upload Semanal para começar a acompanhar o Confiança na Série C."
           />
         )}
 
-        {!loading && guaraniRow && (
+        {!loading && clubRow && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <InsightCard

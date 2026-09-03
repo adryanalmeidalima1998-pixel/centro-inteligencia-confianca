@@ -11,7 +11,7 @@ export default function AdversarioPrintPage(){
   const router=useRouter()
   const {data,loading,error}=useSerieCData()
   const [report,setReport]=useState(null)
-  const [guaraniLast10,setGuaraniLast10]=useState(null)
+  const [clubLast10,setClubLast10]=useState(null)
   const [reportError,setReportError]=useState(null)
 
   useEffect(()=>{
@@ -21,7 +21,7 @@ export default function AdversarioPrintPage(){
     if(!data?.upload?.season)return
     let cancelled=false
     const season=data.upload.season,competition=data.upload.competition||'Brasileiro Série C'
-    ;(async()=>{try{const r=await fetch(`/api/serie-c/team-report?season=${encodeURIComponent(season)}&competition=${encodeURIComponent(competition)}`,{cache:'no-store'});const j=await r.json();if(j?.latest?.sourceUrl){const p=await extractOpponentTeamReportFromUrl(j.latest.sourceUrl);if(!cancelled)setGuaraniLast10(p)}}catch(_){}})()
+    ;(async()=>{try{const r=await fetch(`/api/serie-c/team-report?season=${encodeURIComponent(season)}&competition=${encodeURIComponent(competition)}`,{cache:'no-store'});const j=await r.json();if(j?.latest?.sourceUrl){const p=await extractOpponentTeamReportFromUrl(j.latest.sourceUrl);if(!cancelled)setClubLast10(p)}}catch(_){}})()
     return()=>{cancelled=true}
   },[data?.upload?.season,data?.upload?.competition])
 
@@ -41,7 +41,7 @@ export default function AdversarioPrintPage(){
       }
     `}</style>
     <div className="no-print sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-3 backdrop-blur"><button onClick={()=>router.back()} className="text-xs font-bold text-gray-500">← Voltar</button><div className="flex items-center gap-3"><span className="text-[10px] font-bold text-gray-400">{report.team} · 7 páginas · A4</span><button onClick={()=>window.print()} className="rounded-xl bg-emerald-600 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-white">Imprimir / Salvar PDF</button></div></div>
-    <div className="print-area mx-auto w-full max-w-[900px] space-y-5 px-4 py-6"><RelatorioAdversario report={report} data={data} guaraniLast10={guaraniLast10}/></div>
+    <div className="print-area mx-auto w-full max-w-[900px] space-y-5 px-4 py-6"><RelatorioAdversario report={report} data={data} clubLast10={clubLast10}/></div>
   </div>
 }
 function Msg({children}){return <div className="grid min-h-screen place-items-center bg-gray-50 p-8 text-center text-sm font-bold text-gray-500">{children}</div>}

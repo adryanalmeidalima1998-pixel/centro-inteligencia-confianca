@@ -17,10 +17,10 @@ export default function StandingsWidget() {
 
   const visible = expanded ? standings : standings.slice(0, 8)
 
-  const guaraniRow = standings.find(r =>
+  const clubRow = standings.find(r =>
     (r.team_name || '').toLowerCase().includes('confianca')
   )
-  const guaraniPos = guaraniRow?.position || standings.findIndex(r =>
+  const clubPosition = clubRow?.position || standings.findIndex(r =>
     (r.team_name || '').toLowerCase().includes('confianca')
   ) + 1 || null
 
@@ -32,12 +32,12 @@ export default function StandingsWidget() {
           <p className="text-[8px] font-black uppercase tracking-widest text-gray-400">Série C 2026</p>
           <p className="text-[10px] font-black text-gray-800">Classificação</p>
         </div>
-        {guaraniPos && (
+        {clubPosition && (
           <div className="text-right">
             <p className="text-[8px] text-gray-400 font-medium">Confiança</p>
             <p className="bc text-xl font-black text-sky-600 leading-none"
               style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-              {guaraniPos}°
+              {clubPosition}°
             </p>
           </div>
         )}
@@ -64,33 +64,33 @@ export default function StandingsWidget() {
           {/* ROWS */}
           <div className="divide-y divide-gray-50">
             {visible.map((row, i) => {
-              const isGuarani = (row.team_name || '').toLowerCase().includes('confianca')
+              const isClub = (row.team_name || '').toLowerCase().includes('confianca')
               const pos = row.position || i + 1
               // Zone colors: 1-8 = G1 (acesso), 9-16 = mid, 17-20 = rebaixamento
               const zoneColor = pos <= 8 ? 'bg-sky-400' : pos <= 16 ? 'bg-gray-200' : 'bg-red-400'
               return (
                 <div key={row.team_name}
                   className={`grid items-center px-3 py-1.5 transition-colors
-                    ${isGuarani ? 'bg-sky-50 border-l-2 border-sky-500' : 'hover:bg-gray-50/60'}`}
+                    ${isClub ? 'bg-sky-50 border-l-2 border-sky-500' : 'hover:bg-gray-50/60'}`}
                   style={{ gridTemplateColumns: '20px 1fr 22px 22px 22px 22px 28px' }}>
                   {/* POS */}
                   <div className="flex items-center gap-0.5">
                     <span className={`w-1 h-3 rounded-full ${zoneColor} flex-shrink-0`} />
-                    <span className={`text-[9px] font-black ml-0.5 ${isGuarani ? 'text-sky-700' : 'text-gray-500'}`}>{pos}</span>
+                    <span className={`text-[9px] font-black ml-0.5 ${isClub ? 'text-sky-700' : 'text-gray-500'}`}>{pos}</span>
                   </div>
                   {/* TEAM */}
                   <div className="flex items-center gap-1.5 min-w-0">
                     <TeamCrest name={row.team_name} size={16} className="rounded-full flex-shrink-0" />
                     <span className={`text-[9px] font-bold truncate leading-tight
-                      ${isGuarani ? 'text-sky-800 font-black' : 'text-gray-700'}`}>
-                      {isGuarani ? 'Confiança' : (row.team_name || '').split(' ').slice(0,2).join(' ')}
+                      ${isClub ? 'text-sky-800 font-black' : 'text-gray-700'}`}>
+                      {isClub ? 'Confiança' : (row.team_name || '').split(' ').slice(0,2).join(' ')}
                     </span>
                   </div>
-                  <p className={`text-[9px] text-center ${isGuarani ? 'text-sky-700 font-bold' : 'text-gray-500'}`}>{row.pj ?? '–'}</p>
+                  <p className={`text-[9px] text-center ${isClub ? 'text-sky-700 font-bold' : 'text-gray-500'}`}>{row.pj ?? '–'}</p>
                   <p className="text-[9px] text-center text-sky-600 font-bold">{row.vit ?? '–'}</p>
                   <p className="text-[9px] text-center text-gray-400">{row.emp ?? '–'}</p>
                   <p className="text-[9px] text-center text-red-400">{row.der ?? '–'}</p>
-                  <p className={`text-[9px] text-center font-black ${isGuarani ? 'text-sky-700' : 'text-gray-800'}`}>{row.pts ?? '–'}</p>
+                  <p className={`text-[9px] text-center font-black ${isClub ? 'text-sky-700' : 'text-gray-800'}`}>{row.pts ?? '–'}</p>
                 </div>
               )
             })}

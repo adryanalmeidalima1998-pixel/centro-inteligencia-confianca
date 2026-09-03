@@ -1,6 +1,6 @@
 'use client'
 
-const DB_NAME = 'guarani-serie-c-live-v1'
+const DB_NAME = 'confianca-serie-c-live-v1'
 const DB_VERSION = 1
 const STORE_MATCHES = 'matches'
 

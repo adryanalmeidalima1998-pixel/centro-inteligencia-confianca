@@ -4,6 +4,7 @@ import { enrichPlayersWithFoot, getPlayerFoot } from '@/data/player-foot'
 import { buildPlayerIdentity, getCanonicalByIdentityKeys } from '@/app/lib/playerMaster'
 import { buildSportsbaseRolePools } from '@/data/sportsbase-selection'
 import { buildWyscoutRolePools } from '@/data/wyscout-selection'
+import { buildIntegratedRolePools } from '@/data/unified-selection'
 import { normalizeSportsbasePosition, SPORTSBASE_POSITION_GROUPS } from '@/data/sportsbase-map'
 import { ensureLigaJogadoresSchema } from '@/lib/league-dataset-schema'
 
@@ -26,6 +27,7 @@ function noStoreJson(body, init = {}) {
 }
 
 const GENERIC_CB_GROUP = { id:'CB', label:'Zagueiros', shortLabel:'ZAG', color:'#2563eb', roles:['CBL','CBR'], profile:'Zagueiro' }
+const UNKNOWN_CB_GROUP = { id:'CB_UNKNOWN', label:'Zagueiros · pé não informado', shortLabel:'ZAG', color:'#3b82f6', roles:['CBL','CBR'], profile:'Zagueiro' }
 
 const GROUPS = [
   { id:'GK', label:'Goleiros', shortLabel:'GOL', color:'#d97706', roles:['GK'] },
@@ -36,8 +38,8 @@ const GROUPS = [
   { id:'DM', label:'Primeiros volantes', shortLabel:'1º VOL', color:'#7c3aed', roles:['DM'], profile:'Primeiro volante' },
   { id:'CM', label:'Segundos volantes', shortLabel:'2º VOL', color:'#6d28d9', roles:['CM'], profile:'Segundo volante' },
   { id:'AM', label:'Meias', shortLabel:'MEI', color:'#0f766e', roles:['AM'], profile:'Meia ofensivo' },
-  { id:'WG', label:'Atacantes', shortLabel:'ATA', color:'#db2777', roles:['LW','RW'] },
-  { id:'ST', label:'Atacantes', shortLabel:'ATA', color:'#dc2626', roles:['CF'] },
+  { id:'WG', label:'Extremos / Pontas', shortLabel:'EXT', color:'#db2777', roles:['LW','RW'] },
+  { id:'ST', label:'Centroavantes', shortLabel:'CA', color:'#dc2626', roles:['CF'] },
 ]
 
 const POSITION_ALIASES = {
@@ -148,6 +150,7 @@ function matchesHighlightGroup(player, groupId) {
   if (groupId === 'CB') return isCentreBack(player)
   if (groupId === 'CB_LEFT_FOOT') return isCentreBack(player) && getPlayerFoot(player) === 'esquerdo'
   if (groupId === 'CB_RIGHT_FOOT') return isCentreBack(player) && getPlayerFoot(player) === 'direito'
+  if (groupId === 'CB_UNKNOWN') return isCentreBack(player) && getPlayerFoot(player) === 'unknown'
   if (groupId === 'LB') return primaryPositionIs(player.posicao, POSITION_ALIASES.LB)
   if (groupId === 'RB') return primaryPositionIs(player.posicao, POSITION_ALIASES.RB)
   if (groupId === 'DM') return primaryPositionIs(player.posicao, POSITION_ALIASES.DM)
@@ -165,16 +168,22 @@ function highlightPositionGroup(value) {
 }
 
 function highlightGroupsForPlayers(players = [], source = 'sportsbase') {
-  if (source !== 'sportsbase') return GROUPS
+  if (source === 'wyscout') return GROUPS
 
   const centreBacks = players.filter(isCentreBack)
-  const hasUnknownCentreBackFoot = centreBacks.some(player => getPlayerFoot(player) === 'unknown')
-  if (!hasUnknownCentreBackFoot) return GROUPS
+  const unknown = centreBacks.filter(player => getPlayerFoot(player) === 'unknown')
+  if (!unknown.length) return GROUPS
 
-  // O export Sportsbase pode não trazer pé dominante. Nesse cenário, não se pode
-  // excluir os zagueiros nem inferir canhoto/destro. Usamos um único card neutro
-  // de zagueiros e mantemos a divisão por pé quando a informação está completa.
-  return [GROUPS[0], GENERIC_CB_GROUP, ...GROUPS.slice(3)]
+  const informed = centreBacks.length - unknown.length
+  // Sportsbase puro pode vir praticamente sem pé dominante. Nesse caso, um card
+  // neutro é metodologicamente mais correto do que inventar canhoto/destro.
+  if (source === 'sportsbase' && (!informed || unknown.length / Math.max(1, centreBacks.length) >= .50)) {
+    return [GROUPS[0], GENERIC_CB_GROUP, ...GROUPS.slice(3)]
+  }
+
+  // No modo integrado, preservamos canhotos e destros conhecidos e damos aos
+  // zagueiros sem pé informado um card próprio. Ninguém é excluído da triagem.
+  return [GROUPS[0], GROUPS[1], GROUPS[2], UNKNOWN_CB_GROUP, ...GROUPS.slice(3)]
 }
 
 function fallbackScore(player, maxIndex, maxMinutes) {
@@ -227,11 +236,11 @@ function mergeRoleCandidates(rolePools, roles, group) {
   return [...map.values()].sort((a, b) => b.score - a.score || b.minutos - a.minutos)
 }
 
-function buildHighlights(players, source) {
+function buildHighlights(players, source, rolePoolsOverride = null) {
   const highlightGroups = highlightGroupsForPlayers(players, source)
-  const pools = source === 'wyscout'
+  const pools = rolePoolsOverride || (source === 'wyscout'
     ? buildWyscoutRolePools(players).rolePools
-    : buildSportsbaseRolePools(players).rolePools
+    : buildSportsbaseRolePools(players).rolePools)
 
   const maxIndex = Math.max(0, ...players.map(player => number(player.indice)))
   const maxMinutes = Math.max(1, ...players.map(player => number(player.minutos)))
@@ -251,7 +260,10 @@ function buildHighlights(players, source) {
     const candidates = [...ranked, ...fallback]
     return {
       ...group,
-      automatic:candidates.slice(0, MAX_HIGHLIGHTS),
+      // Ranking automático só recebe atletas com score funcional válido.
+      // Fallback fica disponível apenas para curadoria manual; ausência de evidência
+      // não é preenchida artificialmente para completar oito nomes.
+      automatic:ranked.slice(0, MAX_HIGHLIGHTS),
       candidates:candidates.slice(0, 160),
     }
   })
@@ -264,8 +276,9 @@ function buildAllCandidates(players, groups) {
 
   for (const group of groups || []) {
     for (const player of group.candidates || []) {
-      const current = map.get(player.key)
-      if (!current || number(player.score) > number(current.score)) map.set(player.key, player)
+      const candidateKey = player.identityKey || player.key
+      const current = map.get(candidateKey)
+      if (!current || number(player.score) > number(current.score)) map.set(candidateKey, player)
     }
   }
 
@@ -274,7 +287,9 @@ function buildAllCandidates(players, groups) {
       score:fallbackScore(player, maxIndex, maxMinutes),
       profile:player._perfil_dominante || player._role_label || 'Destaque estatístico',
     })
-    if (!map.has(candidate.key)) map.set(candidate.key, candidate)
+    const candidateKey = candidate.identityKey || candidate.key
+    const current = map.get(candidateKey)
+    if (!current || number(candidate.score) > number(current.score)) map.set(candidateKey, candidate)
   }
 
   return [...map.values()]
@@ -296,16 +311,17 @@ async function attachPlayerLinks(players) {
   })
 }
 
-function resolveSource(slug, requested, savedSource, sportsbase, wyscout) {
+function resolveSource(_slug, requested, savedSource, sportsbase, wyscout) {
   if (requested === 'sportsbase' && sportsbase) return 'sportsbase'
   if (requested === 'wyscout' && wyscout) return 'wyscout'
+  if (requested === 'combined' && sportsbase && wyscout) return 'combined'
 
-  // A Série D é operada com o export Wyscout. No modo automático, essa fonte
-  // deve prevalecer mesmo que exista uma importação Sportsbase antiga.
-  if (requested === 'auto' && slug === 'brasileirao-serie-d' && wyscout) return 'wyscout'
-
-  if (requested === 'auto' && savedSource === 'wyscout' && wyscout) return 'wyscout'
-  if (requested === 'auto' && savedSource === 'sportsbase' && sportsbase) return 'sportsbase'
+  // Automático significa exatamente o cenário operacional do CIC:
+  // uma fonte -> usa aquela fonte; duas fontes -> integra as duas sem excluir
+  // atletas que existam somente em uma delas (ex.: limite de 500 do Wyscout).
+  if (requested === 'auto' && sportsbase && wyscout) return 'combined'
+  if (requested === 'auto' && savedSource === 'wyscout' && wyscout && !sportsbase) return 'wyscout'
+  if (requested === 'auto' && savedSource === 'sportsbase' && sportsbase && !wyscout) return 'sportsbase'
   return sportsbase ? 'sportsbase' : wyscout ? 'wyscout' : null
 }
 
@@ -477,12 +493,27 @@ export async function GET(request, { params }) {
       })
     }
 
-    const raw = source === 'sportsbase'
-      ? enrichPlayersWithFoot(sportsbase.data || [], wyscout?.data || [], 'wyscout')
-      : (wyscout.data || [])
-    const basePlayers = raw.map(player => ({ ...player, _liga:slug, _fonte:source }))
-    const players = await attachPlayerLinks(basePlayers)
-    const groups = buildHighlights(players, source)
+    const sportsbaseRaw = sportsbase
+      ? enrichPlayersWithFoot(sportsbase.data || [], wyscout?.data || [], 'wyscout').map(player => ({ ...player, _liga:slug, _fonte:'sportsbase', _source_upload_at:sportsbase.upload_at }))
+      : []
+    const wyscoutRaw = wyscout
+      ? (wyscout.data || []).map(player => ({ ...player, _liga:slug, _fonte:'wyscout', _source_upload_at:wyscout.upload_at }))
+      : []
+
+    const [sportsbasePlayers, wyscoutPlayers] = await Promise.all([
+      attachPlayerLinks(sportsbaseRaw),
+      attachPlayerLinks(wyscoutRaw),
+    ])
+
+    let players = source === 'sportsbase' ? sportsbasePlayers : wyscoutPlayers
+    let rolePoolsOverride = null
+    if (source === 'combined') {
+      const integrated = buildIntegratedRolePools(sportsbasePlayers, wyscoutPlayers)
+      rolePoolsOverride = integrated.rolePools
+      players = [...sportsbasePlayers, ...wyscoutPlayers]
+    }
+
+    const groups = buildHighlights(players, source, rolePoolsOverride)
     const allCandidates = buildAllCandidates(players, groups)
     const savedData = saved?.data && typeof saved.data === 'object' ? saved.data : {}
 
@@ -494,10 +525,10 @@ export async function GET(request, { params }) {
       selection:resolveSelection(groups, allCandidates, savedData, source),
       saved:Boolean(saved && savedData?.source === source && savedData?.groups),
       updated_at:saved?.updated_at || null,
-      total_players:players.length,
-      upload_at:(source === 'sportsbase' ? sportsbase : wyscout)?.upload_at || null,
+      total_players:source === 'combined' ? new Set(players.map(player=>buildPlayerIdentity(player).identityKey || playerKey(player))).size : players.length,
+      upload_at:source === 'combined' ? [sportsbase?.upload_at, wyscout?.upload_at].filter(Boolean).sort().slice(-1)[0] || null : (source === 'sportsbase' ? sportsbase : wyscout)?.upload_at || null,
       max_highlights:MAX_HIGHLIGHTS,
-      methodology:`Até ${MAX_HIGHLIGHTS} destaques por posição com score funcional ${source === 'wyscout' ? 'Wyscout' : 'Sportsbase'}, percentis das métricas do dashboard, adequação posicional e robustez da amostra. A classificação automática separa primeiros volantes (DM/CDM) de segundos volantes (CM), mantém os meias ofensivos em um card próprio e laterais pela posição principal. Para zagueiros, a divisão por pé só é usada quando essa informação está disponível para todos os zagueiros do recorte; se o Sportsbase não trouxer pé dominante, todos entram em um card único de Zagueiros, sem inferência de canhoto/destro. Na curadoria manual, qualquer atleta da competição pode ser inserido em qualquer card e em qualquer colocação. Goleiros sem cobertura estatística completa entram pela posição e pela amostra disponível.`,
+      methodology:`Até ${MAX_HIGHLIGHTS} destaques por função. Cada fonte calcula percentis apenas contra atletas da mesma função, com métricas próprias, mínimos de amostra/tentativas, regressão de percentis extremos em amostras pequenas e cobertura estatística. ${source === 'combined' ? 'Como Sportsbase e Wyscout estão disponíveis, o modo Automático integra os dois scores por atleta ponderando cobertura, robustez e atualização individual por jogos/minutos. Se uma fonte estiver defasada para aquele atleta, ela perde peso; se um campo/métrica estiver ausente, não é tratado como zero. Atletas presentes somente em uma fonte continuam elegíveis e não recebem penalidade pela ausência na outra.' : `Fonte ativa: ${source === 'wyscout' ? 'Wyscout' : 'Sportsbase'}.`} Primeiro e segundo volante, meia ofensivo, extremos e centroavantes têm modelos separados. Goleiro Sportsbase é comparado somente com outros goleiros pelo Índice do provedor porque esse export não contém defesas/xGA; no Wyscout entram métricas específicas da posição. Zagueiros nunca são excluídos por ausência de pé dominante.`,
     })
   } catch (error) {
     console.error('[league-highlights-get]', error)
@@ -511,9 +542,9 @@ export async function POST(request, { params }) {
   try {
     await ensureTable()
     const body = await request.json()
-    const source = body?.source === 'wyscout' ? 'wyscout' : 'sportsbase'
+    const source = ['wyscout','sportsbase','combined'].includes(body?.source) ? body.source : 'sportsbase'
     const groups = {}
-    const savableGroups = [...GROUPS, GENERIC_CB_GROUP]
+    const savableGroups = [...GROUPS, GENERIC_CB_GROUP, UNKNOWN_CB_GROUP]
     for (const group of savableGroups) {
       const entries = Array.isArray(body?.groups?.[group.id]) ? body.groups[group.id] : []
       const unique = new Map()
@@ -527,7 +558,7 @@ export async function POST(request, { params }) {
       }
       groups[group.id] = [...unique.values()]
     }
-    const data = { version:4, source, groups, saved_at:new Date().toISOString() }
+    const data = { version:5, source, groups, saved_at:new Date().toISOString() }
 
     await sql`
       INSERT INTO liga_destaques (slug, source, data, updated_at)

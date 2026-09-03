@@ -2,8 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react'
 
-const GFC  = '#0a66b7'
-const GFC2 = '#064b82'
+const BRAND_PRIMARY  = '#0a66b7'
+const BRAND_DARK = '#064b82'
 
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 function fmt(v, d = 2) { const n = parseFloat(v); return isNaN(n) ? '—' : n % 1 === 0 ? String(n) : n.toFixed(d) }
@@ -11,7 +11,7 @@ function fmt(v, d = 2) { const n = parseFloat(v); return isNaN(n) ? '—' : n % 
 function fitColor(s) {
   if (!s && s !== 0) return { bg: '#f8fafc', c: '#94a3b8', label: '—' }
   if (s >= 85) return { bg: '#fef3c7', c: '#92400e', label: 'Elite' }
-  if (s >= 70) return { bg: '#f0fdf4', c: GFC,       label: 'Forte' }
+  if (s >= 70) return { bg: '#f0fdf4', c: BRAND_PRIMARY,       label: 'Forte' }
   if (s >= 55) return { bg: '#eff6ff', c: '#1d4ed8',  label: 'Viável' }
   return { bg: '#f8fafc', c: '#64748b', label: 'Baixo' }
 }
@@ -26,7 +26,7 @@ function etapaColor(e) {
     'Análise em vídeo':   { bg: '#eff6ff', c: '#1d4ed8' },
     'Observação ao vivo': { bg: '#fef3c7', c: '#92400e' },
     'Pré-lista':          { bg: '#f3e8ff', c: '#6b21a8' },
-    'Alvo prioritário':   { bg: '#f0fdf4', c: GFC       },
+    'Alvo prioritário':   { bg: '#f0fdf4', c: BRAND_PRIMARY       },
     'Acompanhamento':     { bg: '#dcfce7', c: '#166534' },
   }
   return m[e] || { bg: '#f1f5f9', c: '#64748b' }
@@ -66,7 +66,7 @@ function PieChart({ data, size = 70 }) {
 }
 
 // ─── SVG: Barra horizontal ──────────────────────────────────────────────────
-function BarH({ value, max = 100, color = GFC, height = 6, width = 80 }) {
+function BarH({ value, max = 100, color = BRAND_PRIMARY, height = 6, width = 80 }) {
   const pct = Math.min(100, Math.max(0, (value / max) * 100))
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
@@ -113,11 +113,11 @@ function RadarChart({ metricas, jogador, size = 100 }) {
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       {gridPaths}
       {axes}
-      <polygon points={dataPath} fill={`${GFC}33`} stroke={GFC} strokeWidth={1.5} />
+      <polygon points={dataPath} fill={`${BRAND_PRIMARY}33`} stroke={BRAND_PRIMARY} strokeWidth={1.5} />
       {labels}
       {vals.map((pt, i) => {
         const [px, py] = pt.split(',')
-        return <circle key={i} cx={px} cy={py} r={2} fill={GFC} />
+        return <circle key={i} cx={px} cy={py} r={2} fill={BRAND_PRIMARY} />
       })}
     </svg>
   )
@@ -129,7 +129,7 @@ function Badge({ text, bg, color, size = 6.5 }) {
   return <span style={{ background: bg, color, padding: '2px 6px', borderRadius: 4, fontWeight: 800, fontSize: size, display: 'inline-block', whiteSpace: 'nowrap' }}>{text}</span>
 }
 
-function SecTitle({ children, accent = GFC }) {
+function SecTitle({ children, accent = BRAND_PRIMARY }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
       <div style={{ width: 3, height: 14, background: accent, borderRadius: 2, flexShrink: 0 }} />
@@ -230,7 +230,7 @@ function PrintContent() {
   const allCand = Object.values(candidatos).flat()
   const etapas = ['Identificados', 'Análise em vídeo', 'Observação ao vivo', 'Pré-lista', 'Alvo prioritário', 'Acompanhamento']
   const distEtapa = etapas.reduce((acc, e) => { acc[e] = allCand.filter(c => c.etapa === e).length; return acc }, {})
-  const etapaColors = { 'Identificados': '#94a3b8', 'Análise em vídeo': '#3b82f6', 'Observação ao vivo': '#f59e0b', 'Pré-lista': '#8b5cf6', 'Alvo prioritário': GFC, 'Acompanhamento': '#16a34a' }
+  const etapaColors = { 'Identificados': '#94a3b8', 'Análise em vídeo': '#3b82f6', 'Observação ao vivo': '#f59e0b', 'Pré-lista': '#8b5cf6', 'Alvo prioritário': BRAND_PRIMARY, 'Acompanhamento': '#16a34a' }
   const pieDataEtapa = etapas.map(e => ({ label: e.replace(' ', '\n'), value: distEtapa[e], color: etapaColors[e] })).filter(d => d.value > 0)
 
   // Número total de páginas: 1 capa + 1 por cada foco
@@ -249,7 +249,7 @@ function PrintContent() {
         <div>
           <img src="/confianca.png" alt="" style={{ height: 80, width: 'auto', marginBottom: 40 }} />
           <div style={{ marginBottom: 60 }}>
-            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: GFC, marginBottom: 8 }}>CIC · Centro de Inteligência de Recrutamento</div>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: BRAND_PRIMARY, marginBottom: 8 }}>CIC · Centro de Inteligência de Recrutamento</div>
             <h1 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 48, fontWeight: 900, textTransform: 'uppercase', color: '#0f172a', margin: '0 0 20px 0', lineHeight: 1.1 }}>Focos de Recrutamento</h1>
             <p style={{ fontSize: 14, color: '#64748b', margin: 0 }}>Relatório consolidado de oportunidades e candidatos</p>
           </div>
@@ -261,7 +261,7 @@ function PrintContent() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 8, borderBottom: '1px solid #f1f5f9' }}>
                 <span style={{ fontSize: 12, color: '#475569' }}>Focos Ativos</span>
-                <span style={{ fontSize: 14, fontWeight: 900, color: GFC }}>{focosAtivos.length}</span>
+                <span style={{ fontSize: 14, fontWeight: 900, color: BRAND_PRIMARY }}>{focosAtivos.length}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 8, borderBottom: '1px solid #f1f5f9' }}>
                 <span style={{ fontSize: 12, color: '#475569' }}>Candidatos Identificados</span>
@@ -342,7 +342,7 @@ function PrintContent() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
               <div style={{ background: '#f8fafc', border: '1.5px solid #f1f5f9', borderRadius: 12, padding: '10px 12px' }}>
                 <SecTitle>Candidatos</SecTitle>
-                <div style={{ fontSize: 20, fontWeight: 900, color: GFC }}>{candsFoco.length}</div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: BRAND_PRIMARY }}>{candsFoco.length}</div>
                 <div style={{ fontSize: 7, color: '#94a3b8', marginTop: 4 }}>Total identificados</div>
               </div>
               <div style={{ background: '#f8fafc', border: '1.5px solid #f1f5f9', borderRadius: 12, padding: '10px 12px' }}>
@@ -441,10 +441,10 @@ function PrintContent() {
                     <div key={i} style={{ background: 'white', borderRadius: 8, padding: '7px 9px', border: '1px solid #f1f5f9' }}>
                       <div style={{ fontSize: 6.5, fontWeight: 700, color: '#64748b', marginBottom: 3 }}>{m.label || m.metrica}</div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <span style={{ fontSize: 10, fontWeight: 900, color: GFC }}>Meta: {m.meta}</span>
-                        <span style={{ fontSize: 7, fontWeight: 700, background: '#f0fdf4', color: GFC, padding: '1px 5px', borderRadius: 4 }}>{m.peso}%</span>
+                        <span style={{ fontSize: 10, fontWeight: 900, color: BRAND_PRIMARY }}>Meta: {m.meta}</span>
+                        <span style={{ fontSize: 7, fontWeight: 700, background: '#f0fdf4', color: BRAND_PRIMARY, padding: '1px 5px', borderRadius: 4 }}>{m.peso}%</span>
                       </div>
-                      <BarH value={m.peso} max={100} color={GFC} height={5} width={90} />
+                      <BarH value={m.peso} max={100} color={BRAND_PRIMARY} height={5} width={90} />
                     </div>
                   ))}
                 </div>
@@ -486,7 +486,7 @@ function PrintContent() {
                           <td style={{ padding: '4px 7px', borderRight: '1px solid #f1f5f9' }}><Badge text={c.etapa} bg={ec.bg} color={ec.c} size={6} /></td>
                           <td style={{ padding: '4px 7px' }}>
                             {c.link_externo ? (
-                              <a href={c.link_externo} target="_blank" rel="noopener noreferrer" style={{ color: GFC, fontWeight: 700, textDecoration: 'none', fontSize: 7 }}>
+                              <a href={c.link_externo} target="_blank" rel="noopener noreferrer" style={{ color: BRAND_PRIMARY, fontWeight: 700, textDecoration: 'none', fontSize: 7 }}>
                                 🔗 Link
                               </a>
                             ) : '—'}

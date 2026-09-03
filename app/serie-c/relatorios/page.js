@@ -77,8 +77,8 @@ export default function RelatoriosPage() {
   const teams = data?.teams || []
   const excludedSet = useMemo(() => new Set(data?.reportExcludedPlayers || []), [data?.reportExcludedPlayers])
 
-  const allLineSquad = useMemo(() => players.filter(p => p.is_guarani), [players])
-  const allGkSquad = useMemo(() => goalkeepers.filter(p => p.is_guarani), [goalkeepers])
+  const allLineSquad = useMemo(() => players.filter(p => p.is_club), [players])
+  const allGkSquad = useMemo(() => goalkeepers.filter(p => p.is_club), [goalkeepers])
   const allSquad = useMemo(() => [...allLineSquad, ...allGkSquad], [allLineSquad, allGkSquad])
   const lineSquad = useMemo(() => allLineSquad.filter(p => !excludedSet.has(p.player)), [allLineSquad, excludedSet])
   const gkSquad = useMemo(() => allGkSquad.filter(p => !excludedSet.has(p.player)), [allGkSquad, excludedSet])
@@ -271,7 +271,7 @@ export default function RelatoriosPage() {
 
           {aba === 'elenco' && <RelatorioElenco report={elencoReport} photoFor={photos.getPhotoUrl} />}
 
-          {aba === 'coletivo' && <RelatorioColetivo teams={teams} seasonReport={data?.seasonReport} physical={physical} golsLado={golsLado} teamReport={teamReport} />}
+          {aba === 'coletivo' && <RelatorioColetivo teams={teams} seasonReport={data?.seasonReport} teamMatchStats={data?.teamMatchStats} physical={physical} golsLado={golsLado} teamReport={teamReport} />}
         </>}
       </div>
 

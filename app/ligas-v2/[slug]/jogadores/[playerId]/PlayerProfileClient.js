@@ -120,7 +120,9 @@ export default function PlayerProfileClient({ slug, playerId }) {
   }, [slug, playerId])
 
   const leagueRadar = useMemo(() => (payload?.analysis?.radar || []).filter(item => Number.isFinite(item.leaguePercentile)).map(item => ({ subject: item.label, candidate: item.leaguePercentile, benchmark: 50 })), [payload])
-  const guaraniRadar = useMemo(() => (payload?.analysis?.radar || []).filter(item => Number.isFinite(item.playerVsGuarani) && Number.isFinite(item.guaraniAverage)).map(item => ({ subject: item.label, candidate: item.playerVsGuarani, benchmark: item.guaraniAverage })), [payload])
+  const clubRadar = useMemo(() => (payload?.analysis?.radar || [])
+    .filter(item => Number.isFinite(item.playerVsClub) && Number.isFinite(item.clubAverage))
+    .map(item => ({ subject: item.label, candidate: item.playerVsClub, benchmark: item.clubAverage })), [payload])
   const linksDirty = linkDraft.videoUrl.trim() !== links.videoUrl.trim() || linkDraft.ogolUrl.trim() !== links.ogolUrl.trim()
 
   async function saveLinks() {
@@ -226,7 +228,7 @@ export default function PlayerProfileClient({ slug, playerId }) {
 
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 16, marginBottom: 16 }} className="scout-two-col">
       <RadarCard title="Radar posicional · mesma liga" subtitle={`Percentil entre ${analysis.groupSize || 0} jogadores do mesmo grupo; a referência roxa é a mediana.`} data={leagueRadar} candidateLabel={player.nome} comparisonLabel="Mediana da liga" />
-      <RadarCard title="Radar de encaixe · elenco do Confiança" subtitle={`${analysis.guaraniGroupSize || 0} jogadores do Confiança no grupo; comparação em escala percentílica compartilhada.`} data={guaraniRadar} candidateLabel={player.nome} comparisonLabel="Média Confiança" />
+      <RadarCard title="Radar de encaixe · elenco do Confiança" subtitle={`${analysis.clubGroupSize ?? analysis.clubGroupSize ?? 0} jogadores do Confiança no grupo; comparação em escala percentílica compartilhada.`} data={clubRadar} candidateLabel={player.nome} comparisonLabel="Média Confiança" />
     </div>
 
     <ProfileSummary scouting={analysis.scouting} source={analysis.source} />

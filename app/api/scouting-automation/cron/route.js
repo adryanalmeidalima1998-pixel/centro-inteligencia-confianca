@@ -7,7 +7,7 @@ export const maxDuration = 60
 export async function GET(request) {
   const secret = process.env.CRON_SECRET
   const authorization = request.headers.get('authorization')
-  if (secret && authorization !== `Bearer ${secret}`) {
+  if (!secret || authorization !== `Bearer ${secret}`) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   }
   try {

@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, Download, Search } from 'lucide-react'
-import { GuaraniTag } from './ui'
+import { ClubTag } from './ui'
 import { formatMetricValue } from '../../../lib/serieC'
 
 function csvCell(value) {
@@ -15,7 +15,7 @@ export default function StatsTable({
   columns,
   rows,
   rowKey,
-  isGuaraniRow,
+  isClubRow,
   defaultSortKey,
   defaultSortDir = 'desc',
   searchable = true,
@@ -141,13 +141,13 @@ export default function StatsTable({
           </thead>
           <tbody className="divide-y divide-gray-50">
             {visibleRows.map(row => {
-              const guarani = isGuaraniRow ? isGuaraniRow(row) : false
+              const isCurrentClub = isClubRow ? isClubRow(row) : false
               return (
-                <tr key={rowKey(row)} className={guarani ? 'bg-sky-50/70' : 'hover:bg-gray-50/60'}>
+                <tr key={rowKey(row)} className={isCurrentClub ? 'bg-sky-50/70' : 'hover:bg-gray-50/60'}>
                   {columns.map((column, index) => (
-                    <td key={column.key} className={`whitespace-nowrap px-3 py-2 ${column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left'} ${index === 0 ? `sticky left-0 z-[1] ${guarani ? 'bg-sky-50' : 'bg-white'} font-bold text-gray-700` : 'text-gray-600'}`}>
+                    <td key={column.key} className={`whitespace-nowrap px-3 py-2 ${column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left'} ${index === 0 ? `sticky left-0 z-[1] ${isCurrentClub ? 'bg-sky-50' : 'bg-white'} font-bold text-gray-700` : 'text-gray-600'}`}>
                       <div className={`flex items-center gap-1.5 ${column.align === 'right' ? 'justify-end' : column.align === 'center' ? 'justify-center' : 'justify-start'}`}>
-                        {index === 0 && guarani ? <GuaraniTag /> : null}
+                        {index === 0 && isCurrentClub ? <ClubTag /> : null}
                         <span>{renderCell(column, row)}</span>
                       </div>
                     </td>

@@ -2,31 +2,49 @@ import { sql } from '@vercel/postgres'
 import { del } from '@vercel/blob'
 import { NextResponse } from 'next/server'
 
+async function ensureHiddenTable() {
+  await sql`
+    CREATE TABLE IF NOT EXISTS player_photo_hidden (
+      filename  TEXT PRIMARY KEY,
+      hidden_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `
+}
+
 export async function DELETE(request, { params }) {
-  const { id } = params
+  try {
+    const resolvedParams = await params
+    const id = decodeURIComponent(String(resolvedParams?.id || ''))
+    if (!id) return NextResponse.json({ error: 'Foto inválida.' }, { status: 400 })
 
-  // Tenta deletar do Postgres (fotos enviadas via upload)
-  // Se o id for numérico, é uma foto do banco; se for string (filename), é local
-  const isNumeric = /^\d+$/.test(id)
+    await ensureHiddenTable()
+    const isNumeric = /^\d+$/.test(id)
 
-  if (isNumeric) {
-    try {
-      // Busca a URL antes de deletar (para remover do Blob)
-      const existing = await sql`SELECT url FROM player_photos WHERE id = ${parseInt(id)}`
+    if (isNumeric) {
+      // Foto enviada pelo dashboard: remove Blob e registro do banco.
+      const photoId = Number(id)
+      const existing = await sql`SELECT url FROM player_photos WHERE id = ${photoId}`
       if (existing.rows.length > 0) {
         const url = existing.rows[0].url
-        // Deleta do Vercel Blob (se for URL do Blob, não local)
         if (url && url.startsWith('https://')) {
-          try { await del(url) } catch (_) { /* não crítico */ }
+          try { await del(url) } catch (err) { console.warn('[DELETE /api/photos] Blob:', err.message) }
         }
-        await sql`DELETE FROM player_photos WHERE id = ${parseInt(id)}`
+        await sql`DELETE FROM player_photos WHERE id = ${photoId}`
       }
-    } catch (err) {
-      console.error('[DELETE /api/photos]', err)
-      return NextResponse.json({ error: err.message }, { status: 500 })
+      return NextResponse.json({ ok: true, source: 'db' })
     }
-  }
-  // Fotos locais (public/photoplayers) não são deletadas do filesystem em produção
 
-  return NextResponse.json({ ok: true })
+    // Foto que veio empacotada em public/photoplayers: o filesystem da Vercel
+    // é somente leitura. Guardamos o filename como removido no Postgres para
+    // ela deixar de aparecer de forma persistente em todos os dispositivos.
+    await sql`
+      INSERT INTO player_photo_hidden (filename, hidden_at)
+      VALUES (${id}, NOW())
+      ON CONFLICT (filename) DO UPDATE SET hidden_at = NOW()
+    `
+    return NextResponse.json({ ok: true, source: 'local', hidden: true })
+  } catch (err) {
+    console.error('[DELETE /api/photos]', err)
+    return NextResponse.json({ error: err.message || 'Não foi possível excluir a foto.' }, { status: 500 })
+  }
 }

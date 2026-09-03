@@ -65,7 +65,7 @@ async function uploadBlob(path, file, contentType) {
   } catch (_) { return null }
 }
 
-const SELECT_FIELDS = sql`
+const SELECT_FIELDS = `
   id, nome, clube, idade, posicao, pe_preferido, tipo, observacoes, mes, link, irc, decisao, created_at,
   CASE WHEN foto_base64 IS NOT NULL OR foto_url IS NOT NULL THEN TRUE ELSE FALSE END AS tem_foto,
   CASE WHEN relatorio_pdf_base64 IS NOT NULL OR relatorio_url IS NOT NULL THEN TRUE ELSE FALSE END AS tem_relatorio,
@@ -106,11 +106,11 @@ export async function GET(request) {
       })
     }
 
-    const rows = await sql`
+    const rows = await sql.query(`
       SELECT ${SELECT_FIELDS}
       FROM transferroom
       ORDER BY created_at DESC
-    `
+    `)
     return Response.json({ players: rows.rows })
   } catch (err) {
     return Response.json({ players: [], error: err.message }, { status: 500 })

@@ -1,29 +1,21 @@
 import { sql } from '@vercel/postgres'
 import staticM from '../../../data/players_mercado.json'
+import { dispatchNotification } from '@/lib/notification-service'
 
 // Cron job semanal (toda segunda 8h) — Vercel Cron
-// GET /api/notificacoes?secret=guarani-cig-cron-2026
+// GET /api/notificacoes — acionado por Vercel Cron com Authorization: Bearer <CRON_SECRET>
 
 async function callNotify(tipo, dados) {
-  const base = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-  try {
-    const res = await fetch(`${base}/api/notify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tipo, dados }),
-    })
-    return await res.json()
-  } catch(e) {
-    return { error: e.message }
-  }
+  return dispatchNotification(tipo, dados)
 }
 
 export async function GET(request) {
   try {
-    const { searchParams } = new URL(request.url)
-    const secret = searchParams.get('secret')
-    const cronSecret = process.env.CRON_SECRET || 'guarani-cig-cron-2026'
-    if (secret !== cronSecret) return Response.json({ error: 'Não autorizado' }, { status: 401 })
+    const cronSecret = String(process.env.CRON_SECRET || '')
+    const authorization = request.headers.get('authorization') || ''
+    if (!cronSecret || authorization !== `Bearer ${cronSecret}`) {
+      return Response.json({ error: 'Não autorizado' }, { status: 401 })
+    }
 
     const results = { contratos: null, convergencia: null, jogos_monitoramento: null }
     const now = new Date()

@@ -1,6 +1,6 @@
 import { sql } from '@vercel/postgres'
 import agendaBase from '@/data/agenda.json'
-import { getGuaraniSportsbase } from '@/lib/guarani-sportsbase-store'
+import { getClubSportsbase } from '@/lib/club-sportsbase-store'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -68,10 +68,10 @@ function completedGame(game) {
     scout: '',
     descricao: '',
     status: 'realizado',
-    origem: 'sportsbase-guarani',
+    origem: 'sportsbase-confianca',
     editavel: false,
     resultado: game.resultado || (goalsFor > goalsAgainst ? 'V' : goalsFor < goalsAgainst ? 'D' : 'E'),
-    golsGuarani: goalsFor,
+    golsClube: goalsFor,
     golsAdversario: goalsAgainst,
     golsMandante: home ? goalsFor : goalsAgainst,
     golsVisitante: home ? goalsAgainst : goalsFor,
@@ -113,8 +113,8 @@ function completedGame(game) {
 function scheduledGame(row) {
   const mandante = String(row?.Mandante || '').trim()
   const visitante = String(row?.Visitante || '').trim()
-  const guaraniHome = normalizeText(mandante).includes('confianca')
-  const opponent = guaraniHome ? visitante : mandante
+  const clubHome = normalizeText(mandante).includes('confianca')
+  const opponent = clubHome ? visitante : mandante
   const data = isoDate(row?.Data)
   return {
     id: `agenda-${data}-${normalizeText(opponent).replace(/\s+/g, '-')}`,
@@ -125,10 +125,10 @@ function scheduledGame(row) {
     mandante,
     visitante,
     adversario: opponent,
-    mando: guaraniHome ? 'casa' : 'fora',
+    mando: clubHome ? 'casa' : 'fora',
     data,
     hora: row?.Horário ? String(row.Horário).slice(0, 5) : '',
-    local: guaraniHome ? 'Arena Batistão' : '',
+    local: clubHome ? 'Arena Batistão' : '',
     scout: '',
     descricao: '',
     status: 'agendado',
@@ -163,7 +163,7 @@ async function ensureAgendaTable() {
 function manualEvent(row) {
   const mandante = row.mandante || ''
   const visitante = row.visitante || ''
-  const guaraniHome = normalizeText(mandante).includes('confianca')
+  const clubHome = normalizeText(mandante).includes('confianca')
   const isGame = row.tipo === 'Jogo'
   return {
     id: `manual-${row.id}`,
@@ -174,8 +174,8 @@ function manualEvent(row) {
     competicao: row.competicao || '',
     mandante,
     visitante,
-    adversario: isGame ? (guaraniHome ? visitante : mandante) : '',
-    mando: isGame ? (guaraniHome ? 'casa' : 'fora') : null,
+    adversario: isGame ? (clubHome ? visitante : mandante) : '',
+    mando: isGame ? (clubHome ? 'casa' : 'fora') : null,
     data: isoDate(row.data),
     hora: row.hora ? String(row.hora).slice(0, 5) : '',
     local: row.local || '',
@@ -204,7 +204,7 @@ function buildSummary(realizados, proximos, eventos) {
     else if (game.resultado === 'D') acc.derrotas += 1
     else acc.empates += 1
     acc.pontos += game.resultado === 'V' ? 3 : game.resultado === 'E' ? 1 : 0
-    acc.golsPro += safeNumber(game.golsGuarani)
+    acc.golsPro += safeNumber(game.golsClube)
     acc.golsContra += safeNumber(game.golsAdversario)
     return acc
   }, { vitorias: 0, empates: 0, derrotas: 0, pontos: 0, golsPro: 0, golsContra: 0 })
@@ -234,7 +234,7 @@ export async function GET() {
   let manualRows = []
 
   try {
-    sportsbase = await getGuaraniSportsbase()
+    sportsbase = await getClubSportsbase()
   } catch (error) {
     warnings.push(`Dados coletivos indisponíveis: ${error.message}`)
   }

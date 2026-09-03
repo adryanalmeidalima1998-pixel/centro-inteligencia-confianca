@@ -47,7 +47,7 @@ function buildLeaders(rows, definitions, { entityType=null, minutesRequired=fals
     const higher=entityType ? metricHigherIsBetter(col,entityType) : true
     const entries=eligible.map(row=>{
       const raw=toNumber(row.metrics?.[col]); const value=mode==='per90'&&volume&&minutesRequired?per90(raw,row.minutes):raw
-      return value===null?null:{name:getName(row),team:getTeam?.(row),value,isGuarani:getFlag(row),per90Mode:mode==='per90'&&volume&&minutesRequired,row}
+      return value===null?null:{name:getName(row),team:getTeam?.(row),value,isClub:getFlag(row),per90Mode:mode==='per90'&&volume&&minutesRequired,row}
     }).filter(Boolean).sort((a,b)=>higher?b.value-a.value:a.value-b.value).slice(0,10)
     return entries.length?{...definition,col,entries,canPer90:volume&&minutesRequired}:null
   }).filter(Boolean)
@@ -57,22 +57,22 @@ export default function SerieCLideresPage(){
   const[round,setRound]=useState(null),[subTab,setSubTab]=useState('jogadores'),[mode,setMode]=useState('total'),[minMinutes,setMinMinutes]=useState(DEFAULT_MIN_MINUTES),[category,setCategory]=useState('Todas'),[search,setSearch]=useState('')
   const{data,loading,error,reload}=useSerieCData({round}); const players=data?.players||[],goalkeepers=data?.goalkeepers||[],teams=data?.teams||[]
   const playerDefs=useMemo(()=>dynamicDefinitions(players,'player'),[players]); const goalkeeperDefs=useMemo(()=>dynamicDefinitions(goalkeepers,'goalkeeper'),[goalkeepers])
-  const playerLeaders=useMemo(()=>buildLeaders(players,playerDefs,{entityType:'player',minutesRequired:true,minMinutes,mode,getName:r=>r.player,getTeam:r=>r.team,getFlag:r=>r.is_guarani}),[players,playerDefs,minMinutes,mode])
-  const goalkeeperLeaders=useMemo(()=>buildLeaders(goalkeepers,goalkeeperDefs,{entityType:'goalkeeper',minutesRequired:true,minMinutes,mode,getName:r=>r.player,getTeam:r=>r.team,getFlag:r=>r.is_guarani}),[goalkeepers,goalkeeperDefs,minMinutes,mode])
-  const teamLeaders=useMemo(()=>buildLeaders(teams,TEAM_METRICS,{getName:r=>r.team,getTeam:()=>null,getFlag:r=>r.is_guarani}),[teams])
-  const teamAlerts=useMemo(()=>buildLeaders(teams,TEAM_ALERTS,{getName:r=>r.team,getTeam:()=>null,getFlag:r=>r.is_guarani}),[teams])
+  const playerLeaders=useMemo(()=>buildLeaders(players,playerDefs,{entityType:'player',minutesRequired:true,minMinutes,mode,getName:r=>r.player,getTeam:r=>r.team,getFlag:r=>r.is_club}),[players,playerDefs,minMinutes,mode])
+  const goalkeeperLeaders=useMemo(()=>buildLeaders(goalkeepers,goalkeeperDefs,{entityType:'goalkeeper',minutesRequired:true,minMinutes,mode,getName:r=>r.player,getTeam:r=>r.team,getFlag:r=>r.is_club}),[goalkeepers,goalkeeperDefs,minMinutes,mode])
+  const teamLeaders=useMemo(()=>buildLeaders(teams,TEAM_METRICS,{getName:r=>r.team,getTeam:()=>null,getFlag:r=>r.is_club}),[teams])
+  const teamAlerts=useMemo(()=>buildLeaders(teams,TEAM_ALERTS,{getName:r=>r.team,getTeam:()=>null,getFlag:r=>r.is_club}),[teams])
   const current=subTab==='jogadores'?playerLeaders:subTab==='goleiros'?goalkeeperLeaders:teamLeaders
   const orderedCategories=subTab==='jogadores'?PLAYER_CATEGORY_ORDER:subTab==='goleiros'?GOALKEEPER_CATEGORY_ORDER:[]
   const availableCategories=useMemo(()=>['Todas',...orderedCategories.filter(c=>current.some(x=>x.category===c)),...Array.from(new Set(current.map(x=>x.category))).filter(c=>c&&!orderedCategories.includes(c))],[current,orderedCategories])
   const q=search.toLowerCase().trim(); const filtered=current.filter(item=>(category==='Todas'||item.category===category)&&(!q||item.metric.toLowerCase().includes(q)))
-  const dominant=useMemo(()=>{const m=new Map();current.forEach(l=>l.entries.slice(0,5).forEach((e,i)=>{const x=m.get(`${e.name}__${e.team}`)||{name:e.name,team:e.team,isGuarani:e.isGuarani,points:0,appearances:0};x.points+=5-i;x.appearances++;m.set(`${e.name}__${e.team}`,x)}));return[...m.values()].sort((a,b)=>b.points-a.points||b.appearances-a.appearances).slice(0,8).map(x=>({...x,value:x.points}))},[current])
+  const dominant=useMemo(()=>{const m=new Map();current.forEach(l=>l.entries.slice(0,5).forEach((e,i)=>{const x=m.get(`${e.name}__${e.team}`)||{name:e.name,team:e.team,isClub:e.isClub,points:0,appearances:0};x.points+=5-i;x.appearances++;m.set(`${e.name}__${e.team}`,x)}));return[...m.values()].sort((a,b)=>b.points-a.points||b.appearances-a.appearances).slice(0,8).map(x=>({...x,value:x.points}))},[current])
   const indexLeader=current.find(item=>String(item.metric).toLowerCase()==='índice'||String(item.metric).toLowerCase()==='indice'); const featured=indexLeader?.entries?.[0]
-  const guaraniTopFive=useMemo(()=>current.reduce((sum,l)=>sum+l.entries.slice(0,5).filter(e=>e.isGuarani).length,0),[current]); const distinct=new Set(current.map(l=>l.entries[0]?.name).filter(Boolean)).size
+  const clubTopFive=useMemo(()=>current.reduce((sum,l)=>sum+l.entries.slice(0,5).filter(e=>e.isClub).length,0),[current]); const distinct=new Set(current.map(l=>l.entries[0]?.name).filter(Boolean)).size
   const kpis=[
     {label:'Rankings disponíveis',value:formatNumberBR(current.length),helper:subTab==='jogadores'?`${playerDefs.length} métricas detectadas`:subTab==='goleiros'?`${goalkeeperDefs.length} métricas detectadas`:'Clubes',icon:BarChart3,tone:'slate'},
     {label:'Líder de índice',value:featured?formatMetricValue(indexLeader?.col||'Índice',featured.value):'-',helper:featured?.name||'Sem dado',icon:Crown,tone:'amber'},
     {label:'Líderes diferentes',value:formatNumberBR(distinct),helper:'Primeiros lugares em fundamentos',icon:Medal},
-    {label:'Confiança no Top-5',value:formatNumberBR(guaraniTopFive),helper:'Presenças somadas',icon:ShieldCheck},
+    {label:'Confiança no Top-5',value:formatNumberBR(clubTopFive),helper:'Presenças somadas',icon:ShieldCheck},
     {label:'Minutagem mínima',value:subTab==='times'?'—':formatNumberBR(minMinutes),helper:subTab==='times'?'Não se aplica':'+ amostra mínima por eficiência',icon:Sparkles,tone:'blue'},
     {label:'Modo',value:mode==='per90'?'/90':'Total',helper:'Volume ajustável; percentuais mantidos',icon:Goal},
   ]

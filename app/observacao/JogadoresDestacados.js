@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { PLAYER_FOOT_OPTIONS, matchesPlayerFoot, playerFootLabel } from '@/data/player-foot'
 
-const GFC = '#0a66b7'
+const BRAND_PRIMARY = '#0a66b7'
 
 const VEREDITO_CFG = {
   'CONTRATAÇÃO':  { bg:'#f0fdf4', color:'#166534', border:'#86efac' },
@@ -126,14 +126,14 @@ export default function JogadoresDestacados() {
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:20, flexWrap:'wrap', gap:12 }}>
         <div>
           <p style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:3, color:'#94a3b8', marginBottom:4 }}>Auto-populado pelos Relatórios</p>
-          <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:28, fontWeight:900, color:GFC, textTransform:'uppercase', lineHeight:1 }}>Jogadores Destacados</h2>
+          <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:28, fontWeight:900, color:BRAND_PRIMARY, textTransform:'uppercase', lineHeight:1 }}>Jogadores Destacados</h2>
           <p style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>{jogadores.length} atletas · {jogadores.filter(j=>j.promovido).length} promovidos ao Monitoramento</p>
         </div>
         <div style={{ display:'flex', gap:8 }}>
-          <button onClick={load} style={{ padding:'8px 14px', borderRadius:8, border:'1.5px solid #c6def2', cursor:'pointer', fontFamily:'inherit', fontSize:11, fontWeight:700, color:GFC, background:'#fff', display:'flex', alignItems:'center', gap:6 }}>
+          <button onClick={load} style={{ padding:'8px 14px', borderRadius:8, border:'1.5px solid #c6def2', cursor:'pointer', fontFamily:'inherit', fontSize:11, fontWeight:700, color:BRAND_PRIMARY, background:'#fff', display:'flex', alignItems:'center', gap:6 }}>
             🔄 Atualizar
           </button>
-          <button onClick={exportarPDF} disabled={exportando} style={{ padding:'8px 14px', borderRadius:8, border:'none', cursor:'pointer', fontFamily:'inherit', fontSize:11, fontWeight:700, color:'#fff', background:GFC, display:'flex', alignItems:'center', gap:6, opacity: exportando ? 0.7 : 1 }}>
+          <button onClick={exportarPDF} disabled={exportando} style={{ padding:'8px 14px', borderRadius:8, border:'none', cursor:'pointer', fontFamily:'inherit', fontSize:11, fontWeight:700, color:'#fff', background:BRAND_PRIMARY, display:'flex', alignItems:'center', gap:6, opacity: exportando ? 0.7 : 1 }}>
             📄 {exportando ? 'Gerando...' : 'Exportar PDF'}
           </button>
         </div>
@@ -173,27 +173,27 @@ export default function JogadoresDestacados() {
 
         {/* Posição */}
         <select value={filtroPos} onChange={e=>setFiltroPos(e.target.value)}
-          style={{ padding:'6px 10px', borderRadius:7, border:'1px solid #d6e5f0', fontSize:11, fontFamily:'inherit', outline:'none', color: filtroPos?GFC:'#64748b', background:'#fff', cursor:'pointer' }}>
+          style={{ padding:'6px 10px', borderRadius:7, border:'1px solid #d6e5f0', fontSize:11, fontFamily:'inherit', outline:'none', color: filtroPos?BRAND_PRIMARY:'#64748b', background:'#fff', cursor:'pointer' }}>
           <option value=''>⬜ Todas posições</option>
           {posicoesUnicas.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
 
         {/* Pé dominante */}
         <select value={filtroPe} onChange={e=>setFiltroPe(e.target.value)}
-          style={{ padding:'6px 10px', borderRadius:7, border:'1px solid #d6e5f0', fontSize:11, fontFamily:'inherit', outline:'none', color: filtroPe?GFC:'#64748b', background:'#fff', cursor:'pointer' }}>
+          style={{ padding:'6px 10px', borderRadius:7, border:'1px solid #d6e5f0', fontSize:11, fontFamily:'inherit', outline:'none', color: filtroPe?BRAND_PRIMARY:'#64748b', background:'#fff', cursor:'pointer' }}>
           {PLAYER_FOOT_OPTIONS.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}
         </select>
 
         {/* Competição */}
         <select value={filtroComp} onChange={e=>setFiltroComp(e.target.value)}
-          style={{ padding:'6px 10px', borderRadius:7, border:'1px solid #d6e5f0', fontSize:11, fontFamily:'inherit', outline:'none', color: filtroComp?GFC:'#64748b', background:'#fff', cursor:'pointer' }}>
+          style={{ padding:'6px 10px', borderRadius:7, border:'1px solid #d6e5f0', fontSize:11, fontFamily:'inherit', outline:'none', color: filtroComp?BRAND_PRIMARY:'#64748b', background:'#fff', cursor:'pointer' }}>
           <option value=''>🏆 Todas as competições</option>
           {competicoesUnicas.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
 
         {/* Idade */}
         <select value={filtroIdade} onChange={e=>setFiltroIdade(e.target.value)}
-          style={{ padding:'6px 10px', borderRadius:7, border:'1px solid #d6e5f0', fontSize:11, fontFamily:'inherit', outline:'none', color: filtroIdade?GFC:'#64748b', background:'#fff', cursor:'pointer' }}>
+          style={{ padding:'6px 10px', borderRadius:7, border:'1px solid #d6e5f0', fontSize:11, fontFamily:'inherit', outline:'none', color: filtroIdade?BRAND_PRIMARY:'#64748b', background:'#fff', cursor:'pointer' }}>
           <option value=''>🎂 Todas as idades</option>
           <option value='15-21'>Sub-21 (até 21)</option>
           <option value='22-25'>22 a 25 anos</option>
@@ -247,7 +247,7 @@ export default function JogadoresDestacados() {
                 <span style={{ fontSize:10, fontWeight:700, padding:'3px 8px', borderRadius:6, background:cfg.bg, color:cfg.color, border:`1px solid ${cfg.border}`, whiteSpace:'nowrap' }}>
                   {j.veredito || '-'}
                 </span>
-                <span style={{ fontSize:12, fontWeight:700, color:GFC, textAlign:'center' }}>{j.jogos||0}</span>
+                <span style={{ fontSize:12, fontWeight:700, color:BRAND_PRIMARY, textAlign:'center' }}>{j.jogos||0}</span>
                 <span style={{ fontSize:11, color:'#991b1b', fontWeight:600, textAlign:'center' }}>{j.n_arquivar||0}</span>
                 <span style={{ fontSize:11, color:'#1e40af', fontWeight:600, textAlign:'center' }}>{j.n_monitorar||0}</span>
                 <span style={{ fontSize:11, color:'#166534', fontWeight:600, textAlign:'center' }}>{j.n_contratar||0}</span>

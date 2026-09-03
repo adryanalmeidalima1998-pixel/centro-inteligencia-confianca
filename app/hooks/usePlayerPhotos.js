@@ -108,7 +108,7 @@ export function usePlayerPhotos() {
 // Migração única: lê localStorage → banco
 async function migrateFromLocalStorage() {
   if (typeof window === 'undefined') return
-  const STORAGE_KEY = 'guarani_player_photos'
+  const STORAGE_KEY = 'confianca_player_photos'
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (!saved) return

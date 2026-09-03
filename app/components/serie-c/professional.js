@@ -6,7 +6,7 @@ import {
   ScatterChart, Scatter,
 } from 'recharts'
 import { formatMetricValue, formatNumberBR, formatPercentage, metricDisplayName } from '../../../lib/serieC'
-import { GuaraniTag, PercentileBadge, RankingBadge, VariationBadge } from './ui'
+import { ClubTag, PercentileBadge, RankingBadge, VariationBadge } from './ui'
 
 const COLORS = {
   green: '#0a66b7',
@@ -85,11 +85,11 @@ export function RankingListCard({ title, entries, valueMetric, description, max 
       </div>
       <div className="space-y-1.5">
         {entries.slice(0, max).map((e, i) => (
-          <div key={`${e.name}_${i}`} className={`flex items-center justify-between gap-3 rounded-xl px-2 py-1.5 ${e.isGuarani ? 'bg-sky-50' : 'hover:bg-gray-50'}`}>
+          <div key={`${e.name}_${i}`} className={`flex items-center justify-between gap-3 rounded-xl px-2 py-1.5 ${e.isClub ? 'bg-sky-50' : 'hover:bg-gray-50'}`}>
             <div className="flex items-center gap-2 min-w-0">
               <span className="w-5 text-center text-[10px] font-black text-gray-300">{i + 1}</span>
               <span className="text-[11px] font-bold text-gray-700 truncate">{e.name}</span>
-              {e.isGuarani && <GuaraniTag />}
+              {e.isClub && <ClubTag />}
             </div>
             <span className="bc text-base font-black text-sky-600 whitespace-nowrap">{formatMetricValue(valueMetric || title, e.value)}</span>
           </div>

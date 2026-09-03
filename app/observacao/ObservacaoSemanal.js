@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-const GFC = '#0a66b7'
+const BRAND_PRIMARY = '#0a66b7'
 
 function getWeekKey(dateStr) {
   if (!dateStr) return 'Sem data'
@@ -275,12 +275,12 @@ export default function ObservacaoSemanal() {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 3, color: '#94a3b8', marginBottom: 4 }}>Auto-populado pelos Relatórios</p>
-          <h2 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 28, fontWeight: 900, color: GFC, textTransform: 'uppercase', lineHeight: 1 }}>Observação Semanal</h2>
+          <h2 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 28, fontWeight: 900, color: BRAND_PRIMARY, textTransform: 'uppercase', lineHeight: 1 }}>Observação Semanal</h2>
           <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>{partidas.length} partidas nos últimos 14 dias</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={load} style={{ padding: '8px 14px', borderRadius: 8, border: '1.5px solid #c6def2', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 700, color: GFC, background: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>🔄 Atualizar</button>
-          <button onClick={exportarPDF} disabled={exportando} style={{ padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 700, color: '#fff', background: GFC, display: 'flex', alignItems: 'center', gap: 6, opacity: exportando ? 0.7 : 1 }}>
+          <button onClick={load} style={{ padding: '8px 14px', borderRadius: 8, border: '1.5px solid #c6def2', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 700, color: BRAND_PRIMARY, background: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>🔄 Atualizar</button>
+          <button onClick={exportarPDF} disabled={exportando} style={{ padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 700, color: '#fff', background: BRAND_PRIMARY, display: 'flex', alignItems: 'center', gap: 6, opacity: exportando ? 0.7 : 1 }}>
             📄 {exportando ? 'Gerando...' : 'Exportar PDF'}
           </button>
         </div>
@@ -306,9 +306,9 @@ export default function ObservacaoSemanal() {
             style={{
               padding: '5px 11px', borderRadius: 8, border: '1.5px solid', cursor: 'pointer', fontFamily: 'inherit',
               fontSize: 10, fontWeight: 700,
-              background: campsAtivos.length === 0 ? GFC : '#f7fcf9',
+              background: campsAtivos.length === 0 ? BRAND_PRIMARY : '#f7fcf9',
               color: campsAtivos.length === 0 ? '#fff' : '#52677e',
-              borderColor: campsAtivos.length === 0 ? GFC : '#d6e5f0',
+              borderColor: campsAtivos.length === 0 ? BRAND_PRIMARY : '#d6e5f0',
             }}
           >
             Todos os Campeonatos
@@ -323,9 +323,9 @@ export default function ObservacaoSemanal() {
                 style={{
                   padding: '5px 11px', borderRadius: 8, border: '1.5px solid', cursor: 'pointer', fontFamily: 'inherit',
                   fontSize: 10, fontWeight: 700,
-                  background: ativo ? GFC : '#f7fcf9',
+                  background: ativo ? BRAND_PRIMARY : '#f7fcf9',
                   color: ativo ? '#fff' : '#52677e',
-                  borderColor: ativo ? GFC : '#d6e5f0',
+                  borderColor: ativo ? BRAND_PRIMARY : '#d6e5f0',
                 }}
               >
                 {c}
@@ -341,9 +341,9 @@ export default function ObservacaoSemanal() {
           <button key={s} onClick={() => setSemanaFil(s)} style={{
             padding: '6px 12px', borderRadius: 8, border: '1.5px solid', cursor: 'pointer', fontFamily: 'inherit',
             fontSize: 10, fontWeight: 700,
-            background: semanaFil === s ? GFC : '#f7fcf9',
+            background: semanaFil === s ? BRAND_PRIMARY : '#f7fcf9',
             color: semanaFil === s ? '#fff' : '#52677e',
-            borderColor: semanaFil === s ? GFC : '#d6e5f0',
+            borderColor: semanaFil === s ? BRAND_PRIMARY : '#d6e5f0',
           }}>
             {s === 'Todas' ? 'Todas as Semanas' : s}
           </button>
@@ -364,7 +364,7 @@ export default function ObservacaoSemanal() {
       ) : filtradas.map(sk => (
         <div key={sk} style={{ marginBottom: 24 }}>
           {/* Header semana */}
-          <div style={{ background: GFC, borderRadius: '12px 12px 0 0', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ background: BRAND_PRIMARY, borderRadius: '12px 12px 0 0', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <p style={{ fontSize: 13, fontWeight: 900, color: '#fff', fontFamily: "'Barlow Condensed',sans-serif" }}>{sk}</p>
             <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.7)' }}>{semanas[sk].length} partida{semanas[sk].length > 1 ? 's' : ''}</span>
           </div>
@@ -462,7 +462,7 @@ export default function ObservacaoSemanal() {
                                       fontSize: 10,
                                       fontWeight: 800,
                                       background: '#f0fdf4',
-                                      color: GFC,
+                                      color: BRAND_PRIMARY,
                                       border: '1px solid #86efac',
                                     }}>
                                       {nota}

@@ -581,11 +581,18 @@ export function resolveMetricMinimumMinutes(metricDef, players = [], selectedMin
   return getSuggestedMinimumMinutes(players)
 }
 
+function hasNumericMetricValue(value) {
+  if (value === null || value === undefined || value === '' || value === '-') return false
+  return Number.isFinite(Number(value))
+}
+
 export function getMetricEligibility(player, metricDef, options = {}) {
   const players = options.players || []
   const selectedMinimum = options.selectedMinimum ?? 'auto'
-  const value = Number(player?.[metricDef?.key])
-  if (!metricDef || !Number.isFinite(value)) return { eligible:false, reason:'Sem valor para a métrica', minimumMinutes:0 }
+  if (!metricDef) return { eligible:false, reason:'Métrica inválida', minimumMinutes:0 }
+  const rawValue = player?.[metricDef.key]
+  if (!hasNumericMetricValue(rawValue)) return { eligible:false, reason:'Sem valor para a métrica', minimumMinutes:0 }
+  const value = Number(rawValue)
 
   const minimumMinutes = resolveMetricMinimumMinutes(metricDef, players, selectedMinimum)
   const minutes = Number(player?.minutos) || 0
@@ -594,7 +601,16 @@ export function getMetricEligibility(player, metricDef, options = {}) {
   }
 
   if (metricDef.denominatorKey && metricDef.minAttempts > 0) {
-    const attempts = Number(player?.[metricDef.denominatorKey]) || 0
+    const rawAttempts = player?.[metricDef.denominatorKey]
+    if (!hasNumericMetricValue(rawAttempts)) {
+      return {
+        eligible:false,
+        reason:`Sem base de ${metricDef.denominatorLabel || 'tentativas'}`,
+        minimumMinutes,
+        attempts:null,
+      }
+    }
+    const attempts = Number(rawAttempts)
     if (attempts < metricDef.minAttempts) {
       return {
         eligible:false,
@@ -609,7 +625,8 @@ export function getMetricEligibility(player, metricDef, options = {}) {
     eligible:true,
     reason:null,
     minimumMinutes,
-    attempts: metricDef.denominatorKey ? Number(player?.[metricDef.denominatorKey]) || 0 : null,
+    value,
+    attempts: metricDef.denominatorKey && hasNumericMetricValue(player?.[metricDef.denominatorKey]) ? Number(player[metricDef.denominatorKey]) : null,
   }
 }
 
@@ -619,9 +636,10 @@ export function isSportsbaseMetricEligible(player, metricDefOrKey, options = {})
 }
 
 export function calculateSportsbasePercentile(value, values, higherIsBetter = true) {
+  if (!hasNumericMetricValue(value)) return null
   const numericValue = Number(value)
-  const valid = values.map(Number).filter(Number.isFinite).sort((a, b) => a - b)
-  if (!Number.isFinite(numericValue) || !valid.length) return null
+  const valid = values.filter(hasNumericMetricValue).map(Number).filter(Number.isFinite).sort((a, b) => a - b)
+  if (!valid.length) return null
   const lower = valid.filter(item => item < numericValue).length
   const equal = valid.filter(item => item === numericValue).length
   const raw = ((lower + equal * 0.5) / valid.length) * 100

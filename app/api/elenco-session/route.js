@@ -16,9 +16,10 @@ async function ensureTable() {
       updated_at  TIMESTAMPTZ DEFAULT NOW()
     )
   `
+
 }
 
-const SESSION_KEY = 'guarani_elenco_2026'
+const SESSION_KEY = 'confianca_elenco_2026'
 
 // GET — carrega o estado salvo
 export async function GET() {

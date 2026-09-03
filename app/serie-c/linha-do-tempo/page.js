@@ -43,10 +43,10 @@ function pointsFromMatch(match) {
   const score = scoreParts(match?.score)
   if (!score) return null
   const [homeGoals, awayGoals] = score
-  const guaraniGoals = match.mando === 'M' ? homeGoals : awayGoals
+  const clubGoals = match.mando === 'M' ? homeGoals : awayGoals
   const opponentGoals = match.mando === 'M' ? awayGoals : homeGoals
-  if (guaraniGoals > opponentGoals) return 3
-  if (guaraniGoals === opponentGoals) return 1
+  if (clubGoals > opponentGoals) return 3
+  if (clubGoals === opponentGoals) return 1
   return 0
 }
 

@@ -151,7 +151,7 @@ function ModeButton({ active, icon: Icon, title, description, onClick }) {
 
 function StandingsPreview({ parsed }) {
   if (!parsed) return null
-  const guarani = parsed.rows.find(row => row.team.toLowerCase().includes('confianca'))
+  const clubTeam = parsed.rows.find(row => row.team.toLowerCase().includes('confianca'))
   return (
     <div className="overflow-hidden rounded-2xl border border-sky-100 bg-sky-50/40">
       <div className="flex flex-col gap-3 border-b border-sky-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -162,7 +162,7 @@ function StandingsPreview({ parsed }) {
             <p className="text-[10px] text-gray-500">20 equipes · página {parsed.pageNumber} · rodada sugerida {parsed.inferredRound}</p>
           </div>
         </div>
-        {guarani && <div className="rounded-lg bg-white px-3 py-2 text-right shadow-sm"><p className="text-[8px] font-black uppercase tracking-wider text-gray-400">Confiança</p><p className="bc text-xl font-black text-gray-800">{guarani.position}º · {guarani.points} pts</p></div>}
+        {clubTeam && <div className="rounded-lg bg-white px-3 py-2 text-right shadow-sm"><p className="text-[8px] font-black uppercase tracking-wider text-gray-400">Confiança</p><p className="bc text-xl font-black text-gray-800">{clubTeam.position}º · {clubTeam.points} pts</p></div>}
       </div>
       <div className="max-h-72 overflow-auto">
         <table className="w-full min-w-[760px] text-[10px]">
@@ -198,7 +198,7 @@ export default function SerieCUploadPage() {
   const [competition, setCompetition] = useState(DEFAULT_COMPETITION)
   const [round, setRound] = useState('')
   const [uploadDate, setUploadDate] = useState('')
-  const [guaraniPosition, setGuaraniPosition] = useState('')
+  const [clubPosition, setClubPosition] = useState('')
 
   const [teamsFile, setTeamsFile] = useState(null)
   const [playersFile, setPlayersFile] = useState(null)
@@ -260,7 +260,7 @@ export default function SerieCUploadPage() {
       form.set('competition', competition)
       form.set('round', round)
       form.set('uploadDate', uploadDate)
-      if (guaraniPosition) form.set('guaraniPosition', guaraniPosition)
+      if (clubPosition) form.set('clubPosition', clubPosition)
       if (teamsFile) form.set('teamsFile', teamsFile)
       if (playersFile) form.set('playersFile', playersFile)
       if (goalkeepersFile) form.set('goalkeepersFile', goalkeepersFile)
@@ -309,7 +309,8 @@ export default function SerieCUploadPage() {
       const json = await response.json()
       if (!response.ok || json.error) throw new Error(json.error || 'Falha ao importar partidas.')
       const xgText = json.xgMatches ? ` ${json.xgMatches} jogo(s) com xG/xGA reconhecidos.` : ' A planilha foi importada, mas não encontrei xG nas colunas.'
-      const timelineText = json.guaraniTimelineMatches ? ` ${json.guaraniTimelineMatches} jogo(s) do Confiança sincronizados com a Linha do Tempo.` : ''
+      const timelineCount = json.clubTimelineMatches ?? json.clubTimelineMatches ?? 0
+      const timelineText = timelineCount ? ` ${timelineCount} jogo(s) do Confiança sincronizados com a Linha do Tempo.` : ''
       setMatchesStatus({ type: 'ok', message: `${json.imported} partida(s) atualizada(s).${xgText}${timelineText}` })
       setMatchesFile(null)
     } catch (error) {
@@ -415,7 +416,7 @@ export default function SerieCUploadPage() {
               <Field label="Competição" className="col-span-2"><input value={competition} onChange={event => setCompetition(event.target.value)} className="mt-1 w-full rounded-lg border border-gray-200 px-2.5 py-2 text-xs" /></Field>
               <Field label="Rodada"><input type="number" min="1" value={round} onChange={event => setRound(event.target.value)} className="mt-1 w-full rounded-lg border border-gray-200 px-2.5 py-2 text-xs" placeholder="16" /></Field>
               <Field label="Data do upload"><input type="date" value={uploadDate} onChange={event => setUploadDate(event.target.value)} className="mt-1 w-full rounded-lg border border-gray-200 px-2.5 py-2 text-xs" /></Field>
-              <Field label="Posição do Confiança"><input type="number" min="1" max="20" value={guaraniPosition} onChange={event => setGuaraniPosition(event.target.value)} className="mt-1 w-full rounded-lg border border-gray-200 px-2.5 py-2 text-xs" placeholder="Ex.: 2" /></Field>
+              <Field label="Posição do Confiança"><input type="number" min="1" max="20" value={clubPosition} onChange={event => setClubPosition(event.target.value)} className="mt-1 w-full rounded-lg border border-gray-200 px-2.5 py-2 text-xs" placeholder="Ex.: 2" /></Field>
             </div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <FileField label="Planilha de times" file={teamsFile} onChange={setTeamsFile} />
@@ -488,7 +489,7 @@ export default function SerieCUploadPage() {
           <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
             <div className="mb-3 flex items-center gap-2"><FileSpreadsheet className="h-4 w-4 text-blue-500" /><p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Snapshots estatísticos</p></div>
             {uploads.length === 0 && <p className="text-xs text-gray-400">Nenhum upload realizado ainda.</p>}
-            <div className="space-y-1.5">{uploads.slice(0, 10).map(upload => <div key={upload.id} className="flex items-center justify-between border-b border-gray-50 py-1.5 text-[11px]"><span className="font-bold text-gray-600">{upload.season} · Rodada {upload.round}</span><span className="text-gray-400">{upload.guarani_position ? `${upload.guarani_position}º lugar` : '-'}</span></div>)}</div>
+            <div className="space-y-1.5">{uploads.slice(0, 10).map(upload => <div key={upload.id} className="flex items-center justify-between border-b border-gray-50 py-1.5 text-[11px]"><span className="font-bold text-gray-600">{upload.season} · Rodada {upload.round}</span><span className="text-gray-400">{upload.club_position ? `${upload.club_position}º lugar` : '-'}</span></div>)}</div>
           </section>
 
           <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">

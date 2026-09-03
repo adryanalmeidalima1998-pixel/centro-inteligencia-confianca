@@ -682,7 +682,7 @@ export function ElencoPerformanceTable({ columns, rows, rowKey, defaultSortKey =
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = 'elenco-guarani-serie-c.csv'
+    anchor.download = 'elenco-confianca-serie-c.csv'
     anchor.click()
     URL.revokeObjectURL(url)
   }

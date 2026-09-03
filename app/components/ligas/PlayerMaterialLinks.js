@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { playerProfilePath } from '@/data/player-route'
 
-const GFC = '#0a66b7'
+const BRAND_PRIMARY = '#0a66b7'
 
 function initialLinks(player = {}) {
   return {
@@ -12,7 +12,7 @@ function initialLinks(player = {}) {
   }
 }
 
-function LinkButton({ href, children, tone = GFC }) {
+function LinkButton({ href, children, tone = BRAND_PRIMARY }) {
   if (!href) return null
   return (
     <a
@@ -142,14 +142,14 @@ export default function PlayerMaterialLinks({ slug, player, onSaved }) {
       </div>
 
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, marginTop:9 }}>
-        <p style={{ margin:0, minHeight:14, fontSize:8.8, color:message.includes('salvos') ? GFC : '#b45309', fontWeight:700 }}>{loading ? 'Carregando links...' : message}</p>
+        <p style={{ margin:0, minHeight:14, fontSize:8.8, color:message.includes('salvos') ? BRAND_PRIMARY : '#b45309', fontWeight:700 }}>{loading ? 'Carregando links...' : message}</p>
         <button
           type="button"
           onClick={save}
           disabled={loading || saving || !dirty}
           style={{
             border:'none', borderRadius:8, padding:'8px 12px',
-            background:dirty && !loading && !saving ? GFC : '#dbe7f2',
+            background:dirty && !loading && !saving ? BRAND_PRIMARY : '#dbe7f2',
             color:dirty && !loading && !saving ? '#fff' : '#94a3b8',
             fontSize:9.5, fontWeight:900,
             cursor:dirty && !loading && !saving ? 'pointer' : 'not-allowed',

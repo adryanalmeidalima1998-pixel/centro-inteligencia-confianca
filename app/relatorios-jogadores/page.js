@@ -8,8 +8,8 @@ import {
 } from 'lucide-react'
 import { gerarPdfRelatorioJogadores } from '@/app/lib/relatorios/gerarPdfRelatorioJogadores'
 
-const GFC = '#0a66b7'
-const GFC_DARK = '#064b82'
+const BRAND_PRIMARY = '#0a66b7'
+const BRAND_DARK = '#064b82'
 
 // Grupos por posição — precisam bater com o gerador de PDF.
 const GRUPOS = [
@@ -126,7 +126,7 @@ function AddModal({ onClose, onAdd }) {
                     <span style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#10233b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.nome}{r.idade ? ` · ${r.idade}a` : ''}</span>
                     <span style={{ display: 'block', fontSize: 11, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{[r.clube, r.posicao].filter(Boolean).join(' · ') || '—'}</span>
                   </span>
-                  <span style={{ fontSize: 9, fontWeight: 800, color: GFC, background: '#eaf4fd', borderRadius: 99, padding: '3px 7px', flexShrink: 0 }}>{r.fonte}</span>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: BRAND_PRIMARY, background: '#eaf4fd', borderRadius: 99, padding: '3px 7px', flexShrink: 0 }}>{r.fonte}</span>
                 </button>
               ))}
             </div>
@@ -163,7 +163,7 @@ function AddModal({ onClose, onAdd }) {
 
         <div style={{ padding: '14px 20px', borderTop: '1px solid #eef3ef', display: 'flex', justifyContent: 'flex-end', gap: 8, position: 'sticky', bottom: 0, background: '#fff', borderRadius: '0 0 18px 18px' }}>
           <button onClick={onClose} style={{ border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Cancelar</button>
-          <button onClick={confirmar} style={{ border: 'none', background: GFC, color: '#fff', borderRadius: 10, padding: '9px 18px', fontSize: 13, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><Check size={15} />Adicionar</button>
+          <button onClick={confirmar} style={{ border: 'none', background: BRAND_PRIMARY, color: '#fff', borderRadius: 10, padding: '9px 18px', fontSize: 13, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><Check size={15} />Adicionar</button>
         </div>
       </div>
     </div>
@@ -204,14 +204,14 @@ function PlayerRow({ p, rank, color, canEdit, onLink, onRemove, onUp, onDown, is
           <div style={{ display: 'flex', gap: 5, marginTop: 6 }}>
             <input value={linkVal} onChange={e => setLinkVal(e.target.value)} autoFocus placeholder="Cole o link…"
               style={{ flex: 1, padding: '5px 8px', border: '1px solid #bfdbfe', borderRadius: 7, fontSize: 11, outline: 'none' }} />
-            <button onClick={() => { onLink(linkVal.trim()); setEditLink(false) }} style={{ border: 'none', background: GFC, color: '#fff', borderRadius: 7, padding: '0 9px', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>OK</button>
+            <button onClick={() => { onLink(linkVal.trim()); setEditLink(false) }} style={{ border: 'none', background: BRAND_PRIMARY, color: '#fff', borderRadius: 7, padding: '0 9px', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>OK</button>
           </div>
         ) : (
           <div style={{ marginTop: 5, display: 'flex', alignItems: 'center', gap: 8 }}>
             {url
               ? <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontSize: 9.5, fontWeight: 900, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3 }}><ExternalLink size={11} />ABRIR LINK</a>
               : <span style={{ color: '#cbd5e1', fontSize: 9.5, fontWeight: 800 }}>sem link</span>}
-            {canEdit && <button onClick={() => setEditLink(true)} style={{ border: 'none', background: 'none', color: GFC, fontSize: 9.5, fontWeight: 800, cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: 3 }}><Link2 size={11} />{url ? 'editar' : 'add link'}</button>}
+            {canEdit && <button onClick={() => setEditLink(true)} style={{ border: 'none', background: 'none', color: BRAND_PRIMARY, fontSize: 9.5, fontWeight: 800, cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: 3 }}><Link2 size={11} />{url ? 'editar' : 'add link'}</button>}
           </div>
         )}
       </div>
@@ -242,7 +242,7 @@ function GroupCard({ grupo, players, canEdit, onAdd, mutate }) {
             </div>
           </div>
           {canEdit && (
-            <button onClick={() => onAdd(grupo.id)} title={`Adicionar em ${grupo.label}`} style={{ height: 25, padding: '0 8px', border: '1px solid #cbdfee', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4, background: '#fff', color: GFC, cursor: 'pointer', fontSize: 8.5, fontWeight: 900 }}>
+            <button onClick={() => onAdd(grupo.id)} title={`Adicionar em ${grupo.label}`} style={{ height: 25, padding: '0 8px', border: '1px solid #cbdfee', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4, background: '#fff', color: BRAND_PRIMARY, cursor: 'pointer', fontSize: 8.5, fontWeight: 900 }}>
               <Plus size={12} /> Adicionar
             </button>
           )}
@@ -419,7 +419,7 @@ export default function RelatoriosJogadoresPage() {
     <AppShell>
       <div style={{ padding: 'clamp(16px,3vw,28px)', maxWidth: 1400, margin: '0 auto' }}>
         {/* Banner */}
-        <div style={{ marginBottom: 18, borderRadius: 18, padding: '20px 22px', background: `linear-gradient(135deg,${GFC_DARK},${GFC})`, color: '#fff', boxShadow: '0 12px 32px rgba(10,102,183,.18)' }}>
+        <div style={{ marginBottom: 18, borderRadius: 18, padding: '20px 22px', background: `linear-gradient(135deg,${BRAND_DARK},${BRAND_PRIMARY})`, color: '#fff', boxShadow: '0 12px 32px rgba(10,102,183,.18)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 18, flexWrap: 'wrap' }}>
             <div>
               <p style={{ margin: 0, fontSize: 10.5, fontWeight: 800, letterSpacing: '.08em', opacity: .85 }}>RELATÓRIOS DE JOGADORES</p>
@@ -428,7 +428,7 @@ export default function RelatoriosJogadoresPage() {
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               {canEdit && (
-                <button onClick={novaLista} style={{ display: 'flex', alignItems: 'center', gap: 7, border: 'none', borderRadius: 10, padding: '9px 14px', background: '#fff', color: GFC, fontSize: 11.5, fontWeight: 900, cursor: 'pointer' }}>
+                <button onClick={novaLista} style={{ display: 'flex', alignItems: 'center', gap: 7, border: 'none', borderRadius: 10, padding: '9px 14px', background: '#fff', color: BRAND_PRIMARY, fontSize: 11.5, fontWeight: 900, cursor: 'pointer' }}>
                   <FolderPlus size={15} /> Nova lista
                 </button>
               )}
@@ -460,9 +460,9 @@ export default function RelatoriosJogadoresPage() {
                 {relatorios.map(r => {
                   const on = r.id === activeId
                   return (
-                    <div key={r.id} onClick={() => setActiveId(r.id)} style={{ cursor: 'pointer', border: `1.5px solid ${on ? GFC : '#eef3ef'}`, background: on ? '#f0fdf4' : '#fff', borderRadius: 11, padding: '10px 11px' }}>
+                    <div key={r.id} onClick={() => setActiveId(r.id)} style={{ cursor: 'pointer', border: `1.5px solid ${on ? BRAND_PRIMARY : '#eef3ef'}`, background: on ? '#f0fdf4' : '#fff', borderRadius: 11, padding: '10px 11px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-                        <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: on ? GFC : '#10233b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.nome}</p>
+                        <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: on ? BRAND_PRIMARY : '#10233b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.nome}</p>
                         {canEdit && (
                           <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
                             <button onClick={e => { e.stopPropagation(); renomear(r) }} title="Renomear" style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', padding: 2 }}><Pencil size={12} /></button>
@@ -498,7 +498,7 @@ export default function RelatoriosJogadoresPage() {
                     </p>
                   </div>
                   {canEdit && (
-                    <button onClick={() => { setAddGroup(null); setShowAdd(true) }} style={{ display: 'flex', alignItems: 'center', gap: 7, border: 'none', borderRadius: 10, padding: '9px 15px', background: GFC, color: '#fff', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
+                    <button onClick={() => { setAddGroup(null); setShowAdd(true) }} style={{ display: 'flex', alignItems: 'center', gap: 7, border: 'none', borderRadius: 10, padding: '9px 15px', background: BRAND_PRIMARY, color: '#fff', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
                       <Plus size={15} /> Adicionar jogador
                     </button>
                   )}

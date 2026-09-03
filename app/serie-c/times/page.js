@@ -62,7 +62,7 @@ function ranking(teams, sample, metricName, limit = 5) {
   if (!col) return []
   const higher = higherIsBetter(col)
   return teams
-    .map(team => ({ name: team.team, value: toNumber(team.metrics?.[col]), isGuarani: team.is_guarani }))
+    .map(team => ({ name: team.team, value: toNumber(team.metrics?.[col]), isClub: team.is_club }))
     .filter(item => item.value !== null)
     .sort((a, b) => higher ? b.value - a.value : a.value - b.value)
     .slice(0, limit)
@@ -80,8 +80,8 @@ export default function SerieCTimesPage() {
   const { data, loading, error, reload } = useSerieCData({ round })
   const teams = data?.teams || []
   const sample = teams[0]?.metrics
-  const guarani = teams.find(team => team.is_guarani)
-  const selectedTeam = teams.find(team => team.team === compareTeam) || teams.find(team => !team.is_guarani)
+  const clubTeam = teams.find(team => team.is_club)
+  const selectedTeam = teams.find(team => team.team === compareTeam) || teams.find(team => !team.is_club)
 
   const columns = useMemo(() => {
     const cols = [{ key: 'team', label: 'Time', render: row => row.team }]
@@ -106,17 +106,17 @@ export default function SerieCTimesPage() {
   const progressiveCol = metricColumn(sample, ['Passes progressivos'])
   const pressureCol = metricColumn(sample, ['Pressão do time bem-sucedida, %'])
 
-  const guaraniIndexRank = useMemo(() => {
-    if (!guarani || !indexCol) return null
+  const clubIndexRank = useMemo(() => {
+    if (!clubTeam || !indexCol) return null
     return rankByMetric(teams.map(team => ({ id: team.team, value: team.metrics?.[indexCol] })), true)
-      .find(item => item.id === guarani.team)?.rank ?? null
-  }, [teams, guarani, indexCol])
+      .find(item => item.id === clubTeam.team)?.rank ?? null
+  }, [teams, clubTeam, indexCol])
 
   const topAttack = useMemo(() => goalsCol ? ranking(teams, sample, goalsCol, 1)[0] : null, [teams, sample, goalsCol])
   const bestDefense = useMemo(() => {
     if (!concededCol) return null
     return teams
-      .map(team => ({ name: team.team, value: toNumber(team.metrics?.[concededCol]), isGuarani: team.is_guarani }))
+      .map(team => ({ name: team.team, value: toNumber(team.metrics?.[concededCol]), isClub: team.is_club }))
       .filter(item => item.value !== null)
       .sort((a, b) => a.value - b.value)[0] || null
   }, [teams, concededCol])
@@ -126,64 +126,64 @@ export default function SerieCTimesPage() {
     const progressiveAvg = progressiveCol ? averageOf(teams.map(team => ({ value: team.metrics?.[progressiveCol] }))) : null
     return [
       { label: 'Clubes analisados', value: formatNumberBR(teams.length), helper: `Rodada ${data?.upload?.round ?? '-'}`, icon: Users, tone: 'slate' },
-      { label: 'Posição do Confiança', value: guaraniIndexRank ? `${guaraniIndexRank}º` : '-', helper: indexCol ? 'Ranking pelo índice coletivo' : 'Índice indisponível', icon: BarChart3 },
+      { label: 'Posição do Confiança', value: clubIndexRank ? `${clubIndexRank}º` : '-', helper: indexCol ? 'Ranking pelo índice coletivo' : 'Índice indisponível', icon: BarChart3 },
       { label: 'Melhor ataque', value: topAttack ? formatMetricValue(goalsCol, topAttack.value) : '-', helper: topAttack?.name || 'Sem dado', icon: Crosshair },
       { label: 'Melhor defesa', value: bestDefense ? formatMetricValue(concededCol, bestDefense.value) : '-', helper: bestDefense?.name || 'Sem dado', icon: Shield, tone: 'blue' },
       { label: 'Posse média da liga', value: possessionAvg !== null ? formatMetricValue(possessionCol, possessionAvg) : '-', helper: 'Referência coletiva da competição', icon: Gauge, tone: 'amber' },
       { label: 'Progressão média', value: progressiveAvg !== null ? formatMetricValue(progressiveCol, progressiveAvg) : '-', helper: 'Passes progressivos por equipe', icon: Activity },
     ]
-  }, [teams, data, guaraniIndexRank, indexCol, topAttack, bestDefense, goalsCol, concededCol, possessionCol, progressiveCol])
+  }, [teams, data, clubIndexRank, indexCol, topAttack, bestDefense, goalsCol, concededCol, possessionCol, progressiveCol])
 
   const spotlightMetrics = useMemo(() => {
-    if (!guarani) return []
+    if (!clubTeam) return []
     return ['Índice', 'Gols', 'Posse de bola, %', 'Passes progressivos']
       .map(metric => {
-        const col = findMetricColumn(guarani.metrics, metric)
+        const col = findMetricColumn(clubTeam.metrics, metric)
         if (!col) return null
         const avg = averageOf(teams.map(team => ({ value: team.metrics?.[col] })))
-        const diff = pctDiffFromAverage(guarani.metrics?.[col], avg)
+        const diff = pctDiffFromAverage(clubTeam.metrics?.[col], avg)
         return {
           label: metric,
-          value: formatMetricValue(col, guarani.metrics?.[col]),
+          value: formatMetricValue(col, clubTeam.metrics?.[col]),
           helper: diff === null ? null : `${diff >= 0 ? '+' : ''}${formatNumberBR(diff, 1)}% vs média`,
         }
       })
       .filter(Boolean)
-  }, [guarani, teams])
+  }, [clubTeam, teams])
 
   const radarData = useMemo(() => {
-    if (!guarani) return []
+    if (!clubTeam) return []
     return RADAR_METRICS.map(metric => {
       const col = findMetricColumn(sample, metric)
       if (!col) return null
       return {
         area: metric.replace(', %', '').replace('Pressão do time bem-sucedida', 'Pressão'),
-        value: percentileFor(teams, guarani, col),
+        value: percentileFor(teams, clubTeam, col),
         rival: selectedTeam ? percentileFor(teams, selectedTeam, col) : null,
       }
     }).filter(item => item?.value !== null)
-  }, [teams, guarani, selectedTeam, sample])
+  }, [teams, clubTeam, selectedTeam, sample])
 
   const directComparison = useMemo(() => {
-    if (!guarani || !selectedTeam) return []
+    if (!clubTeam || !selectedTeam) return []
     return ['Índice', 'Gols', 'Chutes', 'Posse de bola, %', 'Passes progressivos', 'Entradas na área adversária']
       .map(metric => {
         const col = findMetricColumn(sample, metric)
         if (!col) return null
         return {
           name: metric.replace(', %', ''),
-          first: toNumber(guarani.metrics?.[col]) || 0,
+          first: toNumber(clubTeam.metrics?.[col]) || 0,
           second: toNumber(selectedTeam.metrics?.[col]) || 0,
         }
       })
       .filter(Boolean)
-  }, [guarani, selectedTeam, sample])
+  }, [clubTeam, selectedTeam, sample])
 
   const quadrantData = useMemo(() => {
     if (!goalsCol || !progressiveCol) return []
     return teams.map(team => ({
       name: team.team,
-      isGuarani: team.is_guarani,
+      isClub: team.is_club,
       goals: toNumber(team.metrics?.[goalsCol]),
       progressive: toNumber(team.metrics?.[progressiveCol]),
     })).filter(item => item.goals !== null && item.progressive !== null)
@@ -208,13 +208,13 @@ export default function SerieCTimesPage() {
   }, [teams, possessionCol, progressiveCol, pressureCol])
 
   const insights = useMemo(() => {
-    if (!guarani) return []
+    if (!clubTeam) return []
     const items = []
     for (const metric of ['Gols', 'Passes progressivos', 'Pressão do time bem-sucedida, %']) {
       const col = findMetricColumn(sample, metric)
       if (!col) continue
       const avg = averageOf(teams.map(team => ({ value: team.metrics?.[col] })))
-      const diff = pctDiffFromAverage(guarani.metrics?.[col], avg)
+      const diff = pctDiffFromAverage(clubTeam.metrics?.[col], avg)
       if (diff === null) continue
       items.push({
         title: metric,
@@ -223,7 +223,7 @@ export default function SerieCTimesPage() {
       })
     }
     return items
-  }, [guarani, teams, sample])
+  }, [clubTeam, teams, sample])
 
   const leaderSets = useMemo(() => ([
     { title: 'Produção ofensiva', description: 'Clubes com mais gols.', metric: goalsCol, entries: goalsCol ? ranking(teams, sample, goalsCol, 3) : [] },
@@ -245,7 +245,7 @@ export default function SerieCTimesPage() {
               <RoundSelector uploads={data?.uploads} currentRound={data?.upload?.round} onChange={setRound} />
               <select value={compareTeam} onChange={event => setCompareTeam(event.target.value)} className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-[10px] font-bold text-gray-600">
                 <option value="">Comparar com...</option>
-                {teams.filter(team => !team.is_guarani).map(team => <option key={team.team} value={team.team}>{team.team}</option>)}
+                {teams.filter(team => !team.is_club).map(team => <option key={team.team} value={team.team}>{team.team}</option>)}
               </select>
             </FilterShell>
           }
@@ -261,17 +261,17 @@ export default function SerieCTimesPage() {
               {kpis.map(item => <DashboardKpiCard key={item.label} {...item} />)}
             </div>
 
-            {guarani && (
+            {clubTeam && (
               <EntitySpotlight
                 eyebrow="Raio-X coletivo"
-                title={guarani.team}
-                subtitle={`Rodada ${data?.upload?.round ?? '-'} · ${data?.upload?.season ?? ''} · ${guaraniIndexRank ? `${guaraniIndexRank}º no índice coletivo` : 'benchmark da competição'}`}
-                isGuarani
+                title={clubTeam.team}
+                subtitle={`Rodada ${data?.upload?.round ?? '-'} · ${data?.upload?.season ?? ''} · ${clubIndexRank ? `${clubIndexRank}º no índice coletivo` : 'benchmark da competição'}`}
+                isClub
                 metrics={spotlightMetrics}
                 select={
                   <select value={compareTeam} onChange={event => setCompareTeam(event.target.value)} className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-[10px] font-black text-white outline-none backdrop-blur-sm">
                     <option value="" className="text-gray-800">Selecionar rival</option>
-                    {teams.filter(team => !team.is_guarani).map(team => <option className="text-gray-800" key={team.team} value={team.team}>{team.team}</option>)}
+                    {teams.filter(team => !team.is_club).map(team => <option className="text-gray-800" key={team.team} value={team.team}>{team.team}</option>)}
                   </select>
                 }
                 footer="Os percentuais e rankings são calculados dentro do recorte selecionado, sem criação de métricas externas."
@@ -301,7 +301,7 @@ export default function SerieCTimesPage() {
             </Panel>
 
             <Panel title="Tabela completa dos clubes" description="Ordene qualquer coluna para aprofundar o benchmark coletivo.">
-              <StatsTable columns={columns} rows={teams} rowKey={row => row.team} isGuaraniRow={row => row.is_guarani} defaultSortKey={indexCol || columns[1]?.key} searchPlaceholder="Buscar time..." embedded exportFilename="times-serie-c.csv" />
+              <StatsTable columns={columns} rows={teams} rowKey={row => row.team} isClubRow={row => row.is_club} defaultSortKey={indexCol || columns[1]?.key} searchPlaceholder="Buscar time..." embedded exportFilename="times-serie-c.csv" />
             </Panel>
           </>
         )}

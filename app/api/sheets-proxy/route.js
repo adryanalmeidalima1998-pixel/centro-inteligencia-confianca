@@ -7,9 +7,27 @@ export const revalidate = 0
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
-  const rawUrl = searchParams.get('url')
+  const source = searchParams.get('source')
+  const configuredSources = {
+    pre: { url: process.env.WELLNESS_PRE_SHEET_URL, env: 'WELLNESS_PRE_SHEET_URL' },
+    pos: { url: process.env.WELLNESS_POST_SHEET_URL, env: 'WELLNESS_POST_SHEET_URL' },
+    observacao: { url: process.env.OBSERVACAO_SHEET_URL, env: 'OBSERVACAO_SHEET_URL' },
+  }
+  const configuredSource = source ? configuredSources[source] : null
+  const rawUrl = configuredSource ? configuredSource.url : searchParams.get('url')
 
-  if (!rawUrl) return new NextResponse('URL não fornecida', { status: 400 })
+  if (source && !Object.prototype.hasOwnProperty.call(configuredSources, source)) {
+    return new NextResponse('Fonte de planilha inválida', { status: 400 })
+  }
+
+  if (!rawUrl) {
+    return new NextResponse(
+      source
+        ? `Planilha ${source} não configurada. Defina ${configuredSource?.env || 'a variável correspondente'} no ambiente.`
+        : 'URL não fornecida',
+      { status: 503 },
+    )
+  }
 
   let sheetUrl
   try {

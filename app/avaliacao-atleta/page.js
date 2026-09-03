@@ -52,13 +52,13 @@ function ComparisonTable({ metrics }) {
           {['Métrica','Atleta','Média Confiança','P Confiança','Média Série C','P Série C','Leitura'].map(h => <th key={h} style={{ padding:'10px 11px', textAlign:h==='Métrica'||h==='Leitura'?'left':'center', fontSize:9, textTransform:'uppercase', letterSpacing:'.5px', color:C.muted, borderBottom:`1px solid ${C.line}` }}>{h}</th>)}
         </tr></thead>
         <tbody>{metrics.map((m,i) => {
-          const p = m.percentileSerieC ?? m.percentileGuarani ?? 0
+          const p = m.percentileSerieC ?? m.percentileClub ?? m.percentileClub ?? 0
           const tone = scoreTone(p)
           return <tr key={m.key} style={{ background:i%2?'#fbfdfb':'#fff', borderBottom:`1px solid ${C.line}` }}>
             <td style={{ padding:'10px 11px', fontSize:10.5, fontWeight:800, color:C.ink }}>{m.label}{m.priority && <span style={{ marginLeft:7, fontSize:8, color:C.green, background:C.green2, borderRadius:99, padding:'2px 6px' }}>PRIORIDADE ADC</span>}</td>
             <td style={{ padding:'10px 11px', textAlign:'center', fontSize:11, fontWeight:900, color:C.ink }}>{formatMetricValue(m.value,m.format)}</td>
-            <td style={{ padding:'10px 11px', textAlign:'center', fontSize:10.5, color:C.muted }}>{formatMetricValue(m.avgGuarani,m.format)}</td>
-            <td style={{ padding:'10px 11px', textAlign:'center' }}>{m.percentileGuarani!=null?<ScoreBadge value={m.percentileGuarani} />:'—'}</td>
+            <td style={{ padding:'10px 11px', textAlign:'center', fontSize:10.5, color:C.muted }}>{formatMetricValue(m.avgClub ?? m.avgClub,m.format)}</td>
+            <td style={{ padding:'10px 11px', textAlign:'center' }}>{(m.percentileClub ?? m.percentileClub)!=null?<ScoreBadge value={m.percentileClub ?? m.percentileClub} />:'—'}</td>
             <td style={{ padding:'10px 11px', textAlign:'center', fontSize:10.5, color:C.muted }}>{formatMetricValue(m.avgSerieC,m.format)}</td>
             <td style={{ padding:'10px 11px', textAlign:'center' }}>{m.percentileSerieC!=null?<ScoreBadge value={m.percentileSerieC} />:'—'}</td>
             <td style={{ padding:'10px 11px', fontSize:9.5, color:tone, fontWeight:800 }}>{p>=75?'FORTE':p>=55?'COMPETITIVO':p>=35?'ATENÇÃO':'FRÁGIL'}</td>
@@ -70,10 +70,10 @@ function ComparisonTable({ metrics }) {
 }
 
 function BenchmarkChart({ metrics }) {
-  const data = metrics.filter(m => m.percentileSerieC != null || m.percentileGuarani != null).slice(0,10).map(m => ({
+  const data = metrics.filter(m => m.percentileSerieC != null || m.percentileClub != null || m.percentileClub != null).slice(0,10).map(m => ({
     label:m.label.length>21?`${m.label.slice(0,20)}…`:m.label,
     'Série C':m.percentileSerieC,
-    'Confiança':m.percentileGuarani,
+    'Confiança':m.percentileClub ?? m.percentileClub,
   }))
   if (!data.length) return <EmptyState title="Benchmark indisponível" text="Carregue a base da Série C e o elenco do Confiança para habilitar a comparação." />
   return <div style={{ width:'100%', height:420 }}><ResponsiveContainer>
@@ -110,9 +110,9 @@ function InsightList({ items, type }) {
 }
 
 function SquadDifferentials({ metrics = [] }) {
-  const available = metrics.filter(m => m.percentileGuarani != null)
-  const top = [...available].sort((a,b)=>b.percentileGuarani-a.percentileGuarani).slice(0,4)
-  const attention = [...available].sort((a,b)=>a.percentileGuarani-b.percentileGuarani).slice(0,2)
+  const available = metrics.filter(m => (m.percentileClub ?? m.percentileClub) != null)
+  const top = [...available].sort((a,b)=>(b.percentileClub ?? b.percentileClub)-(a.percentileClub ?? a.percentileClub)).slice(0,4)
+  const attention = [...available].sort((a,b)=>(a.percentileClub ?? a.percentileClub)-(b.percentileClub ?? b.percentileClub)).slice(0,2)
   if (!available.length) return <EmptyState title="Sem benchmark do elenco" text="A comparação depende de jogadores do Confiança na mesma função com dados suficientes." />
   return <div style={{ display:'grid', gap:12 }}>
     <div>
@@ -120,12 +120,12 @@ function SquadDifferentials({ metrics = [] }) {
       <div style={{ display:'grid', gap:6 }}>{top.map((m,i)=><div key={m.key} style={{ display:'grid', gridTemplateColumns:'24px 1fr auto', gap:8, alignItems:'center', padding:'8px 9px', border:`1px solid ${C.line}`, borderRadius:9, background:i===0?C.green2:'#fff' }}>
         <span style={{ width:22, height:22, borderRadius:'50%', display:'grid', placeItems:'center', background:i===0?C.green:'#edf4ef', color:i===0?'#fff':C.green, fontSize:8.5, fontWeight:950 }}>{i+1}</span>
         <div><strong style={{ display:'block', fontSize:9.8, color:C.ink }}>{m.label}</strong><span style={{ fontSize:8.5, color:C.muted }}>{m.priority?'Prioridade do modelo atual':'Comparação posicional'}</span></div>
-        <ScoreBadge value={m.percentileGuarani} />
+        <ScoreBadge value={m.percentileClub ?? m.percentileClub} />
       </div>)}</div>
     </div>
     <div style={{ paddingTop:9, borderTop:`1px solid ${C.line}` }}>
       <p style={{ fontSize:8.5, fontWeight:950, color:'#b45309', textTransform:'uppercase', letterSpacing:'.5px', marginBottom:7 }}>Onde encontra maior concorrência</p>
-      <div style={{ display:'flex', gap:7, flexWrap:'wrap' }}>{attention.map(m=><span key={m.key} style={{ fontSize:8.8, color:'#8a5b11', padding:'5px 7px', borderRadius:8, border:'1px solid #f3d7a6', background:'#fffaf0' }}>{m.label} · P{Math.round(m.percentileGuarani)}</span>)}</div>
+      <div style={{ display:'flex', gap:7, flexWrap:'wrap' }}>{attention.map(m=><span key={m.key} style={{ fontSize:8.8, color:'#8a5b11', padding:'5px 7px', borderRadius:8, border:'1px solid #f3d7a6', background:'#fffaf0' }}>{m.label} · P{Math.round(m.percentileClub ?? m.percentileClub)}</span>)}</div>
     </div>
   </div>
 }
@@ -317,7 +317,7 @@ export default function AvaliacaoAtletaPage() {
         qualitativeForPdf = { ...qualitative, correlation:buildScoutDataCorrelation(qualitative.scoutReport, analysis) }
       }
       await exportAvaliacaoAtletaPdf({
-        analysis:{ ...analysis, guaraniScore, summary:cleanSummary(analysis.summary) },
+        analysis:{ ...analysis, clubScore, summary:cleanSummary(analysis.summary) },
         qualitative:qualitativeForPdf,
         photoDataUrl:photoPreview || null,
       })
@@ -329,10 +329,11 @@ export default function AvaliacaoAtletaPage() {
   }
 
   const topPizzaMetrics = useMemo(() => analysis?.metrics?.filter(m=>m.percentileSerieC!=null).slice(0,10) || [], [analysis])
-  const topGuaraniPizzaMetrics = useMemo(() => analysis?.metrics?.filter(m=>m.percentileGuarani!=null).slice(0,10) || [], [analysis])
-  const guaraniScore = useMemo(() => {
-    if (analysis?.guaraniScore != null) return analysis.guaraniScore
-    const values = analysis?.metrics?.map(m=>m.percentileGuarani).filter(v=>v!=null) || []
+  const topClubPizzaMetrics = useMemo(() => analysis?.metrics?.filter(m=>(m.percentileClub ?? m.percentileClub)!=null).slice(0,10) || [], [analysis])
+  const clubScore = useMemo(() => {
+    if (analysis?.clubScore != null) return analysis.clubScore
+    if (analysis?.clubScore != null) return analysis.clubScore
+    const values = analysis?.metrics?.map(m=>m.percentileClub ?? m.percentileClub).filter(v=>v!=null) || []
     return values.length ? Math.round(values.reduce((a,b)=>a+b,0)/values.length) : 0
   }, [analysis])
 
@@ -408,8 +409,8 @@ export default function AvaliacaoAtletaPage() {
           <Panel title="Pizza Plot · Série C" subtitle={`Percentis contra ${analysis.pool?.serieC||0} atletas da Série C na mesma função.`}>
             <PizzaPlot metrics={topPizzaMetrics} score={analysis.serieCScore} title="SÉRIE C" percentileKey="percentileSerieC" />
           </Panel>
-          <Panel title="Pizza Plot · Confiança" subtitle={`Percentis contra ${analysis.pool?.guarani||0} jogadores do Confiança na mesma função.`}>
-            <PizzaPlot metrics={topGuaraniPizzaMetrics} score={guaraniScore} title="CONFIANÇA" percentileKey="percentileGuarani" emptyText="Elenco sem atletas suficientes da mesma função para formar o pizza plot." />
+          <Panel title="Pizza Plot · Confiança" subtitle={`Percentis contra ${analysis.pool?.club ?? analysis.pool?.club ?? 0} jogadores do Confiança na mesma função.`}>
+            <PizzaPlot metrics={topClubPizzaMetrics} score={clubScore} title="CONFIANÇA" percentileKey="percentileClub" emptyText="Elenco sem atletas suficientes da mesma função para formar o pizza plot." />
           </Panel>
         </div>
 
@@ -447,7 +448,7 @@ export default function AvaliacaoAtletaPage() {
               <div><strong style={{ display:'block', fontSize:12, color:C.ink }}>{analysis.player.nome}</strong><p style={{ fontSize:9.2, color:C.muted, lineHeight:1.5, marginTop:4 }}>{analysis.player.equipa||'—'} · {positionLabel(analysis.player.posicao)}</p><p style={{ fontSize:9.2, color:C.muted, lineHeight:1.5, marginTop:3 }}>Clique na foto para selecionar ou substituir. A imagem salva também entra no PDF.</p></div>
             </div>
             <div style={{ display:'grid', gap:8 }}>
-              {[['Equipe',analysis.player.equipa],['Função',positionLabel(analysis.player.posicao)],['Competição analisada',analysis.context?.competition],['Jogos analisados',`${analysis.player.jogos||0} jogos`],['Jogos no arquivo',analysis.context?.fileGames?`${analysis.context.fileGames} jogos`:'—'],['Última partida',fmtDate(analysis.context?.lastDate)],['Pool Série C',`${analysis.pool?.serieC||0} atletas`],['Pool Confiança',`${analysis.pool?.guarani||0} atletas`]].map(([label,value])=><div key={label} style={{ display:'flex', justifyContent:'space-between', gap:14, borderBottom:`1px solid ${C.line}`, paddingBottom:7 }}><span style={{ fontSize:9.5, color:C.muted }}>{label}</span><strong style={{ fontSize:10, color:C.ink, textAlign:'right' }}>{value||'—'}</strong></div>)}
+              {[['Equipe',analysis.player.equipa],['Função',positionLabel(analysis.player.posicao)],['Competição analisada',analysis.context?.competition],['Jogos analisados',`${analysis.player.jogos||0} jogos`],['Jogos no arquivo',analysis.context?.fileGames?`${analysis.context.fileGames} jogos`:'—'],['Última partida',fmtDate(analysis.context?.lastDate)],['Pool Série C',`${analysis.pool?.serieC||0} atletas`],['Pool Confiança',`${analysis.pool?.club ?? analysis.pool?.club ?? 0} atletas`]].map(([label,value])=><div key={label} style={{ display:'flex', justifyContent:'space-between', gap:14, borderBottom:`1px solid ${C.line}`, paddingBottom:7 }}><span style={{ fontSize:9.5, color:C.muted }}>{label}</span><strong style={{ fontSize:10, color:C.ink, textAlign:'right' }}>{value||'—'}</strong></div>)}
             </div>
             {analysis.context?.positions?.length>0 && <div style={{ marginTop:12 }}><p style={{ fontSize:9, fontWeight:900, color:C.muted, textTransform:'uppercase', marginBottom:7 }}>Posições na amostra</p>{analysis.context.positions.slice(0,5).map(p=><div key={p.code} style={{ display:'flex', justifyContent:'space-between', fontSize:9.5, color:C.ink, padding:'4px 0' }}><span>{p.label} · {p.code}</span><strong>{Math.round(p.minutes)} min</strong></div>)}</div>}
             </Panel>

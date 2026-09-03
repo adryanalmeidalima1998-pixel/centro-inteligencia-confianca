@@ -7,8 +7,8 @@ const STYLE = `
   .bc { font-family: 'Barlow Condensed', sans-serif; }
   .dm { font-family: 'DM Sans', sans-serif; }
   .drop-active { border-color: #ec4899 !important; background: #fdf2f8 !important; }
-  .photo-card:hover .delete-btn { opacity: 1; }
-  .delete-btn { opacity: 0; transition: opacity 0.15s; }
+  .delete-btn { opacity: 1; transition: transform 0.15s, background-color 0.15s; }
+  .delete-btn:hover { transform: scale(1.08); }
   .photo-card:hover .download-btn { opacity: 1; }
   .download-btn { opacity: 0; transition: opacity 0.15s; }
 `
@@ -90,6 +90,7 @@ export default function FotosPage() {
 
   const [gallery,  setGallery]  = useState([])
   const [loading,  setLoading]  = useState(true)
+  const [deleting, setDeleting] = useState(null)
 
   // ── GALERIA ───────────────────────────────────────────────────────────────
   async function loadGallery() {
@@ -183,10 +184,22 @@ export default function FotosPage() {
   }
 
   // ── DELETAR DA GALERIA ────────────────────────────────────────────────────
-  async function handleDelete(id) {
-    if (!confirm('Deletar essa foto?')) return
-    await fetch(`/api/photos/${id}`, { method: 'DELETE' })
-    loadGallery()
+  async function handleDelete(photo) {
+    const label = photo?.canonical_name || 'essa foto'
+    if (!confirm(`Excluir a foto de ${label}?`)) return
+    setDeleting(String(photo.id))
+    try {
+      const res = await fetch(`/api/photos/${encodeURIComponent(photo.id)}`, { method: 'DELETE' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
+      setGallery(prev => prev.filter(item => String(item.id) !== String(photo.id)))
+      invalidatePhotos()
+      await loadGallery()
+    } catch (err) {
+      alert(`Não foi possível excluir a foto: ${err.message}`)
+    } finally {
+      setDeleting(null)
+    }
   }
 
   // ── BAIXAR FOTO ───────────────────────────────────────────────────────────
@@ -365,9 +378,11 @@ export default function FotosPage() {
                       {p.canonical_name.split(' ')[0]}
                     </p>
                     <button
-                      onClick={() => handleDelete(p.id)}
-                      className="delete-btn absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[8px] font-black flex items-center justify-center shadow-sm hover:bg-red-600">
-                      ✕
+                      onClick={() => handleDelete(p)}
+                      disabled={deleting === String(p.id)}
+                      title="Excluir foto"
+                      className="delete-btn absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center shadow-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-wait">
+                      {deleting === String(p.id) ? '…' : '✕'}
                     </button>
                     <button
                       onClick={() => handleDownload(p.url, p.canonical_name)}

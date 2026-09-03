@@ -16,8 +16,8 @@ export default function ElencoPrintPage() {
   const photos = usePlayerPhotos()
 
   const excluded = useMemo(() => new Set(data?.reportExcludedPlayers || []), [data?.reportExcludedPlayers])
-  const lineSquad = useMemo(() => (data?.players || []).filter(p => p.is_guarani && !excluded.has(p.player)), [data?.players, excluded])
-  const gkSquad = useMemo(() => (data?.goalkeepers || []).filter(p => p.is_guarani && !excluded.has(p.player)).map(asGoalkeeper), [data?.goalkeepers, excluded])
+  const lineSquad = useMemo(() => (data?.players || []).filter(p => p.is_club && !excluded.has(p.player)), [data?.players, excluded])
+  const gkSquad = useMemo(() => (data?.goalkeepers || []).filter(p => p.is_club && !excluded.has(p.player)).map(asGoalkeeper), [data?.goalkeepers, excluded])
   const squad = useMemo(() => [...lineSquad, ...gkSquad], [lineSquad, gkSquad])
   const physical = useMemo(() => physicalReport(gps.aggregateSquad(squad.map(p => p.player))), [squad, gps.sessions, gps.aliases])
   const report = useMemo(() => squadTop3Report(lineSquad, gkSquad, physical), [lineSquad, gkSquad, physical])

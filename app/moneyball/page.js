@@ -4,7 +4,7 @@ import AppShell from '../components/layout/AppShell'
 import { calculateSportsbasePercentile, getMetricEligibility, getSportsbaseMetric, getSuggestedMinimumMinutes } from '@/data/sportsbase-map'
 import { PLAYER_FOOT_OPTIONS, matchesPlayerFoot } from '@/data/player-foot'
 
-const GFC = '#0a66b7'
+const BRAND_PRIMARY = '#0a66b7'
 
 const LIGA_LABELS = {
   'paulista-a2':'Paulista A2','paulista-a1':'Paulista A1','paulista-a3':'Paulista A3',
@@ -68,7 +68,7 @@ function calcMB(j, todos) {
 }
 function getTier(s) {
   if (s >= 0.85) return { icon: '💎', color: '#92400e', bg: '#fef3c7', border: '#fde68a' }
-  if (s >= 0.70) return { icon: '🟢', color: GFC,       bg: '#f0fdf4', border: '#bbf7d0' }
+  if (s >= 0.70) return { icon: '🟢', color: BRAND_PRIMARY,       bg: '#f0fdf4', border: '#bbf7d0' }
   if (s >= 0.55) return { icon: '🔵', color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' }
   if (s >= 0.40) return { icon: '🟡', color: '#c2410c', bg: '#fff7ed', border: '#fed7aa' }
   return               { icon: '⚪', color: '#64748b', bg: '#f8fafc', border: '#e2e8f0' }
@@ -174,7 +174,7 @@ export default function Moneyball() {
       <div style={{ paddingBottom: 60 }}>
 
         {/* HEADER */}
-        <div style={{ background: `linear-gradient(135deg,${GFC},#064b82)`, padding: '24px 28px' }}>
+        <div style={{ background: `linear-gradient(135deg,${BRAND_PRIMARY},#064b82)`, padding: '24px 28px' }}>
           <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
             Central de Inteligência · Moneyball
           </p>
@@ -203,7 +203,7 @@ export default function Moneyball() {
           {/* Liga — obrigatória antes de carregar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <select value={ligaSel} onChange={e => setLigaSel(e.target.value)}
-              style={{ border: `2px solid ${ligaSel ? GFC : '#e2e8f0'}`, borderRadius: 8, padding: '7px 10px', fontSize: 12, background: '#fff', cursor: 'pointer', fontWeight: ligaSel ? 700 : 400 }}>
+              style={{ border: `2px solid ${ligaSel ? BRAND_PRIMARY : '#e2e8f0'}`, borderRadius: 8, padding: '7px 10px', fontSize: 12, background: '#fff', cursor: 'pointer', fontWeight: ligaSel ? 700 : 400 }}>
               <option value="">🎯 Selecione uma liga para analisar</option>
               {ligas.map(l => <option key={l} value={l}>{getLL(l)}</option>)}
             </select>
@@ -220,13 +220,13 @@ export default function Moneyball() {
               <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="🔍 Buscar atleta ou time..."
                 style={{ border: '1.5px solid #e2e8f0', borderRadius: 8, padding: '7px 12px', fontSize: 12, width: 200, background: '#fff' }} />
               <select value={foot} onChange={e => setFoot(e.target.value)}
-                style={{ border: '1.5px solid #e2e8f0', borderRadius: 8, padding: '7px 10px', fontSize: 11, background: '#fff', color: foot ? GFC : '#64748b' }}>
+                style={{ border: '1.5px solid #e2e8f0', borderRadius: 8, padding: '7px 10px', fontSize: 11, background: '#fff', color: foot ? BRAND_PRIMARY : '#64748b' }}>
                 {PLAYER_FOOT_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
               </select>
               <div style={{ display: 'flex', gap: 2, background: '#fff', borderRadius: 8, border: '1.5px solid #e2e8f0', padding: 2 }}>
                 {GRUPOS.map(g => (
                   <button key={g || 'all'} onClick={() => setGrupo(g)}
-                    style={{ padding: '5px 10px', border: 'none', borderRadius: 6, fontSize: 10, fontWeight: 700, cursor: 'pointer', background: grupo === g ? GFC : 'transparent', color: grupo === g ? '#fff' : '#64748b' }}>
+                    style={{ padding: '5px 10px', border: 'none', borderRadius: 6, fontSize: 10, fontWeight: 700, cursor: 'pointer', background: grupo === g ? BRAND_PRIMARY : 'transparent', color: grupo === g ? '#fff' : '#64748b' }}>
                     {g || 'Todos'}
                   </button>
                 ))}
@@ -250,7 +250,7 @@ export default function Moneyball() {
           <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '10px 28px', display: 'flex', gap: 6 }}>
             {CATS.map(c => (
               <button key={c.id} onClick={() => setCat(c.id)}
-                style={{ padding: '6px 16px', border: `1.5px solid ${cat === c.id ? GFC : '#e2e8f0'}`, borderRadius: 20, fontSize: 11, fontWeight: 700, cursor: 'pointer', background: cat === c.id ? GFC : '#fff', color: cat === c.id ? '#fff' : '#64748b' }}>
+                style={{ padding: '6px 16px', border: `1.5px solid ${cat === c.id ? BRAND_PRIMARY : '#e2e8f0'}`, borderRadius: 20, fontSize: 11, fontWeight: 700, cursor: 'pointer', background: cat === c.id ? BRAND_PRIMARY : '#fff', color: cat === c.id ? '#fff' : '#64748b' }}>
                 {c.icon} {c.l}
               </button>
             ))}
@@ -276,7 +276,7 @@ export default function Moneyball() {
               <div style={{ marginTop: 24, display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
                 {ligas.map(l => (
                   <button key={l} onClick={() => setLigaSel(l)}
-                    style={{ padding: '8px 16px', background: GFC, color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    style={{ padding: '8px 16px', background: BRAND_PRIMARY, color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
                     {getLL(l)}
                   </button>
                 ))}
@@ -326,7 +326,7 @@ export default function Moneyball() {
                             <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 6, background: t.bg, color: t.color, border: `1px solid ${t.border}` }}>{t.icon}</span>
                           </td>
                           <td style={{ padding: '8px 10px' }}>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: GFC }}>{j.nome || '—'}</span>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: BRAND_PRIMARY }}>{j.nome || '—'}</span>
                           </td>
                           <td style={{ padding: '8px', fontSize: 11, color: '#475569', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{j.equipa || '—'}</td>
                           <td style={{ padding: '8px', textAlign: 'center' }}>

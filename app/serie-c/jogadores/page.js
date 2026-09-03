@@ -51,7 +51,7 @@ function ranking(players, sample, metricName, { limit = 8, mode = 'total' } = {}
     .map(player => {
       const raw = toNumber(player.metrics?.[col])
       const value = mode === 'per90' && volume ? per90(raw, player.minutes) : raw
-      return { name: player.player, team: player.team, value, isGuarani: player.is_guarani, per90Mode: mode === 'per90' && volume, player }
+      return { name: player.player, team: player.team, value, isClub: player.is_club, per90Mode: mode === 'per90' && volume, player }
     })
     .filter(item => item.value !== null)
     .sort((a, b) => higher ? b.value - a.value : a.value - b.value)
@@ -130,7 +130,7 @@ export default function SerieCJogadoresPage() {
   const [team, setTeam] = useState('')
   const [position, setPosition] = useState('')
   const [onlySub23, setOnlySub23] = useState(false)
-  const [onlyGuarani, setOnlyGuarani] = useState(false)
+  const [onlyClub, setOnlyClub] = useState(false)
   const [selectedId, setSelectedId] = useState('')
   const [compareId, setCompareId] = useState('')
   const [metricView, setMetricView] = useState('Visão geral')
@@ -152,8 +152,8 @@ export default function SerieCJogadoresPage() {
     (!position || player.position === position) &&
     (!minMinutes || toNumber(player.minutes) >= minMinutes) &&
     (!onlySub23 || (toNumber(player.age) !== null && toNumber(player.age) <= 23)) &&
-    (!onlyGuarani || player.is_guarani)
-  ), [allPlayers, team, position, minMinutes, onlySub23, onlyGuarani])
+    (!onlyClub || player.is_club)
+  ), [allPlayers, team, position, minMinutes, onlySub23, onlyClub])
 
   const playerId = player => `${player.player}__${player.team}`
   const indexCol = findMetricColumn(sample, 'Índice')
@@ -207,7 +207,7 @@ export default function SerieCJogadoresPage() {
   const leader = useMemo(() => indexCol ? ranking(players, sample, indexCol, { limit: 1 })[0] : null, [players, sample, indexCol])
   const averageAge = useMemo(() => averageOf(players.map(player => ({ value: player.age }))), [players])
   const sub23Count = players.filter(player => toNumber(player.age) !== null && toNumber(player.age) <= 23).length
-  const guaraniCount = players.filter(player => player.is_guarani).length
+  const clubCount = players.filter(player => player.is_club).length
   const directInvolvements = useMemo(() => players.reduce((sum, player) => sum + (goalsCol ? toNumber(player.metrics?.[goalsCol], 0) : 0) + (assistsCol ? toNumber(player.metrics?.[assistsCol], 0) : 0), 0), [players, goalsCol, assistsCol])
 
   const kpis = [
@@ -215,7 +215,7 @@ export default function SerieCJogadoresPage() {
     { label: 'Métricas disponíveis', value: formatNumberBR(availableMetrics.length), helper: 'Cobertura integral da planilha', icon: Layers3, tone: 'blue' },
     { label: 'Idade média', value: averageAge !== null ? `${formatNumberBR(averageAge, 1)}` : '-', helper: 'Recorte filtrado', icon: UserRound },
     { label: 'Atletas Sub-23', value: formatNumberBR(sub23Count), helper: players.length ? `${formatNumberBR(sub23Count / players.length * 100, 0)}% do recorte` : '-', icon: Sparkles, tone: 'amber' },
-    { label: 'Atletas do Confiança', value: formatNumberBR(guaraniCount), helper: 'Identificados na planilha', icon: Activity },
+    { label: 'Atletas do Confiança', value: formatNumberBR(clubCount), helper: 'Identificados na planilha', icon: Activity },
     { label: 'Líder de índice', value: leader ? formatMetricValue(indexCol, leader.value) : '-', helper: leader?.name || 'Sem dado', icon: Target },
     { label: 'Participações diretas', value: formatNumberBR(directInvolvements), helper: 'Gols + assistências', icon: Crosshair },
   ]
@@ -259,7 +259,7 @@ export default function SerieCJogadoresPage() {
     return players.map(player => ({
       name: player.player,
       team: player.team,
-      isGuarani: player.is_guarani,
+      isClub: player.is_club,
       xg: toNumber(player.metrics?.[xgCol]),
       goals: toNumber(player.metrics?.[goalsCol]),
     })).filter(item => item.xg !== null && item.goals !== null)
@@ -297,7 +297,7 @@ export default function SerieCJogadoresPage() {
               <select value={position} onChange={event => setPosition(event.target.value)} className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-[10px] font-bold text-gray-600"><option value="">Todas as posições</option>{positions.map(value => <option key={value} value={value}>{value}</option>)}</select>
               <MinMinutesSelect value={minMinutes} onChange={setMinMinutes} options={[0, 180, 300, 450, 600, 900]} />
               <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500"><input type="checkbox" checked={onlySub23} onChange={event => setOnlySub23(event.target.checked)} /> Sub-23</label>
-              <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500"><input type="checkbox" checked={onlyGuarani} onChange={event => setOnlyGuarani(event.target.checked)} /> Confiança</label>
+              <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500"><input type="checkbox" checked={onlyClub} onChange={event => setOnlyClub(event.target.checked)} /> Confiança</label>
               <TableFormatToggle format={format} onChange={setFormat} />
             </FilterShell>
           }
@@ -317,7 +317,7 @@ export default function SerieCJogadoresPage() {
                   eyebrow="Raio-X individual"
                   title={selected?.player}
                   subtitle={`${selected?.team || '-'} · ${selected?.position || 'Posição não informada'} · ${selected?.age ?? '-'} anos · ${formatNumberBR(selected?.minutes)} min · ${playerProfile(selected)}`}
-                  isGuarani={selected?.is_guarani}
+                  isClub={selected?.is_club}
                   metrics={spotlightMetrics}
                   select={<div className="flex flex-wrap gap-2"><select value={selected ? playerId(selected) : ''} onChange={event => setSelectedId(event.target.value)} className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-[10px] font-black text-white outline-none backdrop-blur-sm">{players.map(player => <option className="text-gray-800" key={playerId(player)} value={playerId(player)}>{player.player} · {player.team}</option>)}</select><select value={comparePlayer ? playerId(comparePlayer) : ''} onChange={event => setCompareId(event.target.value)} className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-[10px] font-black text-white outline-none backdrop-blur-sm"><option className="text-gray-800" value="">Comparar com...</option>{players.filter(player => !selected || playerId(player) !== playerId(selected)).map(player => <option className="text-gray-800" key={playerId(player)} value={playerId(player)}>{player.player} · {player.team}</option>)}</select></div>}
                   footer={`Percentis calculados contra ${comparisonPopulation.length} atletas do grupo ${positionGroup(selected?.position)} ou do filtro geral quando a amostra posicional é pequena.`}
@@ -343,7 +343,7 @@ export default function SerieCJogadoresPage() {
                 <Panel title="Progressão e construção" description="Atletas que mais avançam a posse por meio do passe."><LeaderRows entries={progressors} metric="Passes progressivos" limit={10} /></Panel>
 
                 <Panel title="Base completa de jogadores" description={`Tabela pesquisável com ${selectedMetricNames.length} métricas do bloco selecionado. Use “Todas” para exibir integralmente a planilha.`}>
-                  <StatsTable columns={columns} rows={players} rowKey={playerId} isGuaraniRow={row => row.is_guarani} defaultSortKey="indice" searchPlaceholder="Buscar jogador, time ou posição..." embedded exportFilename="jogadores-serie-c-completo.csv" />
+                  <StatsTable columns={columns} rows={players} rowKey={playerId} isClubRow={row => row.is_club} defaultSortKey="indice" searchPlaceholder="Buscar jogador, time ou posição..." embedded exportFilename="jogadores-serie-c-completo.csv" />
                 </Panel>
               </>
             )}

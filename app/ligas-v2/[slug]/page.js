@@ -10,8 +10,8 @@ import SportsbaseTeamsTable from './SportsbaseTeamsTable'
 import CompetitionHighlights from '../../components/ligas/CompetitionHighlights'
 import OportunidadesMercado from '../../components/ligas/OportunidadesMercado'
 
-const GFC  = '#0a66b7'
-const GFC2 = '#064b82'
+const BRAND_PRIMARY  = '#0a66b7'
+const BRAND_DARK = '#064b82'
 
 function n(v, d = 2) { const f = parseFloat(v); return isNaN(f) ? '—' : f % 1 === 0 ? String(f) : f.toFixed(d) }
 
@@ -105,7 +105,7 @@ function UploadBox({ slug, onSuccess }) {
         {[
           ['sportsbase','📊 Sportsbase','Métricas avançadas e modelo de jogo'],
           ['wyscout','🔵 Wyscout','Métricas completas e pé preferido'],
-        ].map(([value,label,description])=><button key={value} onClick={()=>{setProvider(value);setMsg(null);if(fileRef.current)fileRef.current.value=''}} style={{ textAlign:'left', border:`1.5px solid ${provider===value?(value==='sportsbase'?GFC:'#2563eb'):'#dbe7f2'}`, borderRadius:10, padding:'10px 12px', background:provider===value?'#fff':'rgba(255,255,255,.55)', cursor:'pointer' }}><p style={{ fontSize:11, fontWeight:900, color:provider===value?(value==='sportsbase'?GFC:'#1d4ed8'):'#334155' }}>{label}</p><p style={{ fontSize:9, color:'#64748b', marginTop:3 }}>{description}</p></button>)}
+        ].map(([value,label,description])=><button key={value} onClick={()=>{setProvider(value);setMsg(null);if(fileRef.current)fileRef.current.value=''}} style={{ textAlign:'left', border:`1.5px solid ${provider===value?(value==='sportsbase'?BRAND_PRIMARY:'#2563eb'):'#dbe7f2'}`, borderRadius:10, padding:'10px 12px', background:provider===value?'#fff':'rgba(255,255,255,.55)', cursor:'pointer' }}><p style={{ fontSize:11, fontWeight:900, color:provider===value?(value==='sportsbase'?BRAND_PRIMARY:'#1d4ed8'):'#334155' }}>{label}</p><p style={{ fontSize:9, color:'#64748b', marginTop:3 }}>{description}</p></button>)}
       </div>
       <p style={{ fontSize:11, fontWeight:800, color:providerCopy.accent, marginBottom:4 }}>{providerCopy.title}</p>
       <p style={{ fontSize:10, color:'#64748b', lineHeight:1.5, marginBottom:10 }}>{providerCopy.description}</p>
@@ -118,7 +118,7 @@ function UploadBox({ slug, onSuccess }) {
       </div>
       {msg && <p style={{ marginTop:8, fontSize:10.5, fontWeight:700, lineHeight:1.5, color:msg.tipo==='ok'?'#15803d':'#dc2626' }}>{msg.tipo==='ok'?'✓ ':'✗ '}{msg.texto}</p>}
       <div style={{ marginTop:10, padding:'9px 11px', borderRadius:9, background:'#fff', border:'1px solid rgba(148,163,184,.25)', fontSize:9.5, color:'#475569', lineHeight:1.55 }}>
-        <b>Fluxo por liga:</b> Sportsbase e Wyscout funcionam como fontes estatísticas completas e independentes. Quando ambos existem, o sistema mantém os dois modelos e usa o Wyscout também para complementar o pé preferido.
+        <b>Fluxo por liga:</b> Sportsbase e Wyscout podem funcionar isoladamente. Quando as duas planilhas existem na mesma liga, o modo Automático integra os scores por função sem excluir atletas que estejam apenas em uma das bases; o Wyscout também complementa o pé preferido quando disponível.
       </div>
     </div>
   )
@@ -195,7 +195,7 @@ function PitchPlayer({ jogador, x, y, selected, onClick, emptyLabel }) {
       <span style={{ fontSize:9, color:'rgba(255,255,255,0.4)', fontWeight:700 }}>{emptyLabel||'?'}</span>
     </div>
   )
-  const cor         = GRUPO_COR[jogador._grupo] || GFC
+  const cor         = GRUPO_COR[jogador._grupo] || BRAND_PRIMARY
   const nomeDisplay = jogador.nome?.split(' ').slice(-1)[0] || '?'
   const timeDisplay = jogador.equipa ? jogador.equipa.split(' ').slice(0,2).join(' ') : ''
   return (
@@ -226,8 +226,8 @@ function PitchPlayer({ jogador, x, y, selected, onClick, emptyLabel }) {
 
 function CardDetalhe({ jogador, onClose }) {
   if (!jogador) return null
-  const cor = GRUPO_COR[jogador._grupo] || GFC
-  const wyscout = jogador._fonte === 'wyscout'
+  const cor = GRUPO_COR[jogador._grupo] || BRAND_PRIMARY
+  const wyscout = jogador._fonte === 'wyscout' || (jogador._fonte === 'combined' && jogador._fresh_source === 'wyscout')
   const pct = value => Number.isFinite(Number(value)) ? `${Number(value).toFixed(1)}%` : '—'
   const metricas = wyscout
     ? jogador._grupo==='GK'
@@ -295,7 +295,7 @@ function CardDetalhe({ jogador, onClose }) {
    SELEÇÃO DO CAMPEONATO
    ══════════════════════════════════════════════════════════════════════ */
 
-const GFC_RGB = [10, 102, 183]
+const BRAND_RGB = [10, 102, 183]
 const FIELD    = { x:10, y:25, w:90, h:120 }
 
 function coordToMm(xPct, yPct) {
@@ -355,7 +355,7 @@ function drawEmptySlot(doc,xPct,yPct,label) {
 
 function drawHeader(doc,titulo,subtitulo) {
   const W = doc.internal.pageSize.getWidth()
-  doc.setFillColor(...GFC_RGB);doc.rect(0,0,W,14,'F')
+  doc.setFillColor(...BRAND_RGB);doc.rect(0,0,W,14,'F')
   doc.setTextColor(255,255,255)
   doc.setFontSize(6);doc.setFont('helvetica','normal');doc.text('CIC · CONFIANÇA',8,5.5)
   doc.setFontSize(9);doc.setFont('helvetica','bold');doc.text(titulo,8,11)
@@ -376,7 +376,7 @@ function drawPlayerList(doc,squad,teamLabel,thresholds) {
   const COR=GRUPO_COR_PDF
   let cx=FIELD.x+FIELD.w+6,cy=28
   const maxW=297-cx-5
-  doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(...GFC_RGB)
+  doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(...BRAND_RGB)
   doc.text(teamLabel,cx,cy);cy+=5
   for(const g of grupos){
     const players=squad.filter(j=>j._grupo===g);if(!players.length)continue
@@ -471,7 +471,7 @@ async function exportShadowPDF(slots,teamName,ligaNome) {
   // Lista lateral shadow
   const cx=FIELD.x+FIELD.w+6;let cy=28;const maxW=297-cx-5
   const COR=GRUPO_COR_PDF;const LABEL={GK:'Goleiro',DEF:'Defensores',MID:'Meias',FWD:'Atacantes'}
-  doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(...GFC_RGB)
+  doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(...BRAND_RGB)
   doc.text(teamName,cx,cy);cy+=5
   for(const g of ['GK','DEF','MID','FWD']){
     const slotsG=SHADOW_COORDS.filter(s=>s.grupo===g)
@@ -565,14 +565,22 @@ function SelecaoCampeonato({ slug, ligaNome, sourcePreference='auto', onSourceCh
 
   const groups = ['GK','DEF','MID','FWD']
   const byGroup = Object.fromEntries(groups.map(group => [group, squad.filter(player => player._grupo === group)]))
-  const thresholdsText = Object.entries(thresholds).filter(([,item]) => item.limiar > 0).map(([slot,item]) => `${slot} ≥ ${item.limiar} min`).join(' · ')
+  const thresholdsText = Object.entries(thresholds).map(([slot,item]) => {
+    if (source === 'combined') {
+      const parts=[]
+      if (item.sportsbase > 0) parts.push(`SB ${item.sportsbase}`)
+      if (item.wyscout > 0) parts.push(`WY ${item.wyscout}`)
+      return parts.length ? `${slot}: ${parts.join(' / ')} min` : null
+    }
+    return item.limiar > 0 ? `${slot} ≥ ${item.limiar} min` : null
+  }).filter(Boolean).join(' · ')
 
   return <div>
     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:14, flexWrap:'wrap', marginBottom:14 }}>
-      <div><h2 style={{ fontSize:18, fontWeight:900, color:'#1a2e1a' }}>⭐ Seleções do Campeonato</h2><p style={{ fontSize:11, color:'#94a3b8', marginTop:3 }}>4-3-3 funcional · {total} jogadores elegíveis · fonte {source === 'sportsbase' ? 'Sportsbase' : 'Wyscout'}{uploadAt ? ` · ${new Date(uploadAt).toLocaleDateString('pt-BR')}` : ''}</p></div>
+      <div><h2 style={{ fontSize:18, fontWeight:900, color:'#1a2e1a' }}>⭐ Seleções do Campeonato</h2><p style={{ fontSize:11, color:'#94a3b8', marginTop:3 }}>4-3-3 funcional · {total} jogadores elegíveis · fonte {source === 'combined' ? 'Sportsbase + Wyscout' : source === 'sportsbase' ? 'Sportsbase' : 'Wyscout'}{uploadAt ? ` · ${new Date(uploadAt).toLocaleDateString('pt-BR')}` : ''}</p></div>
       <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
-        <div style={{display:'flex',gap:4,alignItems:'center'}}><span style={{fontSize:8.5,fontWeight:900,color:'#94a3b8'}}>FONTE</span>{[['auto','Auto'],['sportsbase','Sportsbase'],['wyscout','Wyscout']].filter(([value])=>value==='auto'||availableSources[value]).map(([value,label])=><button key={value} onClick={()=>onSourceChange?.(value)} style={{padding:'6px 8px',border:`1px solid ${sourcePreference===value?GFC:'#dbe7f2'}`,borderRadius:7,background:sourcePreference===value?'#eaf4fd':'#fff',color:sourcePreference===value?GFC:'#64748b',fontSize:9,fontWeight:800,cursor:'pointer'}}>{label}</button>)}</div>
-        <button onClick={buscar} style={{ padding:'8px 13px', background:'#fff', border:`1.5px solid ${GFC}`, borderRadius:9, color:GFC, fontWeight:800, cursor:'pointer' }}>↻ Atualizar</button><button onClick={handleExport} disabled={exporting} style={{ padding:'8px 13px', background:exporting?'#94a3b8':GFC, color:'#fff', border:'none', borderRadius:9, fontWeight:800, cursor:exporting?'wait':'pointer' }}>{exporting?'Gerando...':'📄 PDF'}</button></div>
+        <div style={{display:'flex',gap:4,alignItems:'center'}}><span style={{fontSize:8.5,fontWeight:900,color:'#94a3b8'}}>FONTE</span>{[['auto','Auto'],['sportsbase','Sportsbase'],['wyscout','Wyscout']].filter(([value])=>value==='auto'||availableSources[value]).map(([value,label])=><button key={value} onClick={()=>onSourceChange?.(value)} style={{padding:'6px 8px',border:`1px solid ${sourcePreference===value?BRAND_PRIMARY:'#dbe7f2'}`,borderRadius:7,background:sourcePreference===value?'#eaf4fd':'#fff',color:sourcePreference===value?BRAND_PRIMARY:'#64748b',fontSize:9,fontWeight:800,cursor:'pointer'}}>{label}</button>)}</div>
+        <button onClick={buscar} style={{ padding:'8px 13px', background:'#fff', border:`1.5px solid ${BRAND_PRIMARY}`, borderRadius:9, color:BRAND_PRIMARY, fontWeight:800, cursor:'pointer' }}>↻ Atualizar</button><button onClick={handleExport} disabled={exporting} style={{ padding:'8px 13px', background:exporting?'#94a3b8':BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:9, fontWeight:800, cursor:exporting?'wait':'pointer' }}>{exporting?'Gerando...':'📄 PDF'}</button></div>
     </div>
 
     <div style={{ display:'grid', gridTemplateColumns:'repeat(3,minmax(190px,1fr))', gap:8, marginBottom:10 }}>
@@ -662,9 +670,9 @@ function PlayerPickerModal({ slot, jogadores, onSelect, onClose }) {
         <div style={{ display:'flex', borderBottom:'1px solid #e8f4ec' }}>
           {[{id:'base',label:'📋 Da Base'},{id:'manual',label:'✏️ Manual'}].map(a=>(
             <button key={a.id} onClick={()=>setAba(a.id)} style={{
-              flex:1, padding:'10px', border:'none', borderBottom:`2px solid ${aba===a.id?GFC:'transparent'}`,
+              flex:1, padding:'10px', border:'none', borderBottom:`2px solid ${aba===a.id?BRAND_PRIMARY:'transparent'}`,
               background:'transparent', cursor:'pointer', fontSize:12, fontWeight:700,
-              color:aba===a.id?GFC:'#94a3b8', transition:'all .15s' }}>
+              color:aba===a.id?BRAND_PRIMARY:'#94a3b8', transition:'all .15s' }}>
               {a.label}
             </button>
           ))}
@@ -678,8 +686,8 @@ function PlayerPickerModal({ slot, jogadores, onSelect, onClose }) {
             <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
               {[{id:'',label:'Todos'},{id:'GK',label:'Goleiro'},{id:'DEF',label:'Defensor'},{id:'MID',label:'Meia'},{id:'FWD',label:'Atacante'}].map(g=>(
                 <button key={g.id} onClick={()=>setGrupFilter(g.id)} style={{
-                  padding:'5px 12px', border:`1.5px solid ${grupFilter===g.id?GFC:'#e8f4ec'}`, borderRadius:20, fontSize:11, fontWeight:700,
-                  background:grupFilter===g.id?GFC:'#fff', color:grupFilter===g.id?'#fff':'#64748b', cursor:'pointer' }}>
+                  padding:'5px 12px', border:`1.5px solid ${grupFilter===g.id?BRAND_PRIMARY:'#e8f4ec'}`, borderRadius:20, fontSize:11, fontWeight:700,
+                  background:grupFilter===g.id?BRAND_PRIMARY:'#fff', color:grupFilter===g.id?'#fff':'#64748b', cursor:'pointer' }}>
                   {g.label}
                 </button>
               ))}
@@ -689,7 +697,7 @@ function PlayerPickerModal({ slot, jogadores, onSelect, onClose }) {
             {filtered.length===0
               ? <div style={{ padding:24, textAlign:'center' }}>
                   <p style={{ color:'#94a3b8', fontSize:12, marginBottom:8 }}>Nenhum jogador encontrado na base</p>
-                  <button onClick={()=>setAba('manual')} style={{ padding:'7px 16px', background:GFC, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:700 }}>
+                  <button onClick={()=>setAba('manual')} style={{ padding:'7px 16px', background:BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:700 }}>
                     ✏️ Adicionar manualmente
                   </button>
                 </div>
@@ -703,7 +711,7 @@ function PlayerPickerModal({ slot, jogadores, onSelect, onClose }) {
                       onMouseLeave={e=>e.currentTarget.style.background=footOk===true?'#f0fdf4':'#fff'}>
                       <div>
                         <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                          <p style={{ fontSize:13, fontWeight:700, color:GFC }}>{j.nome}</p>
+                          <p style={{ fontSize:13, fontWeight:700, color:BRAND_PRIMARY }}>{j.nome}</p>
                           <PeIcon pe={j.pe} />
                           {footOk===true && <span style={{ fontSize:9, background:'#16a34a', color:'#fff', padding:'1px 5px', borderRadius:10, fontWeight:700 }}>✓ pé</span>}
                         </div>
@@ -770,16 +778,16 @@ function PlayerPickerModal({ slot, jogadores, onSelect, onClose }) {
               <div style={{ display:'flex', gap:8 }}>
                 {[{v:'direito',l:'🦶 Direito'},{v:'esquerdo',l:'🦶 Esquerdo'},{v:'ambos',l:'⚡ Ambos'}].map(opt=>(
                   <button key={opt.v} onClick={()=>setManual(p=>({...p,pe:opt.v}))}
-                    style={{ flex:1, padding:'8px', border:`1.5px solid ${manual.pe===opt.v?GFC:'#e8f4ec'}`,
+                    style={{ flex:1, padding:'8px', border:`1.5px solid ${manual.pe===opt.v?BRAND_PRIMARY:'#e8f4ec'}`,
                       borderRadius:8, background:manual.pe===opt.v?'#f0fdf4':'#fff',
-                      color:manual.pe===opt.v?GFC:'#64748b', cursor:'pointer', fontSize:11, fontWeight:700 }}>
+                      color:manual.pe===opt.v?BRAND_PRIMARY:'#64748b', cursor:'pointer', fontSize:11, fontWeight:700 }}>
                     {opt.l}
                   </button>
                 ))}
               </div>
             </div>
             <button onClick={confirmarManual} disabled={!manual.nome.trim()||!manual.equipa.trim()}
-              style={{ padding:'10px', background:manual.nome.trim()&&manual.equipa.trim()?GFC:'#e2e8f0', color:'#fff',
+              style={{ padding:'10px', background:manual.nome.trim()&&manual.equipa.trim()?BRAND_PRIMARY:'#e2e8f0', color:'#fff',
                 border:'none', borderRadius:8, cursor:manual.nome.trim()&&manual.equipa.trim()?'pointer':'not-allowed',
                 fontSize:13, fontWeight:700, marginTop:4 }}>
               ✅ Confirmar jogador manual
@@ -807,7 +815,7 @@ function ShadowPitch({ slots, onSlotClick }) {
       <SvgCampo />
       {SHADOW_SLOTS.map(slot => {
         const jogador     = slots[slot.id] || null
-        const cor         = GRUPO_COR[slot.grupo] || GFC
+        const cor         = GRUPO_COR[slot.grupo] || BRAND_PRIMARY
         const nomeDisplay = jogador?.nome?.split(' ').slice(-1)[0] || null
         const timeDisplay = jogador?.equipa ? jogador.equipa.split(' ').slice(0,2).join(' ') : null
         return (
@@ -926,7 +934,7 @@ function ShadowTeams({ slug, ligaNome }) {
           <h2 style={{ fontSize:18, fontWeight:900, color:'#1a2e1a', marginBottom:2 }}>🕶 Shadow Teams</h2>
           <p style={{ fontSize:12, color:'#94a3b8' }}>Monte e salve seus times manualmente · Clique num slot para escolher o jogador</p>
         </div>
-        <button onClick={criarNovoTime} style={{ padding:'9px 18px', background:GFC, color:'#fff', border:'none', borderRadius:10, cursor:'pointer', fontSize:12, fontWeight:700 }}>+ Novo Time</button>
+        <button onClick={criarNovoTime} style={{ padding:'9px 18px', background:BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:10, cursor:'pointer', fontSize:12, fontWeight:700 }}>+ Novo Time</button>
       </div>
 
       {teams.length===0 ? (
@@ -934,15 +942,15 @@ function ShadowTeams({ slug, ligaNome }) {
           <p style={{ fontSize:32, marginBottom:12 }}>🕶</p>
           <p style={{ fontWeight:700, color:'#2d4a35', marginBottom:4 }}>Nenhum shadow team ainda</p>
           <p style={{ fontSize:12, color:'#94a3b8', marginBottom:16 }}>Clique em "Novo Time" para começar a montar</p>
-          <button onClick={criarNovoTime} style={{ padding:'10px 24px', background:GFC, color:'#fff', border:'none', borderRadius:10, cursor:'pointer', fontSize:13, fontWeight:700 }}>+ Criar primeiro time</button>
+          <button onClick={criarNovoTime} style={{ padding:'10px 24px', background:BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:10, cursor:'pointer', fontSize:13, fontWeight:700 }}>+ Criar primeiro time</button>
         </div>
       ) : (
         <div>
           <div style={{ display:'flex', gap:4, marginBottom:20, flexWrap:'wrap', alignItems:'center' }}>
             {teams.map(t=>(
               <button key={t.id} onClick={()=>setActiveId(t.id)} style={{
-                padding:'7px 16px', border:`1.5px solid ${activeId===t.id?GFC:'#e8f4ec'}`, borderRadius:8, cursor:'pointer',
-                fontSize:12, fontWeight:700, background:activeId===t.id?GFC:'#fff', color:activeId===t.id?'#fff':'#64748b' }}>
+                padding:'7px 16px', border:`1.5px solid ${activeId===t.id?BRAND_PRIMARY:'#e8f4ec'}`, borderRadius:8, cursor:'pointer',
+                fontSize:12, fontWeight:700, background:activeId===t.id?BRAND_PRIMARY:'#fff', color:activeId===t.id?'#fff':'#64748b' }}>
                 {t.team_name}
               </button>
             ))}
@@ -954,7 +962,7 @@ function ShadowTeams({ slug, ligaNome }) {
                 <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16, flexWrap:'wrap' }}>
                   {editingName
                     ? <input value={teamName} onChange={e=>setTeamName(e.target.value)} onBlur={()=>setEditingName(false)} onKeyDown={e=>e.key==='Enter'&&setEditingName(false)} autoFocus
-                        style={{ border:`1.5px solid ${GFC}`, borderRadius:8, padding:'7px 12px', fontSize:14, fontWeight:700, color:'#1a2e1a', outline:'none', minWidth:200 }} />
+                        style={{ border:`1.5px solid ${BRAND_PRIMARY}`, borderRadius:8, padding:'7px 12px', fontSize:14, fontWeight:700, color:'#1a2e1a', outline:'none', minWidth:200 }} />
                     : <h3 onClick={()=>setEditingName(true)} title="Clique para renomear"
                         style={{ fontSize:15, fontWeight:800, color:'#1a2e1a', cursor:'pointer', borderBottom:'1.5px dashed #e8f4ec', paddingBottom:2 }}>
                         {teamName||'Shadow Team'} ✏️
@@ -962,10 +970,10 @@ function ShadowTeams({ slug, ligaNome }) {
                   }
                   <span style={{ fontSize:12, color:'#94a3b8' }}>{countFilled}/11 jogadores</span>
                   <div style={{ marginLeft:'auto', display:'flex', gap:8 }}>
-                    <button onClick={handleExport} disabled={exporting} style={{ padding:'8px 16px', background:exporting?'#94a3b8':GFC, color:'#fff', border:'none', borderRadius:8, cursor:exporting?'wait':'pointer', fontSize:12, fontWeight:700, opacity:exporting?0.7:1 }}>
+                    <button onClick={handleExport} disabled={exporting} style={{ padding:'8px 16px', background:exporting?'#94a3b8':BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:8, cursor:exporting?'wait':'pointer', fontSize:12, fontWeight:700, opacity:exporting?0.7:1 }}>
                       {exporting?'Gerando...':'📄 PDF'}
                     </button>
-                    <button onClick={salvar} disabled={saving} style={{ padding:'8px 20px', background:GFC, color:'#fff', border:'none', borderRadius:8, cursor:saving?'not-allowed':'pointer', fontSize:12, fontWeight:700, opacity:saving?0.7:1 }}>
+                    <button onClick={salvar} disabled={saving} style={{ padding:'8px 20px', background:BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:8, cursor:saving?'not-allowed':'pointer', fontSize:12, fontWeight:700, opacity:saving?0.7:1 }}>
                       {saving?'Salvando...':'💾 Salvar'}
                     </button>
                     <button onClick={()=>removerTime(activeId)} style={{ padding:'8px 12px', background:'#fff', color:'#dc2626', border:'1.5px solid #fecaca', borderRadius:8, cursor:'pointer', fontSize:11, fontWeight:700 }}>🗑</button>
@@ -1194,7 +1202,7 @@ function SelecaoRodada({ slug }) {
           <p style={{ fontSize:12, color:'#94a3b8' }}>Upload do Relatório Wyscout · Extração estruturada · Curadoria do XI</p>
         </div>
         <button onClick={()=>{ setShowUpload(v=>!v); setUploadMsg(null) }}
-          style={{ padding:'9px 18px', background:showUpload?'#fff':GFC, color:showUpload?GFC:'#fff', border:`1.5px solid ${GFC}`, borderRadius:10, cursor:'pointer', fontSize:12, fontWeight:700 }}>
+          style={{ padding:'9px 18px', background:showUpload?'#fff':BRAND_PRIMARY, color:showUpload?BRAND_PRIMARY:'#fff', border:`1.5px solid ${BRAND_PRIMARY}`, borderRadius:10, cursor:'pointer', fontSize:12, fontWeight:700 }}>
           {showUpload ? '✕ Cancelar' : '+ Upload PDF Wyscout'}
         </button>
       </div>
@@ -1232,7 +1240,7 @@ function SelecaoRodada({ slug }) {
 
           <div style={{ display:'flex', gap:10 }}>
             <button onClick={handleUpload} disabled={uploading}
-              style={{ padding:'9px 20px', background:GFC, color:'#fff', border:'none', borderRadius:8, cursor:uploading?'not-allowed':'pointer', fontSize:13, fontWeight:700, opacity:uploading?0.7:1 }}>
+              style={{ padding:'9px 20px', background:BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:8, cursor:uploading?'not-allowed':'pointer', fontSize:13, fontWeight:700, opacity:uploading?0.7:1 }}>
               {uploading ? '⏳ Processando...' : '🚀 Extrair e Salvar'}
             </button>
             <button onClick={()=>{ setShowUpload(false); setUploadMsg(null) }}
@@ -1259,8 +1267,8 @@ function SelecaoRodada({ slug }) {
           <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
             {rodadas.map(r => (
               <button key={r.rodada} onClick={()=>abrirRodada(r.rodada)}
-                style={{ padding:'7px 16px', background: rodadaAtiva===r.rodada ? GFC : '#fff', color: rodadaAtiva===r.rodada ? '#fff' : '#2d4a35',
-                  border:`1.5px solid ${rodadaAtiva===r.rodada ? GFC : '#d1fae5'}`, borderRadius:20, cursor:'pointer', fontSize:12, fontWeight:700, transition:'all .15s' }}>
+                style={{ padding:'7px 16px', background: rodadaAtiva===r.rodada ? BRAND_PRIMARY : '#fff', color: rodadaAtiva===r.rodada ? '#fff' : '#2d4a35',
+                  border:`1.5px solid ${rodadaAtiva===r.rodada ? BRAND_PRIMARY : '#d1fae5'}`, borderRadius:20, cursor:'pointer', fontSize:12, fontWeight:700, transition:'all .15s' }}>
                 Rodada {r.rodada}
                 <span style={{ marginLeft:6, fontSize:10, opacity:0.7 }}>{r.total_jogadores} jogadores</span>
               </button>
@@ -1319,7 +1327,7 @@ function SelecaoRodada({ slug }) {
                           <tr key={j.id} onClick={()=>!xiLleno && toggleXI(j.id)}
                             style={{ background: noXI ? '#f0fdf4' : idx%2===0 ? '#fff' : '#fafafa',
                               cursor: xiLleno ? 'not-allowed' : 'pointer', transition:'background .1s',
-                              borderLeft: noXI ? `3px solid ${GFC}` : '3px solid transparent',
+                              borderLeft: noXI ? `3px solid ${BRAND_PRIMARY}` : '3px solid transparent',
                               opacity: xiLleno ? 0.5 : 1 }}>
                             <td style={{ padding:'9px 12px', textAlign:'center' }}>
                               <span style={{ fontSize:14 }}>{noXI ? '✅' : '○'}</span>
@@ -1454,7 +1462,7 @@ function SelecaoRodada({ slug }) {
                   </p>
                   <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                     {jogadores.filter(j=>xiSelecionado.includes(j.id)).map(j=>(
-                      <div key={j.id} style={{ background:'#fff', border:`1.5px solid ${GFC}`, borderRadius:10, padding:'6px 12px', display:'flex', alignItems:'center', gap:8 }}>
+                      <div key={j.id} style={{ background:'#fff', border:`1.5px solid ${BRAND_PRIMARY}`, borderRadius:10, padding:'6px 12px', display:'flex', alignItems:'center', gap:8 }}>
                         <span style={{ fontSize:12, fontWeight:800, color:'#1a2e1a' }}>{j.jogador}</span>
                         <span style={{ fontSize:10, color:'#64748b' }}>{j.clube}</span>
                         <span style={{ background:scoreBg(j.score), color:'#fff', borderRadius:4, padding:'1px 6px', fontSize:10, fontWeight:700 }}>{parseFloat(j.score||0).toFixed(1)}</span>
@@ -1531,7 +1539,7 @@ export default function LigaV2Page({ slugOverride = null } = {}) {
       <div style={{ padding:60, textAlign:'center' }}>
         <p style={{ fontSize:24, marginBottom:8 }}>⚠️</p>
         <p style={{ fontWeight:700, color:'#dc2626' }}>Liga não encontrada</p>
-        <Link href="/ligas-v2" style={{ color:GFC, fontSize:12, marginTop:12, display:'block' }}>← Voltar</Link>
+        <Link href="/ligas-v2" style={{ color:BRAND_PRIMARY, fontSize:12, marginTop:12, display:'block' }}>← Voltar</Link>
       </div>
     </AppShell>
   )
@@ -1546,14 +1554,14 @@ export default function LigaV2Page({ slugOverride = null } = {}) {
           <Link href="/ligas-v2" style={{ fontSize:11, color:'#94a3b8', textDecoration:'none', fontWeight:600 }}>← Ligas</Link>
           <div style={{ display:'flex', alignItems:'flex-start', gap:20, marginTop:12 }}>
             <div onClick={()=>fotoRef.current?.click()} title="Clique para trocar a logo"
-              style={{ width:64, height:64, borderRadius:12, background:logo?'transparent':(liga.cor||GFC), display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, flexShrink:0, overflow:'hidden', cursor:'pointer', border:logo?'none':'2px dashed rgba(255,255,255,0.4)', position:'relative' }}>
+              style={{ width:64, height:64, borderRadius:12, background:logo?'transparent':(liga.cor||BRAND_PRIMARY), display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, flexShrink:0, overflow:'hidden', cursor:'pointer', border:logo?'none':'2px dashed rgba(255,255,255,0.4)', position:'relative' }}>
               {uploadingLogo?<span style={{ fontSize:20 }}>⏳</span>:logo?<img src={logo} alt={liga.nome} style={{ width:'100%', height:'100%', objectFit:'contain' }} />:liga.bandeira}
               <input ref={fotoRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleLogoChange} />
             </div>
             <div style={{ flex:1 }}>
               <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
                 <h1 style={{ fontSize:24, fontWeight:900, color:'#1a2e1a' }}>{liga.nome}</h1>
-                <span style={{ fontSize:11, background:liga.tipo==='copa'?'#fef3c7':'#f0fdf4', color:liga.tipo==='copa'?'#92400e':GFC, fontWeight:700, padding:'3px 10px', borderRadius:20, border:`1px solid ${liga.tipo==='copa'?'#fef3c7':GFC}` }}>
+                <span style={{ fontSize:11, background:liga.tipo==='copa'?'#fef3c7':'#f0fdf4', color:liga.tipo==='copa'?'#92400e':BRAND_PRIMARY, fontWeight:700, padding:'3px 10px', borderRadius:20, border:`1px solid ${liga.tipo==='copa'?'#fef3c7':BRAND_PRIMARY}` }}>
                   {liga.tipo==='copa'?'🏆 Copa':'🏅 Liga'}
                 </span>
               </div>
@@ -1567,7 +1575,7 @@ export default function LigaV2Page({ slugOverride = null } = {}) {
           {tabs.map(t=>(
             <button key={t.key} onClick={()=>setTab(t.key)} style={{
               padding:'8px 20px', border:'none', borderRadius:8, cursor:'pointer',
-              fontWeight:700, fontSize:12, background:tab===t.key?GFC:'transparent', color:tab===t.key?'#fff':'#64748b' }}>
+              fontWeight:700, fontSize:12, background:tab===t.key?BRAND_PRIMARY:'transparent', color:tab===t.key?'#fff':'#64748b' }}>
               {t.label}
             </button>
           ))}
@@ -1578,7 +1586,7 @@ export default function LigaV2Page({ slugOverride = null } = {}) {
             <span style={{ fontSize:9, fontWeight:900, color:'#64748b' }}>FONTE EXIBIDA</span>
             {[
               ['auto','Automático'],['sportsbase','Sportsbase'],['wyscout','Wyscout'],
-            ].map(([value,label])=><button key={value} onClick={()=>setDataSource(value)} style={{ border:`1px solid ${dataSource===value?GFC:'#dbe7f2'}`, borderRadius:8, padding:'6px 9px', background:dataSource===value?'#eaf4fd':'#fff', color:dataSource===value?GFC:'#64748b', fontSize:9.5, fontWeight:800, cursor:'pointer' }}>{label}</button>)}
+            ].map(([value,label])=><button key={value} onClick={()=>setDataSource(value)} style={{ border:`1px solid ${dataSource===value?BRAND_PRIMARY:'#dbe7f2'}`, borderRadius:8, padding:'6px 9px', background:dataSource===value?'#eaf4fd':'#fff', color:dataSource===value?BRAND_PRIMARY:'#64748b', fontSize:9.5, fontWeight:800, cursor:'pointer' }}>{label}</button>)}
           </div>
           <TabelaJogadores key={`${refreshKey}-${dataSource}`} slug={slug} ligaNome={ligaNome} source={dataSource} />
         </div>}
@@ -1594,13 +1602,13 @@ export default function LigaV2Page({ slugOverride = null } = {}) {
             <div style={{ background:'linear-gradient(135deg,#064b82,#0a66b7)', borderRadius:14, padding:'20px 24px', marginBottom:24 }}>
               <p style={{ fontSize:11, color:'rgba(255,255,255,0.65)', fontWeight:700, textTransform:'uppercase', letterSpacing:'1px', marginBottom:6 }}>Central de Upload</p>
               <h2 style={{ fontSize:18, fontWeight:900, color:'#fff', marginBottom:4 }}>Importar Dados — {liga.nome}</h2>
-              <p style={{ fontSize:12, color:'rgba(255,255,255,0.75)' }}>Escolha Sportsbase ou Wyscout. Cada fonte gera rankings, percentis, gráficos, times e seleções com seu próprio catálogo de métricas.</p>
+              <p style={{ fontSize:12, color:'rgba(255,255,255,0.75)' }}>Importe Sportsbase, Wyscout ou as duas. Cada fonte mantém seu próprio catálogo de métricas; quando ambas estão disponíveis, o modo Automático integra os rankings por função.</p>
               {liga.orientacaoUpload && <p style={{ fontSize:10.5, color:'#d1fae5', marginTop:8, lineHeight:1.5, fontWeight:700 }}>ℹ {liga.orientacaoUpload}</p>}
             </div>
             {canEdit
               ? <div style={{ maxWidth:760 }}>
-                  <UploadBox slug={slug} onSuccess={(provider)=>{ setDataSource(provider); setRefreshKey(k=>k+1) }} />
-                  <div style={{marginTop:12,padding:'10px 13px',background:'#effaf3',border:'1px solid #bbf7d0',borderRadius:10,fontSize:10,color:'#166534',lineHeight:1.5}}><b>Integração por liga:</b> Sportsbase e Wyscout podem ser usados sozinhos. A aba Times e as Seleções são recalculadas automaticamente com as métricas da fonte disponível, sem upload coletivo por clube.</div>
+                  <UploadBox slug={slug} onSuccess={()=>{ setDataSource('auto'); setRefreshKey(k=>k+1) }} />
+                  <div style={{marginTop:12,padding:'10px 13px',background:'#effaf3',border:'1px solid #bbf7d0',borderRadius:10,fontSize:10,color:'#166534',lineHeight:1.5}}><b>Integração por liga:</b> Sportsbase e Wyscout podem ser usados sozinhos. Com as duas fontes, o Automático cruza o mesmo atleta e combina os scores funcionais ponderando robustez e cobertura, sem penalizar quem aparece apenas em uma planilha.</div>
                 </div>
               : <div style={{ padding:20, textAlign:'center', color:'#94a3b8', fontSize:13 }}>🔒 Upload restrito ao administrador</div>
             }

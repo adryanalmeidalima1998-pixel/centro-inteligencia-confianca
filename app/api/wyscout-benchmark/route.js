@@ -73,23 +73,51 @@ function mapRow(row, headers) {
   return obj
 }
 
+
+function normalizeBenchmarkType(value) {
+  const type = String(value || '').trim().toLowerCase()
+  if (['club', 'confianca', 'confiança'].includes(type)) return 'club'
+  return type
+}
+
+function isClubBenchmarkType(value) {
+  return normalizeBenchmarkType(value) === 'club'
+}
+
 // ── GET ───────────────────────────────────────────────────────────────────────
 export async function GET(req) {
   try {
     await ensureTable()
     const { searchParams } = new URL(req.url)
-    const tipo    = searchParams.get('tipo')    // 'confianca' | 'serie_c'
+    const requestedType = searchParams.get('tipo') // 'club' | 'serie_c'; aliases antigos aceitos
+    const tipo = normalizeBenchmarkType(requestedType)
     const posicao = searchParams.get('posicao') // primary position string to filter Série C
 
     if (!tipo) {
       // Return upload status for both
       const rows = await sql`SELECT tipo, upload_at FROM wyscout_benchmark`
       const status = {}
-      rows.rows.forEach(r => { status[r.tipo] = r.upload_at })
+      for (const row of rows.rows) {
+        const canonical = normalizeBenchmarkType(row.tipo)
+        if (!status[canonical] || new Date(row.upload_at) > new Date(status[canonical])) status[canonical] = row.upload_at
+      }
+      // aliases de leitura temporários para clientes anteriores à neutralização do contrato.
+      if (status.club) {
+        status.confianca = status.club
+        status.club = status.club
+      }
       return Response.json({ status })
     }
 
-    const rows = await sql`SELECT data_json FROM wyscout_benchmark WHERE tipo = ${tipo}`
+    const rows = isClubBenchmarkType(tipo)
+      ? await sql`
+          SELECT data_json, tipo, upload_at
+          FROM wyscout_benchmark
+          WHERE tipo IN ('club', 'confianca')
+          ORDER BY upload_at DESC
+          LIMIT 1
+        `
+      : await sql`SELECT data_json, tipo, upload_at FROM wyscout_benchmark WHERE tipo = ${tipo} LIMIT 1`
     if (!rows.rows[0]) return Response.json({ players: [], message: 'Nenhum dado carregado ainda' })
 
     let players = JSON.parse(rows.rows[0].data_json)
@@ -113,7 +141,8 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     await ensureTable()
-    const { tipo, base64 } = await req.json()
+    const { tipo: rawType, base64 } = await req.json()
+    const tipo = normalizeBenchmarkType(rawType)
     if (!tipo || !base64) return Response.json({ error: 'tipo e base64 obrigatórios' }, { status: 400 })
 
     const buf  = Buffer.from(base64, 'base64')

@@ -6,8 +6,8 @@ import { calculateSportsbasePercentile, getSportsbasePositionGroup, SPORTSBASE_P
 import { playerProfilePath } from '@/data/player-route'
 import { PLAYER_FOOT_OPTIONS, matchesPlayerFoot, playerFootLabel } from '@/data/player-foot'
 
-const GFC = '#0a66b7'
-const GFC_DARK = '#064b82'
+const BRAND_PRIMARY = '#0a66b7'
+const BRAND_DARK = '#064b82'
 
 /* Limite de jogos que um atleta pode disputar por uma equipe e ainda ficar
    elegível a se transferir para outro clube da mesma divisão no ano (vínculo). */
@@ -75,7 +75,7 @@ function computeGroupScores(players) {
 function GroupBadge({ group }) {
   const info = SPORTSBASE_POSITION_GROUPS[group]
   if (!info) return null
-  return <span style={{ fontSize:8.5, fontWeight:900, padding:'2px 6px', borderRadius:5, background:'#eef6f1', color:GFC }}>{info.shortLabel}</span>
+  return <span style={{ fontSize:8.5, fontWeight:900, padding:'2px 6px', borderRadius:5, background:'#eef6f1', color:BRAND_PRIMARY }}>{info.shortLabel}</span>
 }
 
 function PlayerCard({ player, slug, rank, mode, maxMinutes }) {
@@ -87,7 +87,7 @@ function PlayerCard({ player, slug, rank, mode, maxMinutes }) {
 
   return (
     <div style={{ display:'grid', gridTemplateColumns:'40px minmax(0,1fr) auto', gap:12, alignItems:'center', padding:'12px 14px', borderTop:'1px solid #eef3ef', background:rank === 1 ? '#fbfefc' : '#fff' }}>
-      <div style={{ width:32, height:32, borderRadius:9, display:'grid', placeItems:'center', background:rank === 1 ? GFC : '#f1f5f9', color:rank === 1 ? '#fff' : '#64748b', fontSize:12, fontWeight:950 }}>#{rank}</div>
+      <div style={{ width:32, height:32, borderRadius:9, display:'grid', placeItems:'center', background:rank === 1 ? BRAND_PRIMARY : '#f1f5f9', color:rank === 1 ? '#fff' : '#64748b', fontSize:12, fontWeight:950 }}>#{rank}</div>
 
       <div style={{ minWidth:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:6, minWidth:0 }}>
@@ -101,17 +101,17 @@ function PlayerCard({ player, slug, rank, mode, maxMinutes }) {
         <div style={{ margin:'6px 0 0', display:'flex', gap:6, flexWrap:'wrap' }}>
           {mode === 'elegiveis13' ? (
             <>
-              <span style={{ fontSize:9, fontWeight:900, padding:'3px 8px', borderRadius:6, background:restantes <= 3 ? '#fee2e2' : '#eef6f1', color:restantes <= 3 ? '#b91c1c' : GFC }}>
+              <span style={{ fontSize:9, fontWeight:900, padding:'3px 8px', borderRadius:6, background:restantes <= 3 ? '#fee2e2' : '#eef6f1', color:restantes <= 3 ? '#b91c1c' : BRAND_PRIMARY }}>
                 {jogos}/{LIMITE_JOGOS} jogos · faltam {restantes}
               </span>
               <span style={{ fontSize:9, fontWeight:700, padding:'3px 8px', borderRadius:6, background:'#f1f5f9', color:'#475569' }}>{minutos} min</span>
-              {player.gols ? <span style={{ fontSize:9, fontWeight:700, padding:'3px 8px', borderRadius:6, background:'#f0fdf4', color:GFC }}>{player.gols} gols</span> : null}
+              {player.gols ? <span style={{ fontSize:9, fontWeight:700, padding:'3px 8px', borderRadius:6, background:'#f0fdf4', color:BRAND_PRIMARY }}>{player.gols} gols</span> : null}
             </>
           ) : (
             <>
               <span style={{ fontSize:9, fontWeight:900, padding:'3px 8px', borderRadius:6, background:'#eff6ff', color:'#1d4ed8' }}>{jogos} jogos · {minutos} min</span>
               {share != null ? <span style={{ fontSize:9, fontWeight:700, padding:'3px 8px', borderRadius:6, background:'#f1f5f9', color:'#475569' }}>{share}% do teto de minutos da liga</span> : null}
-              {player.gols ? <span style={{ fontSize:9, fontWeight:700, padding:'3px 8px', borderRadius:6, background:'#f0fdf4', color:GFC }}>{player.gols} gols</span> : null}
+              {player.gols ? <span style={{ fontSize:9, fontWeight:700, padding:'3px 8px', borderRadius:6, background:'#f0fdf4', color:BRAND_PRIMARY }}>{player.gols} gols</span> : null}
             </>
           )}
         </div>
@@ -213,7 +213,7 @@ export default function OportunidadesMercado({ slug, ligaNome = '', mode = 'eleg
     ? {
         title:'Destaques ainda elegíveis (regra dos 13 jogos)',
         sub:'Jogadores em evidência que ainda não atingiram o limite de jogos e podem se transferir para outro clube da divisão dentro do vínculo.',
-        accent:GFC,
+        accent:BRAND_PRIMARY,
       }
     : {
         title:'Jogadores encostados / com pouca minutagem',
@@ -233,7 +233,7 @@ export default function OportunidadesMercado({ slug, ligaNome = '', mode = 'eleg
 
   return (
     <div>
-      <div style={{ background:`linear-gradient(135deg,${isC ? GFC_DARK : '#1e3a8a'},${headerCopy.accent})`, borderRadius:14, padding:'18px 22px', marginBottom:18 }}>
+      <div style={{ background:`linear-gradient(135deg,${isC ? BRAND_DARK : '#1e3a8a'},${headerCopy.accent})`, borderRadius:14, padding:'18px 22px', marginBottom:18 }}>
         <p style={{ fontSize:10, color:'rgba(255,255,255,0.65)', fontWeight:800, textTransform:'uppercase', letterSpacing:'1px', marginBottom:5 }}>Oportunidades de mercado · {ligaNome || slug}</p>
         <h2 style={{ fontSize:17, fontWeight:900, color:'#fff', marginBottom:4 }}>{headerCopy.title}</h2>
         <p style={{ fontSize:11.5, color:'rgba(255,255,255,0.82)', lineHeight:1.5 }}>{headerCopy.sub}</p>
@@ -286,7 +286,7 @@ export default function OportunidadesMercado({ slug, ligaNome = '', mode = 'eleg
       <div style={{ display:'flex', gap:10, marginBottom:14, flexWrap:'wrap' }}>
         <div style={{ background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:10, padding:'9px 14px' }}>
           <p style={{ fontSize:9, color:'#64748b', fontWeight:800 }}>ENCONTRADOS</p>
-          <p style={{ fontSize:18, fontWeight:950, color:GFC }}>{ranked.length}</p>
+          <p style={{ fontSize:18, fontWeight:950, color:BRAND_PRIMARY }}>{ranked.length}</p>
         </div>
         {isC && (
           <div style={{ background:'#fef2f2', border:'1px solid #fecaca', borderRadius:10, padding:'9px 14px' }}>

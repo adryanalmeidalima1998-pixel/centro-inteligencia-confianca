@@ -4,11 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Download, FileSpreadsheet, GripVertical, Link2, Pencil, Plus, RefreshCcw, Save, Search, Sparkles, X } from 'lucide-react'
 import PlayerMaterialLinks from '@/app/components/ligas/PlayerMaterialLinks'
 
-const GFC = '#0a66b7'
-const GFC_DARK = '#064b82'
+const BRAND_PRIMARY = '#0a66b7'
+const BRAND_DARK = '#064b82'
 const MAX_HIGHLIGHTS = 8
 
 function sourceLabel(source) {
+  if (source === 'combined') return 'Sportsbase + Wyscout'
   if (source === 'wyscout') return 'Wyscout'
   if (source === 'sportsbase') return 'Sportsbase'
   return 'Automático'
@@ -110,7 +111,7 @@ function PlayerRow({
             {[player.strongest, footLabel(player.pe), player.minutos ? `${player.minutos} min` : null].filter(Boolean).join(' · ') || 'Destaque estatístico da função'}
           </p>
           {player.videoUrl ? <a href={player.videoUrl} target="_blank" rel="noopener noreferrer" title="Abrir material de vídeo" style={{ color:'#2563eb', fontSize:8, fontWeight:900, textDecoration:'none', flexShrink:0 }}>VÍDEO ↗</a> : null}
-          {player.ogolUrl ? <a href={player.ogolUrl} target="_blank" rel="noopener noreferrer" title="Abrir perfil no oGol" style={{ color:GFC, fontSize:8, fontWeight:900, textDecoration:'none', flexShrink:0 }}>OGOL ↗</a> : null}
+          {player.ogolUrl ? <a href={player.ogolUrl} target="_blank" rel="noopener noreferrer" title="Abrir perfil no oGol" style={{ color:BRAND_PRIMARY, fontSize:8, fontWeight:900, textDecoration:'none', flexShrink:0 }}>OGOL ↗</a> : null}
         </div>
       </div>
       <div style={{ textAlign:'right' }}>
@@ -125,11 +126,11 @@ function PlayerRow({
             type="button"
             title={hasLinks ? 'Editar links do atleta' : 'Adicionar links do atleta'}
             onClick={onLinks}
-            style={{ height:28, minWidth:51, padding:'0 7px', border:`1px solid ${hasLinks ? '#bfdbfe' : '#dbe7f2'}`, borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', gap:4, background:hasLinks ? '#eff6ff' : '#fff', color:hasLinks ? '#2563eb' : GFC, cursor:'pointer', fontSize:8, fontWeight:900 }}
+            style={{ height:28, minWidth:51, padding:'0 7px', border:`1px solid ${hasLinks ? '#bfdbfe' : '#dbe7f2'}`, borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', gap:4, background:hasLinks ? '#eff6ff' : '#fff', color:hasLinks ? '#2563eb' : BRAND_PRIMARY, cursor:'pointer', fontSize:8, fontWeight:900 }}
           >
             <Link2 size={12} /> Links
           </button>
-          <button type="button" title="Substituir atleta nesta posição" onClick={onEdit} style={{ width:28, height:28, border:'1px solid #dbe7f2', borderRadius:8, display:'grid', placeItems:'center', background:'#fff', color:GFC, cursor:'pointer' }}>
+          <button type="button" title="Substituir atleta nesta posição" onClick={onEdit} style={{ width:28, height:28, border:'1px solid #dbe7f2', borderRadius:8, display:'grid', placeItems:'center', background:'#fff', color:BRAND_PRIMARY, cursor:'pointer' }}>
             <Pencil size={13} />
           </button>
         </div>
@@ -159,7 +160,7 @@ function EmptyRow({ rank, color, editable, onEdit, dropTarget = false, onDragOve
       </div>
       <p style={{ margin:0, fontSize:10.5, color:'#94a3b8' }}>Sem atleta elegível nesta posição</p>
       <span />
-      {editable ? <div style={{ display:'flex', justifyContent:'flex-end' }}><button type="button" title="Selecionar atleta para esta posição" onClick={onEdit} style={{ width:28, height:28, border:'1px solid #dbe7f2', borderRadius:8, display:'grid', placeItems:'center', background:'#fff', color:GFC, cursor:'pointer' }}><Pencil size={13} /></button></div> : <span />}
+      {editable ? <div style={{ display:'flex', justifyContent:'flex-end' }}><button type="button" title="Selecionar atleta para esta posição" onClick={onEdit} style={{ width:28, height:28, border:'1px solid #dbe7f2', borderRadius:8, display:'grid', placeItems:'center', background:'#fff', color:BRAND_PRIMARY, cursor:'pointer' }}><Pencil size={13} /></button></div> : <span />}
     </div>
   )
 }
@@ -196,7 +197,7 @@ function HighlightCard({
                 type="button"
                 onClick={onAdd}
                 title="Adicionar atleta em qualquer posição do ranking"
-                style={{ height:25, padding:'0 8px', border:'1px solid #cbdfee', borderRadius:8, display:'flex', alignItems:'center', gap:4, background:'#fff', color:GFC, cursor:'pointer', fontSize:8.5, fontWeight:900 }}
+                style={{ height:25, padding:'0 8px', border:'1px solid #cbdfee', borderRadius:8, display:'flex', alignItems:'center', gap:4, background:'#fff', color:BRAND_PRIMARY, cursor:'pointer', fontSize:8.5, fontWeight:900 }}
               >
                 <Plus size={12} /> Adicionar
               </button>
@@ -266,7 +267,7 @@ function PlayerPicker({ group, allCandidates, slot, mode = 'replace', currentSel
   return (
     <div onMouseDown={event => event.target === event.currentTarget && onClose()} style={{ position:'fixed', inset:0, zIndex:1000, display:'grid', placeItems:'center', padding:18, background:'rgba(3,20,10,.58)', backdropFilter:'blur(3px)' }}>
       <div style={{ width:'100%', maxWidth:620, maxHeight:'86vh', display:'flex', flexDirection:'column', background:'#fff', borderRadius:18, overflow:'hidden', boxShadow:'0 28px 80px rgba(0,0,0,.3)' }}>
-        <div style={{ padding:'16px 18px', background:`linear-gradient(135deg,${group.color},${GFC_DARK})`, color:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+        <div style={{ padding:'16px 18px', background:`linear-gradient(135deg,${group.color},${BRAND_DARK})`, color:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
           <div>
             <p style={{ margin:0, fontSize:9, textTransform:'uppercase', letterSpacing:'.12em', opacity:.72 }}>
               Curadoria manual · {inserting ? `inserir na posição ${targetSlot + 1}` : `substituir posição ${targetSlot + 1}`}
@@ -329,7 +330,7 @@ function PlayerLinksModal({ slug, player, onSaved, onClose }) {
   return (
     <div onMouseDown={event => event.target === event.currentTarget && onClose()} style={{ position:'fixed', inset:0, zIndex:1010, display:'grid', placeItems:'center', padding:18, background:'rgba(3,20,10,.58)', backdropFilter:'blur(3px)' }}>
       <div style={{ width:'100%', maxWidth:680, maxHeight:'88vh', overflowY:'auto', background:'#f5faf6', borderRadius:18, boxShadow:'0 28px 80px rgba(0,0,0,.3)' }}>
-        <div style={{ position:'sticky', top:0, zIndex:2, padding:'16px 18px', background:`linear-gradient(135deg,#2563eb,${GFC_DARK})`, color:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+        <div style={{ position:'sticky', top:0, zIndex:2, padding:'16px 18px', background:`linear-gradient(135deg,#2563eb,${BRAND_DARK})`, color:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
           <div style={{ minWidth:0 }}>
             <p style={{ margin:0, fontSize:9, textTransform:'uppercase', letterSpacing:'.12em', opacity:.72 }}>Materiais do atleta</p>
             <h3 style={{ margin:'4px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontSize:17, fontWeight:950 }}>{player.nome}</h3>
@@ -401,7 +402,7 @@ async function exportHighlightsPdf({ leagueName, source, groups, selection, logo
   }
 
   const drawHeader = page => {
-    const [r, g, b] = hexToRgb(GFC_DARK)
+    const [r, g, b] = hexToRgb(BRAND_DARK)
     doc.setFillColor(r, g, b)
     doc.roundedRect(margin, margin, pageWidth - margin * 2, headerHeight, 4, 4, 'F')
     let textX = margin + 9
@@ -507,7 +508,7 @@ async function exportHighlightsPdf({ leagueName, source, groups, selection, logo
         drawLinkPill('VID', player.videoUrl, linkX, rowY + 1.7, linkWidth, '#2563eb')
         linkX += linkWidth + linkGap
       }
-      if (hasOgol) drawLinkPill('OGOL', player.ogolUrl, linkX, rowY + 1.7, linkWidth, GFC)
+      if (hasOgol) drawLinkPill('OGOL', player.ogolUrl, linkX, rowY + 1.7, linkWidth, BRAND_PRIMARY)
 
       const tone = scoreTone(player.score)
       const [sr, sg, sb] = hexToRgb(tone.bar)
@@ -878,7 +879,7 @@ export default function CompetitionHighlights({ slug, leagueName, logo, sourcePr
 
   if (!data?.source) return (
     <div style={{ padding:42, border:'1px dashed #b9d5c3', borderRadius:16, background:'#f8fdf9', textAlign:'center' }}>
-      <Sparkles size={26} color={GFC} />
+      <Sparkles size={26} color={BRAND_PRIMARY} />
       <h2 style={{ margin:'10px 0 5px', fontSize:17, color:'#10233b' }}>Sem dados para gerar os destaques</h2>
       <p style={{ margin:0, fontSize:11, color:'#64748b' }}>Importe uma base Sportsbase ou Wyscout nesta liga.</p>
     </div>
@@ -886,7 +887,7 @@ export default function CompetitionHighlights({ slug, leagueName, logo, sourcePr
 
   return (
     <div>
-      <div style={{ marginBottom:18, borderRadius:18, padding:'20px 22px', background:`linear-gradient(135deg,${GFC_DARK},${GFC})`, color:'#fff', boxShadow:'0 12px 32px rgba(10,102,183,.18)' }}>
+      <div style={{ marginBottom:18, borderRadius:18, padding:'20px 22px', background:`linear-gradient(135deg,${BRAND_DARK},${BRAND_PRIMARY})`, color:'#fff', boxShadow:'0 12px 32px rgba(10,102,183,.18)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:18, flexWrap:'wrap' }}>
           <div style={{ maxWidth:670 }}>
             <p style={{ margin:0, fontSize:9.5, textTransform:'uppercase', letterSpacing:'.13em', color:'rgba(255,255,255,.65)', fontWeight:800 }}>Relatório visual</p>
@@ -896,7 +897,7 @@ export default function CompetitionHighlights({ slug, leagueName, logo, sourcePr
           <div style={{ display:'flex', gap:8, flexWrap:'wrap', justifyContent:'flex-end' }}>
             <button type="button" onClick={exportExcel} disabled={exportingExcel} style={{ display:'flex', alignItems:'center', gap:7, border:'1px solid rgba(255,255,255,.34)', borderRadius:10, padding:'9px 12px', background:'rgba(255,255,255,.1)', color:'#fff', fontSize:10.5, fontWeight:900, cursor:exportingExcel?'wait':'pointer' }}><FileSpreadsheet size={15} />{exportingExcel ? 'Gerando Excel...' : 'Exportar Excel'}</button>
             <button type="button" onClick={exportPdf} disabled={exporting} style={{ display:'flex', alignItems:'center', gap:7, border:'1px solid rgba(255,255,255,.34)', borderRadius:10, padding:'9px 12px', background:'rgba(255,255,255,.1)', color:'#fff', fontSize:10.5, fontWeight:900, cursor:exporting?'wait':'pointer' }}><Download size={15} />{exporting ? 'Gerando PDF...' : 'Exportar PDF'}</button>
-            {canEdit ? <button type="button" onClick={save} disabled={saving || !dirty} style={{ display:'flex', alignItems:'center', gap:7, border:'none', borderRadius:10, padding:'9px 12px', background:dirty?'#fff':'rgba(255,255,255,.16)', color:dirty?GFC:'#d5e8dc', fontSize:10.5, fontWeight:900, cursor:dirty&&!saving?'pointer':'default' }}><Save size={15} />{saving ? 'Salvando...' : 'Salvar curadoria'}</button> : null}
+            {canEdit ? <button type="button" onClick={save} disabled={saving || !dirty} style={{ display:'flex', alignItems:'center', gap:7, border:'none', borderRadius:10, padding:'9px 12px', background:dirty?'#fff':'rgba(255,255,255,.16)', color:dirty?BRAND_PRIMARY:'#d5e8dc', fontSize:10.5, fontWeight:900, cursor:dirty&&!saving?'pointer':'default' }}><Save size={15} />{saving ? 'Salvando...' : 'Salvar curadoria'}</button> : null}
           </div>
         </div>
       </div>
@@ -907,7 +908,7 @@ export default function CompetitionHighlights({ slug, leagueName, logo, sourcePr
           {[['auto','Automático'],['sportsbase','Sportsbase'],['wyscout','Wyscout']].map(([value, label]) => {
             const unavailable = value !== 'auto' && !data.available_sources?.[value]
             const active = value === 'auto' ? sourcePreference === 'auto' : data.source === value && sourcePreference !== 'auto'
-            return <button key={value} type="button" disabled={unavailable} onClick={() => changeSource(value)} style={{ border:`1px solid ${active?GFC:'#dbe7f2'}`, borderRadius:8, padding:'6px 9px', background:active?'#eaf4fd':'#fff', color:unavailable?'#cbd5e1':active?GFC:'#64748b', fontSize:9.5, fontWeight:850, cursor:unavailable?'not-allowed':'pointer' }}>{label}</button>
+            return <button key={value} type="button" disabled={unavailable} onClick={() => changeSource(value)} style={{ border:`1px solid ${active?BRAND_PRIMARY:'#dbe7f2'}`, borderRadius:8, padding:'6px 9px', background:active?'#eaf4fd':'#fff', color:unavailable?'#cbd5e1':active?BRAND_PRIMARY:'#64748b', fontSize:9.5, fontWeight:850, cursor:unavailable?'not-allowed':'pointer' }}>{label}</button>
           })}
           <span style={{ fontSize:9, color:'#94a3b8', marginLeft:4 }}>Exibindo {sourceLabel(data.source)} · {data.total_players} atletas</span>
         </div>

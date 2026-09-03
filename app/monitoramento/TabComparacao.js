@@ -5,7 +5,7 @@ import {
   ResponsiveContainer, Tooltip, Legend,
 } from 'recharts'
 
-const GFC  = '#0a66b7'
+const BRAND_PRIMARY  = '#0a66b7'
 const BLUE = '#1565c0'
 const AMB  = '#b45309'
 const RED  = '#c62828'
@@ -201,12 +201,12 @@ function avg(players, key) {
 
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function TabComparacao({ atleta, T }) {
-  const [guaraniPlayers, setGuaraniPlayers]  = useState([])
+  const [clubPlayers, setClubPlayers]  = useState([])
   const [serieCPlayers,  setSerieCPlayers]   = useState([])
   const [loadingG,       setLoadingG]        = useState(false)
   const [loadingS,       setLoadingS]        = useState(false)
   const [selectedG,      setSelectedG]       = useState([])
-  const [uploadStatus,   setUploadStatus]    = useState({ guarani: null, serie_c: null })
+  const [uploadStatus,   setUploadStatus]    = useState({ club: null, serie_c: null })
 
   const posGrupo = posGroupFromPT(atleta.posicao || '')
   const metrics  = RADAR_METRICS[posGrupo] || RADAR_METRICS.CM
@@ -224,9 +224,9 @@ export default function TabComparacao({ atleta, T }) {
     }).catch(() => {})
 
     setLoadingG(true)
-    fetch('/api/wyscout-benchmark?tipo=guarani')
+    fetch('/api/wyscout-benchmark?tipo=club')
       .then(r => r.json())
-      .then(d => { setGuaraniPlayers(d.players || []); setLoadingG(false) })
+      .then(d => { setClubPlayers(d.players || []); setLoadingG(false) })
       .catch(() => setLoadingG(false))
 
     setLoadingS(true)
@@ -251,20 +251,20 @@ export default function TabComparacao({ atleta, T }) {
   }, [serieCPosicao, metrics])
 
   // Jogadores Confiança selecionados
-  const guaraniSelecionados = useMemo(() =>
-    guaraniPlayers.filter(p => selectedG.includes(p.nome)),
-    [guaraniPlayers, selectedG]
+  const clubSelected = useMemo(() =>
+    clubPlayers.filter(p => selectedG.includes(p.nome)),
+    [clubPlayers, selectedG]
   )
 
   // Dados radar
   const radarData = useMemo(() => metrics.map(m => {
     const point = { metric: m.label, atleta: normalize(atletaStats[m.key], m.max, m.inv) }
-    guaraniSelecionados.forEach(p => {
+    clubSelected.forEach(p => {
       point[p.nome] = normalize(p[m.key], m.max, m.inv)
     })
     point['Série C (média)'] = normalize(serieCMedia[m.key], m.max, m.inv)
     return point
-  }), [metrics, atletaStats, guaraniSelecionados, serieCMedia])
+  }), [metrics, atletaStats, clubSelected, serieCMedia])
 
   // Pontos fortes e fracos vs Série C
   const { fortes, fracos } = useMemo(() => {
@@ -298,7 +298,7 @@ export default function TabComparacao({ atleta, T }) {
 
   const fmt = (v) => v === null || v === undefined ? '—' : (typeof v === 'number' ? (v % 1 === 0 ? v : v.toFixed(2)) : v)
 
-  const COLORS = [GFC, BLUE, AMB, '#7b1fa2', '#00796b']
+  const COLORS = [BRAND_PRIMARY, BLUE, AMB, '#7b1fa2', '#00796b']
 
   if (!T) return (
     <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8', fontSize: 12 }}>
@@ -310,9 +310,9 @@ export default function TabComparacao({ atleta, T }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
       {/* Upload status */}
-      {(!uploadStatus.guarani || !uploadStatus.serie_c) && (
+      {(!uploadStatus.club || !uploadStatus.serie_c) && (
         <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '10px 14px', fontSize: 11, color: '#92400e' }}>
-          ⚠ {!uploadStatus.guarani ? 'Dados do Confiança não carregados.' : ''}{!uploadStatus.serie_c ? ' Dados da Série C não carregados.' : ''}{' '}
+          ⚠ {!uploadStatus.club ? 'Dados do Confiança não carregados.' : ''}{!uploadStatus.serie_c ? ' Dados da Série C não carregados.' : ''}{' '}
           Use os botões de upload no topo da página para carregar os Excel.
         </div>
       )}
@@ -329,11 +329,11 @@ export default function TabComparacao({ atleta, T }) {
           {/* Seletor de jogadores */}
           {loadingG ? (
             <p style={{ fontSize: 11, color: '#94a3b8', marginBottom: 10 }}>Carregando elenco...</p>
-          ) : guaraniPlayers.length === 0 ? (
+          ) : clubPlayers.length === 0 ? (
             <p style={{ fontSize: 11, color: '#94a3b8', marginBottom: 10 }}>Nenhum dado do Confiança carregado.</p>
           ) : (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 10 }}>
-              {guaraniPlayers.map((p, i) => {
+              {clubPlayers.map((p, i) => {
                 const sel = selectedG.includes(p.nome)
                 return (
                   <button key={i} onClick={() => setSelectedG(prev =>
@@ -357,8 +357,8 @@ export default function TabComparacao({ atleta, T }) {
             <RadarChart data={radarData}>
               <PolarGrid stroke="#e5edf5" />
               <PolarAngleAxis dataKey="metric" tick={{ fontSize: 10, fill: '#64748b' }} />
-              <Radar name={atleta.apelido || atleta.nome} dataKey="atleta" stroke={GFC} fill={GFC} fillOpacity={0.18} strokeWidth={2} />
-              {guaraniSelecionados.map((p, i) => (
+              <Radar name={atleta.apelido || atleta.nome} dataKey="atleta" stroke={BRAND_PRIMARY} fill={BRAND_PRIMARY} fillOpacity={0.18} strokeWidth={2} />
+              {clubSelected.map((p, i) => (
                 <Radar key={p.nome} name={p.nome.split(' ').slice(0, 2).join(' ')} dataKey={p.nome} stroke={COLORS[i + 1]} fill={COLORS[i + 1]} fillOpacity={0.12} strokeWidth={1.5} />
               ))}
               <Tooltip formatter={(v) => `${Math.round(v)}`} />
@@ -380,7 +380,7 @@ export default function TabComparacao({ atleta, T }) {
             <RadarChart data={radarData}>
               <PolarGrid stroke="#e5edf5" />
               <PolarAngleAxis dataKey="metric" tick={{ fontSize: 10, fill: '#64748b' }} />
-              <Radar name={atleta.apelido || atleta.nome} dataKey="atleta" stroke={GFC} fill={GFC} fillOpacity={0.22} strokeWidth={2} />
+              <Radar name={atleta.apelido || atleta.nome} dataKey="atleta" stroke={BRAND_PRIMARY} fill={BRAND_PRIMARY} fillOpacity={0.22} strokeWidth={2} />
               <Radar name="Média Série C" dataKey="Série C (média)" stroke={AMB} fill={AMB} fillOpacity={0.12} strokeWidth={1.5} strokeDasharray="4 2" />
               <Tooltip formatter={(v) => `${Math.round(v)}`} />
               <Legend wrapperStyle={{ fontSize: 10 }} />
@@ -392,7 +392,7 @@ export default function TabComparacao({ atleta, T }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5, marginTop: 8 }}>
               {metrics.map(m => {
                 const pct = percentis[m.key]
-                const color = pct >= 75 ? GFC : pct >= 50 ? AMB : pct !== null ? RED : '#94a3b8'
+                const color = pct >= 75 ? BRAND_PRIMARY : pct >= 50 ? AMB : pct !== null ? RED : '#94a3b8'
                 return (
                   <div key={m.key} style={{ background: '#f7fcf9', borderRadius: 7, padding: '6px 8px', textAlign: 'center' }}>
                     <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 700, marginBottom: 2 }}>{m.label}</div>
@@ -411,21 +411,21 @@ export default function TabComparacao({ atleta, T }) {
       {serieCPosicao.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: 16 }}>
-            <p style={{ fontSize: 12, fontWeight: 800, color: GFC, marginBottom: 10 }}>✅ 4 Pontos Fortes vs Série C</p>
+            <p style={{ fontSize: 12, fontWeight: 800, color: BRAND_PRIMARY, marginBottom: 10 }}>✅ 4 Pontos Fortes vs Série C</p>
             {fortes.length === 0 ? (
               <p style={{ fontSize: 11, color: '#94a3b8' }}>Dados insuficientes</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {fortes.map((m, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: GFC, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: BRAND_PRIMARY, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <span style={{ fontSize: 10, fontWeight: 900, color: 'white' }}>{i + 1}</span>
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 11, fontWeight: 700, color: '#166534' }}>{m.label}</div>
                       <div style={{ fontSize: 10, color: '#52677e' }}>
                         {fmt(m.atletaVal)} vs {fmt(m.scMedia)} médio
-                        <span style={{ marginLeft: 6, color: GFC, fontWeight: 700 }}>
+                        <span style={{ marginLeft: 6, color: BRAND_PRIMARY, fontWeight: 700 }}>
                           +{Math.round(m.diff)}%
                         </span>
                       </div>
@@ -490,10 +490,10 @@ export default function TabComparacao({ atleta, T }) {
                 <thead>
                   <tr style={{ background: '#f7fcf9' }}>
                     <th style={{ textAlign: 'left', padding: '4px 8px', fontSize: 9, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Métrica</th>
-                    <th style={{ textAlign: 'center', padding: '4px 8px', fontSize: 9, fontWeight: 700, color: GFC, textTransform: 'uppercase' }}>
+                    <th style={{ textAlign: 'center', padding: '4px 8px', fontSize: 9, fontWeight: 700, color: BRAND_PRIMARY, textTransform: 'uppercase' }}>
                       {atleta.apelido || atleta.nome}
                     </th>
-                    {guaraniSelecionados.slice(0, 2).map((p, i) => (
+                    {clubSelected.slice(0, 2).map((p, i) => (
                       <th key={i} style={{ textAlign: 'center', padding: '4px 8px', fontSize: 9, fontWeight: 700, color: COLORS[i + 1], textTransform: 'uppercase' }}>
                         {p.nome?.split(' ').slice(0, 1).join(' ')}
                       </th>
@@ -515,10 +515,10 @@ export default function TabComparacao({ atleta, T }) {
                     return (
                       <tr key={m.key} style={{ borderBottom: '1px solid #f1f5f9', background: mi % 2 === 0 ? '#fff' : '#fafafa' }}>
                         <td style={{ padding: '5px 8px', color: '#52677e', fontWeight: 600 }}>{m.label}</td>
-                        <td style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 800, color: isBetter ? GFC : '#10233b' }}>
+                        <td style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 800, color: isBetter ? BRAND_PRIMARY : '#10233b' }}>
                           {fmt(atletaV)}
                         </td>
-                        {guaraniSelecionados.slice(0, 2).map((p, i) => (
+                        {clubSelected.slice(0, 2).map((p, i) => (
                           <td key={i} style={{ padding: '5px 8px', textAlign: 'center', color: COLORS[i + 1], fontWeight: 600 }}>
                             {fmt(p[m.key])}
                           </td>

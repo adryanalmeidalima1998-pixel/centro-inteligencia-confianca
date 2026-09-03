@@ -457,7 +457,7 @@ export default function AgendaPage() {
                   <p className="mt-1 text-[10px] text-slate-400">{formatDate(summary.ultimoJogo.data, { day: '2-digit', month: 'short' })}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-black text-slate-900">{summary.ultimoJogo.golsGuarani}–{summary.ultimoJogo.golsAdversario}</p>
+                  <p className="text-2xl font-black text-slate-900">{summary.ultimoJogo.golsClube}–{summary.ultimoJogo.golsAdversario}</p>
                   <span className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase ${RESULT_CONFIG[summary.ultimoJogo.resultado]?.classes || 'bg-slate-100 text-slate-500'}`}>
                     {RESULT_CONFIG[summary.ultimoJogo.resultado]?.label || 'Resultado'}
                   </span>

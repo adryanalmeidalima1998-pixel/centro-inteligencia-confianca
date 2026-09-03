@@ -9,11 +9,11 @@ import {
 } from 'recharts'
 import TabComparacao from '../TabComparacao'
 
-const GFC  = '#0a66b7'
+const BRAND_PRIMARY  = '#0a66b7'
 const RED  = '#c62828'
 const AMB  = '#b45309'
 const PURP = '#6a1b9a'
-const GFC2 = '#eaf4fd'
+const BRAND_DARK = '#eaf4fd'
 const BLUE = '#1565c0'
 const TEAL = '#00796b'
 
@@ -327,8 +327,8 @@ function calcNotasPorAno(metricas, jogosTemp, posGrupo) {
 
 function NotaBadge({ nota, confianca, size='md' }) {
   if (nota === null || nota === undefined) return <span style={{ fontSize:size==='sm'?9:11, color:'#c0d8c4' }}>—</span>
-  const color = nota >= 7.5 ? GFC : nota >= 6 ? TEAL : nota >= 5 ? AMB : RED
-  const bg    = nota >= 7.5 ? GFC+'15' : nota >= 6 ? TEAL+'15' : nota >= 5 ? AMB+'15' : RED+'15'
+  const color = nota >= 7.5 ? BRAND_PRIMARY : nota >= 6 ? TEAL : nota >= 5 ? AMB : RED
+  const bg    = nota >= 7.5 ? BRAND_PRIMARY+'15' : nota >= 6 ? TEAL+'15' : nota >= 5 ? AMB+'15' : RED+'15'
   const fs    = size === 'sm' ? 10 : size === 'lg' ? 28 : 14
   return (
     <div style={{ display:'inline-flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
@@ -346,7 +346,7 @@ function NotaBadge({ nota, confianca, size='md' }) {
   )
 }
 
-function StatCard({ label, value, sub, color=GFC, big=false }) {
+function StatCard({ label, value, sub, color=BRAND_PRIMARY, big=false }) {
   return (
     <div style={{ background:'#fff', borderRadius:12, border:'1px solid #e5edf5', padding:'12px 14px', textAlign:'center' }}>
       <p style={{ fontSize:big?30:22, fontWeight:900, color, fontFamily:"'Barlow Condensed',sans-serif", lineHeight:1 }}>{value ?? '—'}</p>
@@ -357,7 +357,7 @@ function StatCard({ label, value, sub, color=GFC, big=false }) {
 }
 
 /* ─── Progress bar metric ────────────────────────────────────────────── */
-function MetricRow({ label, value, max100, pctVal, color=GFC, extra }) {
+function MetricRow({ label, value, max100, pctVal, color=BRAND_PRIMARY, extra }) {
   const w = pctVal != null ? pctVal : (max100 ? norm(value, max100) : null)
   return (
     <div style={{ display:'flex', alignItems:'center', gap:10, padding:'5px 0', borderBottom:'1px solid #f7fcf9' }}>
@@ -549,13 +549,13 @@ function TabDesempenho({ atleta, metricas }) {
               <SectionTitle label={`Shadow Rating · ${posGrupo}`} icon="📊" />
               <div style={{ display:'flex', gap:10, marginTop:-4 }}>
                 <span style={{ fontSize:9, color:'#94a3b8' }}>
-                  <strong style={{ color:GFC }}>{notaGeral.jogosWyscout}</strong> jogos Wyscout (confiança 1.0)
+                  <strong style={{ color:BRAND_PRIMARY }}>{notaGeral.jogosWyscout}</strong> jogos Wyscout (confiança 1.0)
                 </span>
                 <span style={{ fontSize:9, color:'#94a3b8' }}>
                   <strong style={{ color:AMB }}>{notaGeral.jogosShadow}</strong> jogos Shadow (confiança 0.4)
                 </span>
-                <span style={{ fontSize:9, background: notaGeral.confiancaGeral >= 70 ? GFC+'15' : AMB+'15',
-                  color: notaGeral.confiancaGeral >= 70 ? GFC : AMB,
+                <span style={{ fontSize:9, background: notaGeral.confiancaGeral >= 70 ? BRAND_PRIMARY+'15' : AMB+'15',
+                  color: notaGeral.confiancaGeral >= 70 ? BRAND_PRIMARY : AMB,
                   borderRadius:10, padding:'1px 8px', fontWeight:700 }}>
                   {notaGeral.confiancaGeral}% confiança
                 </span>
@@ -568,7 +568,7 @@ function TabDesempenho({ atleta, metricas }) {
           <div style={{ position:'relative', height:8, background:'#f4f8fc', borderRadius:99, marginBottom:10, overflow:'hidden' }}>
             <div style={{ position:'absolute', left:0, top:0, height:'100%', borderRadius:99, transition:'width 0.6s',
               width:`${notaGeral.nota*10}%`,
-              background: notaGeral.nota>=7.5?GFC : notaGeral.nota>=6?TEAL : notaGeral.nota>=5?AMB:RED,
+              background: notaGeral.nota>=7.5?BRAND_PRIMARY : notaGeral.nota>=6?TEAL : notaGeral.nota>=5?AMB:RED,
             }}/>
             {[5,6,7.5].map(ref => (
               <div key={ref} style={{ position:'absolute', left:`${ref*10}%`, top:0, height:'100%', width:1, background:'rgba(255,255,255,0.6)' }}/>
@@ -581,7 +581,7 @@ function TabDesempenho({ atleta, metricas }) {
               { label:'< 5.0', desc:'Abaixo do esperado', color:RED },
               { label:'5.0–5.9', desc:'Regular', color:AMB },
               { label:'6.0–7.4', desc:'Bom', color:TEAL },
-              { label:'≥ 7.5', desc:'Excelente', color:GFC },
+              { label:'≥ 7.5', desc:'Excelente', color:BRAND_PRIMARY },
             ].map(l => (
               <div key={l.label} style={{ display:'flex', alignItems:'center', gap:4 }}>
                 <div style={{ width:8, height:8, borderRadius:'50%', background:l.color }} />
@@ -600,7 +600,7 @@ function TabDesempenho({ atleta, metricas }) {
                     <p style={{ fontSize:9, color:'#94a3b8', marginBottom:4, fontWeight:700 }}>{a.ano}</p>
                     <NotaBadge nota={a.nota} size="md" />
                     <div style={{ marginTop:5, display:'flex', gap:4, justifyContent:'center' }}>
-                      {a.jogosWyscout > 0 && <span style={{ fontSize:7, background:GFC+'15', color:GFC, borderRadius:8, padding:'0 4px' }}>W:{a.jogosWyscout}</span>}
+                      {a.jogosWyscout > 0 && <span style={{ fontSize:7, background:BRAND_PRIMARY+'15', color:BRAND_PRIMARY, borderRadius:8, padding:'0 4px' }}>W:{a.jogosWyscout}</span>}
                       {a.jogosShadow > 0  && <span style={{ fontSize:7, background:AMB+'15', color:AMB, borderRadius:8, padding:'0 4px' }}>S:{a.jogosShadow}</span>}
                     </div>
                   </div>
@@ -616,8 +616,8 @@ function TabDesempenho({ atleta, metricas }) {
         {[
           { l:'Jogos',   v:T.jogos,              c:'#10233b' },
           { l:'Minutos', v:T.minutos,             c:'#10233b' },
-          { l:'Gols',    v:T.gols,                c:GFC },
-          { l:'Assists', v:T.assists,             c:GFC },
+          { l:'Gols',    v:T.gols,                c:BRAND_PRIMARY },
+          { l:'Assists', v:T.assists,             c:BRAND_PRIMARY },
           { l:'xG',      v:T.xg.toFixed(1),      c:TEAL },
           { l:'xA',      v:T.xa.toFixed(1),      c:TEAL },
           { l:'🟨',      v:T.amarelo2,            c:AMB },
@@ -628,14 +628,14 @@ function TabDesempenho({ atleta, metricas }) {
       {/* ── Per-90 highlights ── */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:8 }}>
         {[
-          { l:'Gols/90',       v:p90(T.gols,m).toFixed(2),   c:GFC },
-          { l:'Assists/90',    v:p90(T.assists,m).toFixed(2), c:GFC },
+          { l:'Gols/90',       v:p90(T.gols,m).toFixed(2),   c:BRAND_PRIMARY },
+          { l:'Assists/90',    v:p90(T.assists,m).toFixed(2), c:BRAND_PRIMARY },
           { l:'xG/90',         v:p90(T.xg,m).toFixed(2),     c:TEAL },
           { l:'xA/90',         v:p90(T.xa,m).toFixed(2),     c:TEAL },
           { l:'Remates/90',    v:p90(T.remates_totais,m).toFixed(1), c:BLUE },
           { l:'Dribbles/90',   v:p90(T.dribbles,m).toFixed(1),       c:BLUE },
         ].map(({ l, v, c }) => (
-          <div key={l} style={{ background:GFC2, borderRadius:10, border:`1px solid ${GFC}22`, padding:'8px 10px', textAlign:'center' }}>
+          <div key={l} style={{ background:BRAND_DARK, borderRadius:10, border:`1px solid ${BRAND_PRIMARY}22`, padding:'8px 10px', textAlign:'center' }}>
             <p style={{ fontSize:16, fontWeight:900, color:c, fontFamily:"'Barlow Condensed',sans-serif", lineHeight:1 }}>{v}</p>
             <p style={{ fontSize:8, color:'#64748b', marginTop:3, textTransform:'uppercase', letterSpacing:'0.5px' }}>{l}</p>
           </div>
@@ -644,7 +644,7 @@ function TabDesempenho({ atleta, metricas }) {
 
       {/* ── 4 Pizza Plots ── */}
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:12 }}>
-        <PizzaPlot title="Ataque & Finalização" data={radarAtaque} color={GFC}  icon="⚽" />
+        <PizzaPlot title="Ataque & Finalização" data={radarAtaque} color={BRAND_PRIMARY}  icon="⚽" />
         <PizzaPlot title="Passes & Criação"     data={radarPasse}  color={BLUE} icon="🎯" />
         <PizzaPlot title="Duelos"               data={radarDuelo}  color={AMB}  icon="⚔️" />
         <PizzaPlot title="Defesa & Recuperação" data={radarDef}    color={TEAL} icon="🛡️" />
@@ -660,8 +660,8 @@ function TabDesempenho({ atleta, metricas }) {
             <YAxis tick={{ fontSize:8, fill:'#94a3b8' }} />
             <Tooltip contentStyle={{ fontSize:10, borderRadius:8 }} />
             <Legend wrapperStyle={{ fontSize:9 }} />
-            <Bar dataKey="gols"   name="Gols"       fill={GFC}  radius={[3,3,0,0]} />
-            <Bar dataKey="assists" name="Assists"   fill={GFC2} stroke={GFC} strokeWidth={1} radius={[3,3,0,0]} />
+            <Bar dataKey="gols"   name="Gols"       fill={BRAND_PRIMARY}  radius={[3,3,0,0]} />
+            <Bar dataKey="assists" name="Assists"   fill={BRAND_DARK} stroke={BRAND_PRIMARY} strokeWidth={1} radius={[3,3,0,0]} />
             <Line dataKey="xg" name="xG" stroke={TEAL} strokeWidth={2} dot={{ r:3, fill:TEAL }} />
           </ComposedChart>
         </ResponsiveContainer>
@@ -678,8 +678,8 @@ function TabDesempenho({ atleta, metricas }) {
           <MetricRow label="xG"                  value={T.xg.toFixed(2)}    max100={null} pctVal={null} />
           <MetricRow label="xA"                  value={T.xa.toFixed(2)}    max100={null} pctVal={null} />
           <MetricRow label="Remates totais"       value={T.remates_totais}   extra={`${pct(T.remates_baliza,T.remates_totais)}% à baliza`} />
-          <MetricRow label="Remates à baliza"     value={T.remates_baliza}   pctVal={pct(T.remates_baliza,T.remates_totais)} color={GFC} />
-          <MetricRow label="Dribbles"             value={T.dribbles}         pctVal={pct(T.dribbles_ok,T.dribbles)} color={GFC} extra={`${T.dribbles_ok} ok`} />
+          <MetricRow label="Remates à baliza"     value={T.remates_baliza}   pctVal={pct(T.remates_baliza,T.remates_totais)} color={BRAND_PRIMARY} />
+          <MetricRow label="Dribbles"             value={T.dribbles}         pctVal={pct(T.dribbles_ok,T.dribbles)} color={BRAND_PRIMARY} extra={`${T.dribbles_ok} ok`} />
           <MetricRow label="Toques na área"       value={T.toques_area}      max100={null} />
           <MetricRow label="Assist. para remate"  value={T.assist_remate}    max100={null} />
           <MetricRow label="Segundas assistências" value={T.segundas_assist} max100={null} />
@@ -708,7 +708,7 @@ function TabDesempenho({ atleta, metricas }) {
           <MetricRow label="Duelos totais"        value={T.duelos}           pctVal={pct(T.duelos_ganhos,T.duelos)} color={AMB} extra={`${pct(T.duelos_ganhos,T.duelos)}% vencidos`} />
           <MetricRow label="Duelos ganhos"        value={T.duelos_ganhos}    pctVal={pct(T.duelos_ganhos,T.duelos)} color={AMB} />
           <MetricRow label="Duelos aéreos"        value={T.duelos_aereos}    pctVal={pct(T.duelos_aereos_ganhos,T.duelos_aereos)} color={AMB} extra={`${pct(T.duelos_aereos_ganhos,T.duelos_aereos)}%`} />
-          <MetricRow label="Duelos ofensivos"     value={T.duelos_off}       pctVal={pct(T.duelos_off_ganhos,T.duelos_off)} color={GFC} extra={`${pct(T.duelos_off_ganhos,T.duelos_off)}%`} />
+          <MetricRow label="Duelos ofensivos"     value={T.duelos_off}       pctVal={pct(T.duelos_off_ganhos,T.duelos_off)} color={BRAND_PRIMARY} extra={`${pct(T.duelos_off_ganhos,T.duelos_off)}%`} />
           <MetricRow label="Duelos defensivos"    value={T.duelos_def}       pctVal={pct(T.duelos_def_ganhos,T.duelos_def)} color={TEAL} extra={`${pct(T.duelos_def_ganhos,T.duelos_def)}%`} />
           <MetricRow label="Duelos bola livre"    value={T.bola_livre}       pctVal={pct(T.bola_livre_ganhos,T.bola_livre)} color={AMB} extra={`${pct(T.bola_livre_ganhos,T.bola_livre)}%`} />
           <MetricRow label="Carrinhos"            value={T.carrinhos}        pctVal={pct(T.carrinhos_ok,T.carrinhos)} color={TEAL} extra={`${pct(T.carrinhos_ok,T.carrinhos)}%`} />
@@ -722,7 +722,7 @@ function TabDesempenho({ atleta, metricas }) {
           <MetricRow label="Perdas no próprio campo" value={T.perdas_proprio} max100={null} extra={`${p90(T.perdas_proprio,m).toFixed(1)}/90`} />
           <MetricRow label="Alívios"              value={T.alivios}          max100={null} />
           <MetricRow label="Corridas seguidas"    value={T.corridas}         max100={null} />
-          <MetricRow label="Ações totais"         value={T.acoes_totais}     pctVal={pct(T.acoes_ok,T.acoes_totais)} color={GFC} extra={`${pct(T.acoes_ok,T.acoes_totais)}% ok`} />
+          <MetricRow label="Ações totais"         value={T.acoes_totais}     pctVal={pct(T.acoes_ok,T.acoes_totais)} color={BRAND_PRIMARY} extra={`${pct(T.acoes_ok,T.acoes_totais)}% ok`} />
           <div style={{ marginTop:8, paddingTop:8, borderTop:'1px solid #e5edf5' }}>
             <SectionTitle label="Disciplina" icon="🟨" />
           </div>
@@ -736,7 +736,7 @@ function TabDesempenho({ atleta, metricas }) {
       <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5edf5', padding:'16px 18px' }}>
         <div style={{ display:'flex', justifyContent:'space-between', marginBottom:10 }}>
           <SectionTitle label="Observações do Scout" icon="✏️" />
-          <button onClick={saveObs} disabled={saving} style={{ background:GFC, color:'#fff', border:'none', borderRadius:7, padding:'5px 14px', fontSize:9, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+          <button onClick={saveObs} disabled={saving} style={{ background:BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:7, padding:'5px 14px', fontSize:9, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
             {saving ? 'Salvando...' : '💾 Salvar'}
           </button>
         </div>
@@ -788,13 +788,13 @@ function TabGeral({ atleta, T, onEdit }) {
       <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5edf5', padding:20 }}>
         <div style={{ display:'flex', justifyContent:'space-between', marginBottom:14 }}>
           <SectionTitle label="Informações" icon="👤" />
-          <button onClick={onEdit} style={{ background:'none', border:'none', cursor:'pointer', fontSize:9, color:GFC, fontWeight:700 }}>✏ Editar</button>
+          <button onClick={onEdit} style={{ background:'none', border:'none', cursor:'pointer', fontSize:9, color:BRAND_PRIMARY, fontWeight:700 }}>✏ Editar</button>
         </div>
         {bioFields.map(([l, v]) => !v ? null : (
           <div key={l} style={{ display:'flex', justifyContent:'space-between', padding:'7px 0', borderBottom:'1px solid #f7fcf9' }}>
             <span style={{ fontSize:10, color:'#94a3b8' }}>{l}</span>
             {l === 'Link externo'
-              ? <a href={atleta.link_externo} target="_blank" rel="noopener noreferrer" style={{ fontSize:10, fontWeight:700, color:GFC }}>Abrir ↗</a>
+              ? <a href={atleta.link_externo} target="_blank" rel="noopener noreferrer" style={{ fontSize:10, fontWeight:700, color:BRAND_PRIMARY }}>Abrir ↗</a>
               : <span style={{ fontSize:10, fontWeight:700, color:'#10233b', maxWidth:150, textAlign:'right' }}>{v}</span>
             }
           </div>
@@ -814,9 +814,9 @@ function TabGeral({ atleta, T, onEdit }) {
                 { l:'Jogos',     v: tempStats.jogados,  c:'#10233b' },
                 { l:'Titular',   v: tempStats.titular,  c:'#10233b' },
                 { l:'Minutos',   v: tempStats.minutos,  c:'#10233b' },
-                { l:'Gols',      v: tempStats.gols,     c: GFC },
-                { l:'Assists',   v: tempStats.assists,  c: GFC },
-                { l:'G+A',       v: tempStats.gols + tempStats.assists, c: GFC },
+                { l:'Gols',      v: tempStats.gols,     c: BRAND_PRIMARY },
+                { l:'Assists',   v: tempStats.assists,  c: BRAND_PRIMARY },
+                { l:'G+A',       v: tempStats.gols + tempStats.assists, c: BRAND_PRIMARY },
                 { l:'🟨',        v: tempStats.amarelos, c: AMB },
                 { l:'🟥',        v: tempStats.vermelhos,c: RED },
               ].map(({ l, v, c }) => (
@@ -837,8 +837,8 @@ function TabGeral({ atleta, T, onEdit }) {
               {[
                 { l:'Jogos',   v:T.jogos,             c:'#10233b' },
                 { l:'Minutos', v:T.minutos,            c:'#10233b' },
-                { l:'Gols',    v:T.gols,               c:GFC },
-                { l:'Assists', v:T.assists,            c:GFC },
+                { l:'Gols',    v:T.gols,               c:BRAND_PRIMARY },
+                { l:'Assists', v:T.assists,            c:BRAND_PRIMARY },
                 { l:'xG',      v:T.xg.toFixed(1),     c:TEAL },
                 { l:'xA',      v:T.xa.toFixed(1),     c:TEAL },
                 { l:'🟨',      v:T.amarelo2,           c:AMB },
@@ -857,7 +857,7 @@ function TabGeral({ atleta, T, onEdit }) {
                   ['Recuper./90',  p90(T.recuperacoes,T.minutos).toFixed(1)],
                 ].map(([l, v]) => (
                   <div key={l} style={{ background:'#f7fcf9', borderRadius:8, padding:'8px 10px', textAlign:'center' }}>
-                    <p style={{ fontSize:16, fontWeight:900, color:GFC, fontFamily:"'Barlow Condensed',sans-serif" }}>{v}</p>
+                    <p style={{ fontSize:16, fontWeight:900, color:BRAND_PRIMARY, fontFamily:"'Barlow Condensed',sans-serif" }}>{v}</p>
                     <p style={{ fontSize:8, color:'#94a3b8' }}>{l}</p>
                   </div>
                 ))}
@@ -894,7 +894,7 @@ function TabCarreira({ resumo }) {
   return (
     <div>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:20 }}>
-        {[{ l:'Temporadas',v:resumo.length,c:'#10233b'},{l:'Jogos',v:totalJogos,c:'#10233b'},{l:'Gols',v:totalGols,c:GFC},{l:'Assistências',v:totalAst,c:GFC}].map(({ l, v, c }) => (
+        {[{ l:'Temporadas',v:resumo.length,c:'#10233b'},{l:'Jogos',v:totalJogos,c:'#10233b'},{l:'Gols',v:totalGols,c:BRAND_PRIMARY},{l:'Assistências',v:totalAst,c:BRAND_PRIMARY}].map(({ l, v, c }) => (
           <div key={l} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5edf5', padding:'14px 16px', textAlign:'center' }}>
             <p style={{ fontSize:28, fontWeight:900, color:c, fontFamily:"'Barlow Condensed',sans-serif", lineHeight:1 }}>{v}</p>
             <p style={{ fontSize:9, color:'#94a3b8', marginTop:4, textTransform:'uppercase' }}>{l}</p>
@@ -913,13 +913,13 @@ function TabCarreira({ resumo }) {
           <tbody>
             {resumo.map((r,i) => (
               <tr key={i} style={{ borderBottom:'1px solid #f4f8fc', background:i%2?'#fafffe':'#fff' }}>
-                <td style={{ padding:'9px 12px', textAlign:'center', fontWeight:900, color:GFC, fontFamily:"'Barlow Condensed',sans-serif", fontSize:14 }}>{r['TEMPORADA']}</td>
+                <td style={{ padding:'9px 12px', textAlign:'center', fontWeight:900, color:BRAND_PRIMARY, fontFamily:"'Barlow Condensed',sans-serif", fontSize:14 }}>{r['TEMPORADA']}</td>
                 <td style={{ padding:'9px 12px', textAlign:'center', fontWeight:700, color:'#10233b' }}>{r['TIME']}</td>
                 <td style={{ padding:'9px 12px', textAlign:'center', color:'#64748b', fontSize:10 }}>{r['Posição']}</td>
                 <td style={{ padding:'9px 12px', textAlign:'center', fontWeight:700 }}>{r['Jogos']}</td>
                 <td style={{ padding:'9px 12px', textAlign:'center', color:'#64748b' }}>{r['Minutos Totais']}</td>
                 <td style={{ padding:'9px 12px', textAlign:'center' }}>
-                  <span style={{ background:safeNum(r['Golos'])>0?GFC2:'transparent', color:safeNum(r['Golos'])>0?GFC:'#94a3b8', borderRadius:5, padding:'2px 8px', fontWeight:700 }}>{r['Golos']}</span>
+                  <span style={{ background:safeNum(r['Golos'])>0?BRAND_DARK:'transparent', color:safeNum(r['Golos'])>0?BRAND_PRIMARY:'#94a3b8', borderRadius:5, padding:'2px 8px', fontWeight:700 }}>{r['Golos']}</span>
                 </td>
                 <td style={{ padding:'9px 12px', textAlign:'center' }}>
                   <span style={{ background:safeNum(r['Assistências'])>0?'#e3f2fd':'transparent', color:safeNum(r['Assistências'])>0?BLUE:'#94a3b8', borderRadius:5, padding:'2px 8px', fontWeight:700 }}>{r['Assistências']}</span>
@@ -980,7 +980,7 @@ function TabJogos({ atleta, metricas }) {
             padding:'6px 14px', fontSize:10, fontWeight:700, borderRadius:7, fontFamily:'inherit',
             cursor:'pointer', border:'none',
             background: abaJogos===t.id ? '#fff' : 'transparent',
-            color: abaJogos===t.id ? GFC : '#64748b',
+            color: abaJogos===t.id ? BRAND_PRIMARY : '#64748b',
             boxShadow: abaJogos===t.id ? '0 1px 4px rgba(10,102,183,0.12)' : 'none',
           }}>
             {t.label} <span style={{ marginLeft:4, fontSize:9, opacity:0.7 }}>({t.count})</span>
@@ -996,7 +996,7 @@ function TabJogos({ atleta, metricas }) {
               Calendário {new Date().getFullYear()} · {jogosTemp.length} jogos
             </p>
             {jogosTemp.filter(j=>new Date(j['Data'])>=hoje).length > 0 && (
-              <span style={{ fontSize:9, fontWeight:700, color:GFC, background:GFC+'15', borderRadius:20, padding:'2px 10px' }}>
+              <span style={{ fontSize:9, fontWeight:700, color:BRAND_PRIMARY, background:BRAND_PRIMARY+'15', borderRadius:20, padding:'2px 10px' }}>
                 {jogosTemp.filter(j=>new Date(j['Data'])>=hoje).length} próximos
               </span>
             )}
@@ -1043,8 +1043,8 @@ function TabJogos({ atleta, metricas }) {
                       }}>
                         <td style={{ padding:'9px 12px', whiteSpace:'nowrap' }}>
                           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                            {emBreve && <span style={{ width:6, height:6, borderRadius:'50%', background:GFC, display:'inline-block', flexShrink:0, animation:'pulse 2s infinite' }}/>}
-                            <span style={{ fontWeight: emBreve ? 700 : 400, color: futuro ? GFC : '#64748b' }}>{fmtData(j['Data'])}</span>
+                            {emBreve && <span style={{ width:6, height:6, borderRadius:'50%', background:BRAND_PRIMARY, display:'inline-block', flexShrink:0, animation:'pulse 2s infinite' }}/>}
+                            <span style={{ fontWeight: emBreve ? 700 : 400, color: futuro ? BRAND_PRIMARY : '#64748b' }}>{fmtData(j['Data'])}</span>
                           </div>
                         </td>
                         <td style={{ padding:'9px 12px', color:'#94a3b8', fontSize:10, maxWidth:140, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{j['Competição']||'—'}</td>
@@ -1056,12 +1056,12 @@ function TabJogos({ atleta, metricas }) {
                         <td style={{ padding:'9px 12px', textAlign:'center', color:'#64748b' }}>{j['Minutos'] ?? '—'}</td>
                         <td style={{ padding:'9px 12px', textAlign:'center' }}>
                           {j['Titular'] === 'Sim'
-                            ? <span style={{ background:GFC+'15', color:GFC, borderRadius:4, padding:'1px 6px', fontSize:9, fontWeight:700 }}>TIT</span>
+                            ? <span style={{ background:BRAND_PRIMARY+'15', color:BRAND_PRIMARY, borderRadius:4, padding:'1px 6px', fontSize:9, fontWeight:700 }}>TIT</span>
                             : j['Titular'] === 'Não'
                             ? <span style={{ background:'#f5f5f5', color:'#888', borderRadius:4, padding:'1px 6px', fontSize:9 }}>RES</span>
                             : <span style={{ color:'#c0d8c4', fontSize:10 }}>—</span>}
                         </td>
-                        <td style={{ padding:'9px 12px', textAlign:'center', fontWeight:700, color: safeNum(j['Gols'])>0?GFC:'#64748b' }}>{j['Gols']??'—'}</td>
+                        <td style={{ padding:'9px 12px', textAlign:'center', fontWeight:700, color: safeNum(j['Gols'])>0?BRAND_PRIMARY:'#64748b' }}>{j['Gols']??'—'}</td>
                         <td style={{ padding:'9px 12px', textAlign:'center', fontWeight:700, color: safeNum(j['Assistências'])>0?BLUE:'#64748b' }}>{j['Assistências']??'—'}</td>
                         <td style={{ padding:'9px 12px', textAlign:'center' }}>
                           {safeNum(j['Cartões Amarelos'])>0
@@ -1079,7 +1079,7 @@ function TabJogos({ atleta, metricas }) {
                           ) : notaVal !== null ? (
                             <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:1 }}>
                               <NotaBadge nota={notaVal} size="sm" />
-                              <span style={{ fontSize:7, color: notaTipo==='shadow' ? AMB : GFC }}>
+                              <span style={{ fontSize:7, color: notaTipo==='shadow' ? AMB : BRAND_PRIMARY }}>
                                 {notaTipo==='shadow' ? '~' : '●'}
                               </span>
                             </div>
@@ -1116,20 +1116,20 @@ function TabJogos({ atleta, metricas }) {
                     return (
                       <div key={i} onClick={() => setSelectedIdx(i)} style={{
                         padding:'10px 14px', borderBottom:'1px solid #f7fcf9', cursor:'pointer',
-                        background: isActive ? GFC2 : '#fff',
-                        borderLeft: `3px solid ${isActive ? GFC : 'transparent'}`,
+                        background: isActive ? BRAND_DARK : '#fff',
+                        borderLeft: `3px solid ${isActive ? BRAND_PRIMARY : 'transparent'}`,
                       }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:3 }}>
                           <p style={{ fontSize:10, fontWeight:700, color:'#10233b', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:170 }}>{g.jogo}</p>
                           <div style={{ display:'flex', alignItems:'center', gap:4, flexShrink:0 }}>
-                            {videoUrls[i] && <span style={{ fontSize:9, color:GFC, fontWeight:700 }}>📹</span>}
+                            {videoUrls[i] && <span style={{ fontSize:9, color:BRAND_PRIMARY, fontWeight:700 }}>📹</span>}
                             <NotaBadge nota={notaV} size="sm" />
                           </div>
                         </div>
                         <p style={{ fontSize:9, color:'#94a3b8', marginBottom:5 }}>{g.date} · {g.competition}</p>
                         <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
-                          <span style={{ background:'#f4f8fc', color:GFC, borderRadius:5, padding:'2px 7px', fontSize:9, fontWeight:700 }}>{safeNum(g.minutos)}'</span>
-                          {gols>0 && <span style={{ background:GFC2, color:GFC, borderRadius:5, padding:'2px 7px', fontSize:9 }}>⚽ {gols}</span>}
+                          <span style={{ background:'#f4f8fc', color:BRAND_PRIMARY, borderRadius:5, padding:'2px 7px', fontSize:9, fontWeight:700 }}>{safeNum(g.minutos)}'</span>
+                          {gols>0 && <span style={{ background:BRAND_DARK, color:BRAND_PRIMARY, borderRadius:5, padding:'2px 7px', fontSize:9 }}>⚽ {gols}</span>}
                           {ast>0  && <span style={{ background:'#e3f2fd', color:BLUE, borderRadius:5, padding:'2px 7px', fontSize:9 }}>🅰 {ast}</span>}
                         </div>
                       </div>
@@ -1168,7 +1168,7 @@ function TabJogos({ atleta, metricas }) {
                     <p style={{ fontSize:24, marginBottom:8 }}>📹</p>
                     <p style={{ fontSize:11, color:'#94a3b8', marginBottom:14 }}>Carregue o vídeo de destaques desta partida.</p>
                     <button onClick={() => inputRefs.current[selectedIdx]?.click()}
-                      style={{ background:GFC, color:'#fff', border:'none', borderRadius:9, padding:'9px 20px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+                      style={{ background:BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:9, padding:'9px 20px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
                       📤 Carregar destaques
                     </button>
                     <input ref={el => inputRefs.current[selectedIdx] = el} type="file" accept="video/*" style={{ display:'none' }}
@@ -1186,7 +1186,7 @@ function TabJogos({ atleta, metricas }) {
                     ['Intercepções',currentGame.intercepcoes],['Recuperações',currentGame.recuperacoes],['Toques área',currentGame.toques_area],['xA',safeNum(currentGame.xa).toFixed(2)],
                   ].map(([l,v]) => (
                     <div key={l} style={{ background:'#f7fcf9', borderRadius:8, padding:'7px 10px', textAlign:'center' }}>
-                      <p style={{ fontSize:15, fontWeight:900, color:GFC, fontFamily:"'Barlow Condensed',sans-serif" }}>{v??'—'}</p>
+                      <p style={{ fontSize:15, fontWeight:900, color:BRAND_PRIMARY, fontFamily:"'Barlow Condensed',sans-serif" }}>{v??'—'}</p>
                       <p style={{ fontSize:8, color:'#94a3b8' }}>{l}</p>
                     </div>
                   ))}
@@ -1278,7 +1278,7 @@ function EditModal({ atleta, onClose, onSaved }) {
             </select>
           </div>
         </div>
-        <button onClick={save} disabled={saving} style={{ marginTop:20, width:'100%', background:GFC, color:'#fff', border:'none', borderRadius:10, padding:'12px', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+        <button onClick={save} disabled={saving} style={{ marginTop:20, width:'100%', background:BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:10, padding:'12px', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
           {saving ? 'Salvando...' : 'Salvar Alterações'}
         </button>
       </div>
@@ -1287,7 +1287,7 @@ function EditModal({ atleta, onClose, onSaved }) {
 }
 
 /* ─── Upload button ─────────────────────────────────────────────────── */
-function UploadBtn({ label, accept, onFile, loading, done, color=GFC }) {
+function UploadBtn({ label, accept, onFile, loading, done, color=BRAND_PRIMARY }) {
   const ref = useRef()
   return (
     <div>
@@ -1472,7 +1472,7 @@ export default function AtletaPage({ params }) {
   const idade    = calcIdade(atleta.data_nascimento)
 
   const NIVEL_C = { 'Monitorando':'#0a66b7','Interesse':'#1565c0','Proposta':'#b45309','Descartado':'#c62828' }
-  const nColor  = NIVEL_C[atleta.nivel_interesse] || GFC
+  const nColor  = NIVEL_C[atleta.nivel_interesse] || BRAND_PRIMARY
 
   const TABS = [
     { key:'geral',      label:'📋 Geral' },
@@ -1488,7 +1488,7 @@ export default function AtletaPage({ params }) {
 
         {/* Breadcrumb */}
         <p style={{ fontSize:9, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'1px', marginBottom:12 }}>
-          <a href="/monitoramento" style={{ color:GFC, textDecoration:'none', fontWeight:700 }}>← Monitoramento</a>
+          <a href="/monitoramento" style={{ color:BRAND_PRIMARY, textDecoration:'none', fontWeight:700 }}>← Monitoramento</a>
           {' '}· {atleta.apelido || atleta.nome}
         </p>
 
@@ -1497,10 +1497,10 @@ export default function AtletaPage({ params }) {
           {/* Foto */}
           <div style={{ position:'relative', flexShrink:0 }}>
             {atleta.foto_url
-              ? <img src={atleta.foto_url} style={{ width:80, height:80, borderRadius:'50%', objectFit:'cover', border:`3px solid ${GFC}` }} />
-              : <div style={{ width:80, height:80, borderRadius:'50%', background:GFC2, border:`3px solid ${GFC}22`, display:'flex', alignItems:'center', justifyContent:'center' }}><span style={{ fontSize:28, color:GFC }}>👤</span></div>}
+              ? <img src={atleta.foto_url} style={{ width:80, height:80, borderRadius:'50%', objectFit:'cover', border:`3px solid ${BRAND_PRIMARY}` }} />
+              : <div style={{ width:80, height:80, borderRadius:'50%', background:BRAND_DARK, border:`3px solid ${BRAND_PRIMARY}22`, display:'flex', alignItems:'center', justifyContent:'center' }}><span style={{ fontSize:28, color:BRAND_PRIMARY }}>👤</span></div>}
             <button onClick={()=>fotoRef.current?.click()}
-              style={{ position:'absolute', bottom:0, right:0, background:GFC, color:'#fff', border:'none', borderRadius:'50%', width:22, height:22, fontSize:10, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              style={{ position:'absolute', bottom:0, right:0, background:BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:'50%', width:22, height:22, fontSize:10, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
               {fotoUploading?'⏳':'📷'}
             </button>
             <input ref={fotoRef} type="file" accept="image/*" style={{ display:'none' }} onChange={e=>{const f=e.target.files[0];if(f)handleFoto(f);e.target.value=''}} />
@@ -1524,7 +1524,7 @@ export default function AtletaPage({ params }) {
               <div style={{ display:'flex', gap:18 }}>
                 {[['Jogos',T.jogos],['Minutos',T.minutos],['Gols',T.gols],['Assists',T.assists],['xG',T.xg.toFixed(1)],['xA',T.xa.toFixed(1)],['Idade',idade]].map(([l,v])=>(
                   <div key={l} style={{ textAlign:'center' }}>
-                    <p style={{ fontSize:18, fontWeight:900, color:GFC, fontFamily:"'Barlow Condensed',sans-serif", lineHeight:1 }}>{v}</p>
+                    <p style={{ fontSize:18, fontWeight:900, color:BRAND_PRIMARY, fontFamily:"'Barlow Condensed',sans-serif", lineHeight:1 }}>{v}</p>
                     <p style={{ fontSize:8, color:'#94a3b8' }}>{l}</p>
                   </div>
                 ))}
@@ -1536,7 +1536,7 @@ export default function AtletaPage({ params }) {
                 atleta.data_contrato_fim && (() => { try { const d = new Date(atleta.data_contrato_fim + 'T12:00'); const dias = Math.round((d - new Date()) / 864e5); const c = dias < 0 ? RED : dias <= 60 ? AMB : '#475569'; return { icon:'📅', label:'Contrato', value: `${atleta.data_contrato_fim}${dias < 0 ? ' ❌' : dias <= 60 ? ` ⚠ ${dias}d` : ''}`, color: c } } catch { return { icon:'📅', label:'Contrato', value: atleta.data_contrato_fim, color:'#475569' } } })(),
                 atleta.pe_preferido   && { icon:'👟', label:'Pé',       value: atleta.pe_preferido,  color:'#475569' },
                 atleta.altura         && { icon:'📏', label:'Altura',   value: `${atleta.altura}m`,  color:'#475569' },
-                atleta.valor_mercado  && { icon:'💰', label:'Valor',    value: atleta.valor_mercado, color:GFC },
+                atleta.valor_mercado  && { icon:'💰', label:'Valor',    value: atleta.valor_mercado, color:BRAND_PRIMARY },
                 atleta.empresario     && { icon:'🤝', label:'Empresário',value: atleta.empresario,   color:'#475569' },
                 atleta.pais_liga      && { icon:'🌎', label:'País',     value: atleta.pais_liga,     color:'#475569' },
               ].filter(Boolean).map((item, i) => (
@@ -1550,11 +1550,11 @@ export default function AtletaPage({ params }) {
                 <a href={atleta.link_externo} target="_blank" rel="noopener noreferrer" title="Perfil externo (Transfermarkt/Ogol)"
                   onClick={e=>e.stopPropagation()}
                   style={{ display:'flex', alignItems:'center', gap:5, background:'#f4f8fc', borderRadius:8, padding:'3px 10px', border:'1px solid #c6e0cc', textDecoration:'none' }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={GFC} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={BRAND_PRIMARY} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
                     <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                   </svg>
-                  <span style={{ fontSize:9, fontWeight:700, color:GFC }}>Perfil</span>
+                  <span style={{ fontSize:9, fontWeight:700, color:BRAND_PRIMARY }}>Perfil</span>
                 </a>
               )}
               {atleta.link_video && (
@@ -1569,7 +1569,7 @@ export default function AtletaPage({ params }) {
               )}
               {listaFinalRec && (
                 <div style={{ display:'flex', alignItems:'center', gap:5, background:'#f0fdf4', borderRadius:8, padding:'3px 9px', border:'1px solid #bbf7d0' }}>
-                  <span style={{ fontSize:9, fontWeight:900, color:GFC }}>IRC {parseFloat(listaFinalRec.irc_final||0).toFixed(1)}</span>
+                  <span style={{ fontSize:9, fontWeight:900, color:BRAND_PRIMARY }}>IRC {parseFloat(listaFinalRec.irc_final||0).toFixed(1)}</span>
                   <span style={{ fontSize:8, color:'#52677e' }}>·</span>
                   <span style={{ fontSize:9, fontWeight:700, color:'#52677e' }}>{listaFinalRec.recomendacao||listaFinalRec.irc_classificacao||'Lista Final CIC'}</span>
                 </div>
@@ -1584,7 +1584,7 @@ export default function AtletaPage({ params }) {
               <UploadBtn label="Atualização Semanal" accept=".xlsx,.xls" loading={uploadingSem} done={false} onFile={handleExcelSem} color={BLUE} />
               <UploadBtn label="Planilha Manual" accept=".xlsx,.xls" loading={uploadingManual} done={resumo.length>0 && metricas.length===0} onFile={handleExcelManual} color={TEAL} />
               <div style={{ borderTop:'1px solid #e5edf5', margin:'4px 0' }} />
-              <UploadBtn label="Dados Confiança" accept=".xlsx,.xls" loading={uploadingG} done={false} onFile={f=>handleBenchmark(f,'confianca',setUploadingG)} color='#1565c0' />
+              <UploadBtn label="Dados Confiança" accept=".xlsx,.xls" loading={uploadingG} done={false} onFile={f=>handleBenchmark(f,'club',setUploadingG)} color='#1565c0' />
               <UploadBtn label="Dados Série C" accept=".xlsx,.xls" loading={uploadingSC} done={false} onFile={f=>handleBenchmark(f,'serie_c',setUploadingSC)} color='#b45309' />
               <button onClick={()=>setEditModal(true)} style={{ background:'none', border:'1px solid #e5edf5', borderRadius:8, padding:'7px 14px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit', color:'#64748b' }}>✏ Editar Dados</button>
               <div style={{ borderTop:'1px solid #e5edf5', margin:'4px 0' }} />
@@ -1602,7 +1602,7 @@ export default function AtletaPage({ params }) {
               )}
               {/* Exportar PDF perfil */}
               <button onClick={handleGerarPdf} disabled={gerandoPdf}
-                style={{ background:GFC, color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', fontSize:10, fontWeight:800, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
+                style={{ background:BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', fontSize:10, fontWeight:800, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
                 🖨️ Exportar PDF
               </button>
             </div>
@@ -1612,7 +1612,7 @@ export default function AtletaPage({ params }) {
         {/* Tabs */}
         <div style={{ display:'flex', gap:4, marginBottom:16 }}>
           {TABS.map(t => (
-            <button key={t.key} onClick={()=>setTab(t.key)} style={{ padding:'8px 18px', fontSize:11, fontWeight:700, borderRadius:10, fontFamily:'inherit', background:tab===t.key?GFC:'#fff', color:tab===t.key?'#fff':'#64748b', border:`1px solid ${tab===t.key?GFC:'#e5edf5'}`, cursor:'pointer', transition:'all 0.15s' }}>
+            <button key={t.key} onClick={()=>setTab(t.key)} style={{ padding:'8px 18px', fontSize:11, fontWeight:700, borderRadius:10, fontFamily:'inherit', background:tab===t.key?BRAND_PRIMARY:'#fff', color:tab===t.key?'#fff':'#64748b', border:`1px solid ${tab===t.key?BRAND_PRIMARY:'#e5edf5'}`, cursor:'pointer', transition:'all 0.15s' }}>
               {t.label}
             </button>
           ))}

@@ -4,15 +4,15 @@ import { useParams, useRouter } from 'next/navigation'
 import AppShell from '../../../components/layout/AppShell'
 import Link from 'next/link'
 
-const GFC   = '#0a66b7'
-const GFC2  = '#f0fdf4'
+const BRAND_PRIMARY   = '#0a66b7'
+const BRAND_DARK  = '#f0fdf4'
 const ETAPAS = ['Identificados', 'Análise em vídeo', 'Observação ao vivo', 'Pré-lista', 'Alvo prioritário', 'Acompanhamento']
 const POSICOES = ['Goleiro','Lateral Direito','Lateral Esquerdo','Zagueiro','Volante','Meia','Meia Atacante','Ponta Direita','Ponta Esquerda','Centroavante','Atacante']
 
 function fitColor(s) {
   if (!s && s !== 0) return { bg:'#f8fafc', c:'#94a3b8', label:'—' }
   if (s >= 90) return { bg:'#fef3c7', c:'#92400e', label:'Elite' }
-  if (s >= 80) return { bg:GFC2, c:GFC, label:'Forte' }
+  if (s >= 80) return { bg:BRAND_DARK, c:BRAND_PRIMARY, label:'Forte' }
   if (s >= 70) return { bg:'#eff6ff', c:'#1d4ed8', label:'Viável' }
   return { bg:'#f8fafc', c:'#64748b', label:'Baixo' }
 }
@@ -48,7 +48,7 @@ function EditableTextarea({ label, value, placeholder, onSave, rows = 3 }) {
         <div>
           <textarea value={text} onChange={e => setText(e.target.value)} placeholder={placeholder} rows={rows}
             style={{ width:'100%', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:10, padding:'10px 12px', fontSize:12, fontFamily:'inherit', resize:'vertical', outline:'none', boxSizing:'border-box' }}
-            onFocus={e => e.target.style.borderColor = GFC}
+            onFocus={e => e.target.style.borderColor = BRAND_PRIMARY}
             onBlur={e => e.target.style.borderColor = '#e2e8f0'}/>
           <div style={{ display:'flex', gap:6, marginTop:6 }}>
             <button onClick={() => { setEditing(false); setText(value||'') }}
@@ -56,7 +56,7 @@ function EditableTextarea({ label, value, placeholder, onSave, rows = 3 }) {
               Cancelar
             </button>
             <button onClick={save} disabled={saving}
-              style={{ flex:1, padding:'6px', borderRadius:8, border:'none', background: saving ? '#9fc5df' : GFC, color:'#fff', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+              style={{ flex:1, padding:'6px', borderRadius:8, border:'none', background: saving ? '#9fc5df' : BRAND_PRIMARY, color:'#fff', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
               {saving ? 'Salvando...' : 'Salvar'}
             </button>
           </div>
@@ -90,14 +90,14 @@ function EditableLink({ label, value, placeholder, icon, onSave }) {
             <input value={text} onChange={e => setText(e.target.value)} placeholder={placeholder}
               style={{ flex:1, padding:'6px 10px', border:'1.5px solid #e2e8f0', borderRadius:8, fontSize:11, fontFamily:'inherit', outline:'none' }}/>
             <button onClick={save} disabled={saving}
-              style={{ padding:'6px 10px', borderRadius:8, border:'none', background:GFC, color:'#fff', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>OK</button>
+              style={{ padding:'6px 10px', borderRadius:8, border:'none', background:BRAND_PRIMARY, color:'#fff', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>OK</button>
             <button onClick={() => { setEditing(false); setText(value||'') }}
               style={{ padding:'6px 10px', borderRadius:8, border:'1px solid #e2e8f0', background:'#fff', fontSize:10, cursor:'pointer', fontFamily:'inherit' }}>×</button>
           </div>
         ) : value ? (
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             <a href={value} target="_blank" rel="noopener noreferrer"
-              style={{ fontSize:12, fontWeight:600, color:GFC, textDecoration:'none' }}>
+              style={{ fontSize:12, fontWeight:600, color:BRAND_PRIMARY, textDecoration:'none' }}>
               {label}
             </a>
             <button onClick={() => setEditing(true)}
@@ -211,13 +211,13 @@ export default function CandidatoPage() {
 
         {/* Breadcrumb */}
         <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:20, fontSize:12, color:'#94a3b8' }}>
-          <Link href="/centro-recrutamento" style={{ color:GFC, fontWeight:600, textDecoration:'none' }}>Centro de Recrutamento</Link>
+          <Link href="/centro-recrutamento" style={{ color:BRAND_PRIMARY, fontWeight:600, textDecoration:'none' }}>Centro de Recrutamento</Link>
           <span>/</span>
           <span style={{ color:'#475569', fontWeight:600 }}>{c.jogador}</span>
         </div>
 
         {/* Hero */}
-        <div style={{ background:`linear-gradient(135deg, ${GFC} 0%, #0878c8 100%)`, borderRadius:20, padding:'20px 24px', marginBottom:16, display:'flex', alignItems:'center', gap:16 }}>
+        <div style={{ background:`linear-gradient(135deg, ${BRAND_PRIMARY} 0%, #0878c8 100%)`, borderRadius:20, padding:'20px 24px', marginBottom:16, display:'flex', alignItems:'center', gap:16 }}>
           <div style={{ width:60, height:60, borderRadius:'50%', background:'rgba(255,255,255,0.15)', border:'2px solid rgba(255,255,255,0.3)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:24, fontWeight:900, color:'#fff', flexShrink:0, fontFamily:"'Barlow Condensed',sans-serif" }}>
             {(c.jogador||'?')[0].toUpperCase()}
           </div>
@@ -241,9 +241,9 @@ export default function CandidatoPage() {
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:8, flexShrink:0 }}>
             <button onClick={enviarMonitoramento} disabled={monitorando}
-              style={{ padding:'8px 16px', borderRadius:10, background:'#fff', color:GFC, border:'none', fontSize:11, fontWeight:700, cursor: monitorando ? 'wait' : 'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6, whiteSpace:'nowrap' }}>
+              style={{ padding:'8px 16px', borderRadius:10, background:'#fff', color:BRAND_PRIMARY, border:'none', fontSize:11, fontWeight:700, cursor: monitorando ? 'wait' : 'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6, whiteSpace:'nowrap' }}>
               {monitorando
-                ? <span style={{ width:12, height:12, border:'2px solid #9fc5df', borderTopColor:GFC, borderRadius:'50%', display:'inline-block', animation:'spin 0.7s linear infinite' }}/>
+                ? <span style={{ width:12, height:12, border:'2px solid #9fc5df', borderTopColor:BRAND_PRIMARY, borderRadius:'50%', display:'inline-block', animation:'spin 0.7s linear infinite' }}/>
                 : '→'}
               Enviar ao Monitoramento
             </button>
@@ -254,7 +254,7 @@ export default function CandidatoPage() {
         <div style={{ display:'flex', gap:6, marginBottom:16, overflowX:'auto', paddingBottom:2 }}>
           {ETAPAS.map(e => (
             <button key={e} onClick={() => patch({ etapa: e })} disabled={saving}
-              style={{ padding:'6px 12px', borderRadius:8, border:`1.5px solid ${c.etapa===e ? GFC : '#e2e8f0'}`, background: c.etapa===e ? GFC : '#fff', color: c.etapa===e ? '#fff' : '#64748b', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap', opacity: saving ? 0.6 : 1 }}>
+              style={{ padding:'6px 12px', borderRadius:8, border:`1.5px solid ${c.etapa===e ? BRAND_PRIMARY : '#e2e8f0'}`, background: c.etapa===e ? BRAND_PRIMARY : '#fff', color: c.etapa===e ? '#fff' : '#64748b', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap', opacity: saving ? 0.6 : 1 }}>
               {e}
             </button>
           ))}
@@ -339,7 +339,7 @@ export default function CandidatoPage() {
                     Cancelar
                   </button>
                   <button onClick={saveDados} disabled={saving}
-                    style={{ flex:1, padding:'8px', borderRadius:10, border:'none', background: saving ? '#9fc5df' : GFC, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+                    style={{ flex:1, padding:'8px', borderRadius:10, border:'none', background: saving ? '#9fc5df' : BRAND_PRIMARY, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
                     {saving ? 'Salvando...' : '✓ Salvar Dados'}
                   </button>
                 </div>

@@ -128,13 +128,13 @@ export async function POST(req) {
 
     const matches = []
     for (const [, pair] of Object.entries(groups)) {
-      const guaraniRow = pair.find(r => String(r[COL.team]).toLowerCase().includes('confianca'))
+      const clubRow = pair.find(r => String(r[COL.team]).toLowerCase().includes('confianca'))
       const oppRow     = pair.find(r => !String(r[COL.team]).toLowerCase().includes('confianca'))
-      if (!guaraniRow) continue
+      if (!clubRow) continue
 
-      const { homeTeam, awayTeam, score } = parseLabel(guaraniRow[COL.jogo])
-      const date        = formatDate(guaraniRow[COL.date])
-      const competition = guaraniRow[COL.competition] || ''
+      const { homeTeam, awayTeam, score } = parseLabel(clubRow[COL.jogo])
+      const date        = formatDate(clubRow[COL.date])
+      const competition = clubRow[COL.competition] || ''
 
       matches.push({
         homeTeam,
@@ -142,7 +142,7 @@ export async function POST(req) {
         score,
         date,
         competition,
-        guarani:  rowToStats(guaraniRow),
+        club: rowToStats(clubRow),
         opponent: oppRow ? rowToStats(oppRow) : {},
       })
     }

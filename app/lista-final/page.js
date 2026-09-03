@@ -5,7 +5,7 @@ import AppShell from '../components/layout/AppShell'
 import Link from 'next/link'
 import { PLAYER_FOOT_OPTIONS, matchesPlayerFoot, playerFootLabel } from '@/data/player-foot'
 
-const GFC = '#0a66b7'
+const BRAND_PRIMARY = '#0a66b7'
 
 function ircCfg(v) {
   const n = parseFloat(v||0)
@@ -74,7 +74,7 @@ function EditModal({ player, onClose, onSaved }) {
       <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:640, maxHeight:'90vh', overflow:'hidden', display:'flex', flexDirection:'column', boxShadow:'0 24px 64px rgba(0,0,0,0.2)' }}>
 
         {/* Header */}
-        <div style={{ background:GFC, padding:'18px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
+        <div style={{ background:BRAND_PRIMARY, padding:'18px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
           <div>
             <p style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:3, color:'rgba(255,255,255,0.6)', marginBottom:2 }}>Editar Atleta</p>
             <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:900, color:'#fff', textTransform:'uppercase' }}>{player.jogador}</h3>
@@ -185,7 +185,7 @@ function EditModal({ player, onClose, onSaved }) {
         {/* Footer */}
         <div style={{ padding:'14px 24px', borderTop:'1px solid #f1f5f9', display:'flex', gap:8, justifyContent:'flex-end', flexShrink:0 }}>
           <button onClick={onClose} style={{ padding:'9px 18px', borderRadius:9, border:'1.5px solid #e2e8f0', background:'#fff', color:'#64748b', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Cancelar</button>
-          <button onClick={handleSave} disabled={saving} style={{ padding:'9px 20px', borderRadius:9, border:'none', background:GFC, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', opacity:saving?0.7:1 }}>
+          <button onClick={handleSave} disabled={saving} style={{ padding:'9px 20px', borderRadius:9, border:'none', background:BRAND_PRIMARY, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', opacity:saving?0.7:1 }}>
             {saving ? 'Salvando...' : '✓ Salvar Alterações'}
           </button>
         </div>
@@ -502,7 +502,7 @@ export default function ListaFinalPage() {
               <div key={label||'all'}>
                 {label && (
                   <div className="flex items-center gap-3 mb-3">
-                    <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:900, textTransform:'uppercase', color:GFC, letterSpacing:1 }}>{label}</h2>
+                    <h2 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18, fontWeight:900, textTransform:'uppercase', color:BRAND_PRIMARY, letterSpacing:1 }}>{label}</h2>
                     <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{items.length}</span>
                     <div className="flex-1 h-px bg-slate-100"/>
                   </div>

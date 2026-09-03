@@ -10,6 +10,7 @@ import { usePlayerPhotos } from '../../hooks/usePlayerPhotos'
 import { PhotoSelectorModal } from '../../components/photos/PhotoSelectorModal'
 import { buildResolver, buildAliasGroups, normName } from '@/lib/nameMatch'
 import VincularGpsModal from '../../components/VincularGpsModal'
+import { CORPO_TECNICO_DEMO_ENABLED, buildDemoWellnessData, buildDemoGpsSessions } from '@/lib/demoCorpoTecnico'
 
 const STYLE = `
   .bc { font-family: 'Barlow Condensed', sans-serif; }
@@ -22,10 +23,7 @@ const G = {
 }
 
 // ─── URLS ───────────────────────────────────────────────────────────────────
-const SHEETS = {
-  pre: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmx6gtZGEZXYMSLBxFaASfgQAdfwXWCVBCnnTV56QzrbUwy5zW38GZIhvgGERCTe3MufNkmBfWrRlK/pub?output=csv',
-  pos: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR7gU32319qDw3KLwOeyc8UFElJQwYL-X_rM2k5WGYhE0Wq7vdHE5_OXMI0DdWTRCx-Dj5IY35wjgkF/pub?output=csv',
-}
+const SHEETS = { pre: 'pre', pos: 'pos' }
 
 // ─── COLUNAS PRÉ-TREINO ─────────────────────────────────────────────────────
 // Carimbo de data/hora | Atletas | Peso (kg)
@@ -2075,6 +2073,19 @@ export function BemEstarContent() {
   }, [])
 
   async function loadData({ silent = false, sheetsOnly = false } = {}) {
+    if (CORPO_TECNICO_DEMO_ENABLED) {
+      const demo = buildDemoWellnessData()
+      setPreRows(demo.preRows)
+      setPosRows(demo.posRows)
+      setDuracoes(demo.duracoes)
+      if (!sheetsOnly) {
+        setGpsSessions(buildDemoGpsSessions())
+        setAliases([])
+      }
+      setLastUpdated(new Date())
+      setLoading(false)
+      return
+    }
     // Evita chamadas sobrepostas quando uma atualização demora mais que o intervalo.
     if (requestInFlight.current) return
     requestInFlight.current = true
@@ -2084,8 +2095,8 @@ export function BemEstarContent() {
     try {
       const cacheBust = Date.now()
       const requests = [
-        fetch(`/api/sheets-proxy?url=${encodeURIComponent(SHEETS.pre)}&_ts=${cacheBust}`, { cache: 'no-store' }),
-        fetch(`/api/sheets-proxy?url=${encodeURIComponent(SHEETS.pos)}&_ts=${cacheBust}`, { cache: 'no-store' }),
+        fetch(`/api/sheets-proxy?source=${SHEETS.pre}&_ts=${cacheBust}`, { cache: 'no-store' }),
+        fetch(`/api/sheets-proxy?source=${SHEETS.pos}&_ts=${cacheBust}`, { cache: 'no-store' }),
       ]
 
       // GPS, vínculos e duração não precisam ser consultados a cada 10 segundos.
@@ -2125,6 +2136,10 @@ export function BemEstarContent() {
   useEffect(() => { loadData() }, [])
 
   async function onSaveDuracao(date, minutos) {
+    if (CORPO_TECNICO_DEMO_ENABLED) {
+      setDuracoes(prev => ({ ...prev, [date]: minutos }))
+      return
+    }
     try {
       await fetch('/api/treino-duracao', {
         method: 'POST',
@@ -2136,6 +2151,7 @@ export function BemEstarContent() {
   }
 
   useEffect(() => {
+    if (CORPO_TECNICO_DEMO_ENABLED) return undefined
     // Atualização silenciosa a cada 10 segundos, sem piscar o estado de carregamento.
     const refresh = () => loadData({ silent: true, sheetsOnly: true })
     const t = setInterval(refresh, 10000)
@@ -2330,6 +2346,7 @@ export function BemEstarContent() {
             <div>
               <h1 className="bc text-4xl font-black" style={{color:G.azul}}>BEM-ESTAR & PSE</h1>
               <p className="text-sm mt-1" style={{color:G.cinzaEsc}}>Respostas de pré e pós treino dos atletas</p>
+              {CORPO_TECNICO_DEMO_ENABLED && <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-sky-700"><span className="h-2 w-2 rounded-full bg-sky-500"/>Modo demonstração · dados fictícios do Confiança</div>}
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {lastUpdated && (
@@ -2847,6 +2864,7 @@ export default function BemEstarPage() {
             <div>
               <h1 className="bc text-4xl font-black" style={{color:'#1E3A8A'}}>BEM-ESTAR & PSE</h1>
               <p className="text-sm" style={{color:'#9CA3AF'}}>Respostas de pré e pós treino dos atletas</p>
+              {CORPO_TECNICO_DEMO_ENABLED && <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-sky-600">Modo demonstração · dados fictícios</p>}
             </div>
             <button onClick={()=>router.push('/fisiologia')}
               className="px-4 py-2 rounded-lg text-sm font-black"

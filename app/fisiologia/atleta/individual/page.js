@@ -59,10 +59,7 @@ function parseSheetCSV(text) {
   }).filter(r => Object.values(r).some(v => v !== ''))
 }
 
-const SHEETS = {
-  pre: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmx6gtZGEZXYMSLBxFaASfgQAdfwXWCVBCnnTV56QzrbUwy5zW38GZIhvgGERCTe3MufNkmBfWrRlK/pub?output=csv',
-  pos: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR7gU32319qDw3KLwOeyc8UFElJQwYL-X_rM2k5WGYhE0Wq7vdHE5_OXMI0DdWTRCx-Dj5IY35wjgkF/pub?output=csv',
-}
+const SHEETS = { pre: 'pre', pos: 'pos' }
 
 const DOR_LABELS = {
   '7 - Posterior de Coxa Direito': '7️⃣ Post. Coxa Dir.',
@@ -150,8 +147,8 @@ function AtletaPageInner() {
 
       // ========== CARREGAR BEM-ESTAR ==========
       const [preRes, posRes] = await Promise.all([
-        fetch(`/api/sheets-proxy?url=${encodeURIComponent(SHEETS.pre)}`),
-        fetch(`/api/sheets-proxy?url=${encodeURIComponent(SHEETS.pos)}`),
+        fetch(`/api/sheets-proxy?source=${SHEETS.pre}`),
+        fetch(`/api/sheets-proxy?source=${SHEETS.pos}`),
       ])
       const [preText, posText] = await Promise.all([preRes.text(), posRes.text()])
       const preData = parseSheetCSV(preText)

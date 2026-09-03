@@ -270,7 +270,7 @@ function pizzaCanvas(metrics, percentileKey, title, score) {
 }
 
 function benchmarkCanvas(metrics) {
-  const data = (metrics || []).filter(m => m.percentileSerieC != null || m.percentileGuarani != null).slice(0, 8)
+  const data = (metrics || []).filter(m => m.percentileSerieC != null || m.percentileClub != null).slice(0, 8)
   if (!data.length) return null
 
   const width = 1200
@@ -323,7 +323,7 @@ function benchmarkCanvas(metrics) {
     ctx.fillText(shortText(metric.label, 24), left - 15, y + 16)
 
     const s = clamp(metric.percentileSerieC)
-    const g = clamp(metric.percentileGuarani)
+    const g = clamp(metric.percentileClub)
     ctx.fillStyle = '#edf3ef'
     ctx.fillRect(left, y, plotW, 14)
     if (metric.percentileSerieC != null) {
@@ -332,7 +332,7 @@ function benchmarkCanvas(metrics) {
     }
     ctx.fillStyle = '#edf3ef'
     ctx.fillRect(left, y + 22, plotW, 14)
-    if (metric.percentileGuarani != null) {
+    if (metric.percentileClub != null) {
       ctx.fillStyle = '#7aa98a'
       ctx.fillRect(left, y + 22, plotW * g / 100, 14)
     }
@@ -341,7 +341,7 @@ function benchmarkCanvas(metrics) {
     ctx.fillStyle = '#587464'
     ctx.font = '700 13px Arial'
     ctx.fillText(`Série C ${metric.percentileSerieC != null ? `P${Math.round(metric.percentileSerieC)}` : '-'}`, left + plotW + 10, y + 11)
-    ctx.fillText(`Confiança ${metric.percentileGuarani != null ? `P${Math.round(metric.percentileGuarani)}` : '-'}`, left + plotW + 10, y + 33)
+    ctx.fillText(`Confiança ${metric.percentileClub != null ? `P${Math.round(metric.percentileClub)}` : '-'}`, left + plotW + 10, y + 33)
   })
 
   return canvas.toDataURL('image/png')
@@ -488,7 +488,7 @@ function miniPill(doc, x, y, text, fill, color, border) {
 }
 
 function drawMiniComparisonCard(doc, metric, x, y, w, h) {
-  const percentile = metric.percentileSerieC ?? metric.percentileGuarani ?? 0
+  const percentile = metric.percentileSerieC ?? metric.percentileClub ?? 0
   const tone = fitTone(percentile)
   const soft = fitSoftTone(percentile)
   roundRectCard(doc, x, y, w, h, [255,255,255], LINE)
@@ -504,15 +504,15 @@ function drawMiniComparisonCard(doc, metric, x, y, w, h) {
 
   doc.setFontSize(5.1)
   drawValueRow(doc, x + 3, y + 11.3, 'Atleta', formatValue(metric.value, metric.format), w - 6)
-  drawValueRow(doc, x + 3, y + 15.3, 'Média Confiança', formatValue(metric.avgGuarani, metric.format), w - 6)
+  drawValueRow(doc, x + 3, y + 15.3, 'Média Confiança', formatValue(metric.avgClub, metric.format), w - 6)
   drawValueRow(doc, x + 3, y + 19.3, 'Média Série C', formatValue(metric.avgSerieC, metric.format), w - 6)
 
   let px = x + 3
-  px += miniPill(doc, px, y + 24.6, metric.percentileGuarani != null ? `ADC P${Math.round(metric.percentileGuarani)}` : 'ADC -', GREEN_SOFT, GREEN, GREEN_BORDER) + 2
+  px += miniPill(doc, px, y + 24.6, metric.percentileClub != null ? `ADC P${Math.round(metric.percentileClub)}` : 'ADC -', GREEN_SOFT, GREEN, GREEN_BORDER) + 2
   miniPill(doc, px, y + 24.6, metric.percentileSerieC != null ? `SÉRIE C P${Math.round(metric.percentileSerieC)}` : 'SÉRIE C -', BLUE_SOFT, BLUE, [191,219,254])
 }
 function drawMetricCard(doc, metric, x, y, w, h) {
-  const percentile = metric.percentileSerieC ?? metric.percentileGuarani ?? 0
+  const percentile = metric.percentileSerieC ?? metric.percentileClub ?? 0
   const tone = fitTone(percentile)
   const soft = fitSoftTone(percentile)
   roundRectCard(doc, x, y, w, h, [255,255,255], LINE)
@@ -529,17 +529,17 @@ function drawMetricCard(doc, metric, x, y, w, h) {
 
   let pX = x + 3.5
   pX += miniPill(doc, pX, y + 13.2, metric.percentileSerieC != null ? `SÉRIE C P${Math.round(metric.percentileSerieC)}` : 'SÉRIE C -', BLUE_SOFT, BLUE, [191,219,254]) + 2
-  pX += miniPill(doc, pX, y + 13.2, metric.percentileGuarani != null ? `ADC P${Math.round(metric.percentileGuarani)}` : 'ADC -', GREEN_SOFT, GREEN, GREEN_BORDER) + 2
+  pX += miniPill(doc, pX, y + 13.2, metric.percentileClub != null ? `ADC P${Math.round(metric.percentileClub)}` : 'ADC -', GREEN_SOFT, GREEN, GREEN_BORDER) + 2
   if (metric.priority && pX < x + w - 28) miniPill(doc, pX, y + 13.2, 'PRIORIDADE', AMBER_SOFT, AMBER, [253,230,138])
 
   drawValueRow(doc, x + 3.5, y + 19.2, 'Atleta', formatValue(metric.value, metric.format), w - 7)
-  drawValueRow(doc, x + 3.5, y + 23.7, 'Média Confiança', formatValue(metric.avgGuarani, metric.format), w - 7)
+  drawValueRow(doc, x + 3.5, y + 23.7, 'Média Confiança', formatValue(metric.avgClub, metric.format), w - 7)
   drawValueRow(doc, x + 3.5, y + 28.2, 'Média Série C', formatValue(metric.avgSerieC, metric.format), w - 7)
 
   const barX = x + 3.5
   const barW = w - 7
   const seriePct = clamp(metric.percentileSerieC)
-  const gfcPct = clamp(metric.percentileGuarani)
+  const gfcPct = clamp(metric.percentileClub)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(5.1)
   doc.setTextColor(...MUTED)
@@ -556,10 +556,10 @@ function drawMetricCard(doc, metric, x, y, w, h) {
   doc.setTextColor(...MUTED)
   doc.text('Confiança', barX, y + 43.3)
   doc.setTextColor(...GREEN)
-  doc.text(metric.percentileGuarani != null ? `P${Math.round(metric.percentileGuarani)}` : '-', barX + barW, y + 43.3, { align:'right' })
+  doc.text(metric.percentileClub != null ? `P${Math.round(metric.percentileClub)}` : '-', barX + barW, y + 43.3, { align:'right' })
   doc.setFillColor(237,243,239)
   doc.roundedRect(barX, y + 44.7, barW, 2.8, 1.2, 1.2, 'F')
-  if (metric.percentileGuarani != null) {
+  if (metric.percentileClub != null) {
     doc.setFillColor(...GREEN)
     doc.roundedRect(barX, y + 44.7, barW * gfcPct / 100, 2.8, 1.2, 1.2, 'F')
   }
@@ -610,13 +610,13 @@ export async function exportAvaliacaoAtletaPdf({ analysis, qualitative = null, p
   let photo = null
   try { photo = await cropImageDataUrl(photoDataUrl) } catch {}
 
-  const guaraniScore = analysis.guaraniScore != null ? analysis.guaraniScore : (() => {
-    const values = (analysis.metrics || []).map(m=>m.percentileGuarani).filter(v=>v!=null)
+  const clubScore = analysis.clubScore != null ? analysis.clubScore : analysis.clubScore != null ? analysis.clubScore : (() => {
+    const values = (analysis.metrics || []).map(m=>m.percentileClub ?? m.percentileClub).filter(v=>v!=null)
     return values.length ? Math.round(values.reduce((a,b)=>a+b,0)/values.length) : 0
   })()
 
   const seriePizza = pizzaCanvas(analysis.metrics, 'percentileSerieC', 'SÉRIE C', analysis.serieCScore)
-  const gfcPizza = pizzaCanvas(analysis.metrics, 'percentileGuarani', 'CONFIANÇA', guaraniScore)
+  const clubPizza = pizzaCanvas(analysis.metrics.map(metric => ({ ...metric, percentileClub: metric.percentileClub ?? metric.percentileClub })), 'percentileClub', 'CONFIANÇA', clubScore)
   const benchmark = benchmarkCanvas(analysis.metrics)
   const metrics = analysis.metrics || []
   const metricsTop = metrics.slice(0, 6)
@@ -649,7 +649,7 @@ export async function exportAvaliacaoAtletaPdf({ analysis, qualitative = null, p
   doc.setFontSize(7)
   doc.text(`${analysis.player?.equipa || '-'} | ${positionLabel(analysis.player?.posicao)} | ${analysis.context?.competition || '-'}`, 46, 46)
   doc.text(`Idade ${analysis.player?.idade || '-'} | Pé ${analysis.player?.pe || '-'} | ${Math.round(analysis.player?.minutos || 0)} min`, 46, 51)
-  doc.text(`${analysis.player?.jogos || 0} jogos | Confiança ${analysis.sample?.label || '-'} | Pool Confiança ${analysis.pool?.guarani || 0}`, 46, 56)
+  doc.text(`${analysis.player?.jogos || 0} jogos | Confiança ${analysis.sample?.label || '-'} | Pool Confiança ${analysis.pool?.club || 0}`, 46, 56)
 
   doc.setFillColor(...GREEN_SOFT)
   doc.roundedRect(46, 61, 37, 12, 2.2, 2.2, 'F')
@@ -663,7 +663,7 @@ export async function exportAvaliacaoAtletaPdf({ analysis, qualitative = null, p
 
   kpi(doc, 92, 31, 28, 'Fit Confiança', analysis.fitScore, analysis.fitLabel, fitTone(analysis.fitScore))
   kpi(doc, 123, 31, 28, 'Nível Série C', analysis.serieCScore, analysis.serieCLevel, fitTone(analysis.serieCScore))
-  kpi(doc, 154, 31, 28, 'Vs. Confiança', guaraniScore, 'Comparação com o elenco', fitTone(guaraniScore))
+  kpi(doc, 154, 31, 28, 'Vs. Confiança', clubScore, 'Comparação com o elenco', fitTone(clubScore))
   kpi(doc, 185, 31, 28, 'Amostra', `${Math.round(analysis.player?.minutos || 0)} min`, `Confiança ${analysis.sample?.label || '-'}`, BLUE)
 
   roundRectCard(doc, 216, 31, 69, 48, GREEN_SOFT, GREEN_BORDER)
@@ -680,7 +680,7 @@ export async function exportAvaliacaoAtletaPdf({ analysis, qualitative = null, p
   sectionTitle(doc, 'PIZZA PLOT - ELENCO CONFIANÇA', 108, 92)
   sectionTitle(doc, 'INSIGHTS CIC', 200, 92)
   if (seriePizza) doc.addImage(seriePizza, 'PNG', 13, 94, 85, 82, undefined, 'FAST')
-  if (gfcPizza) doc.addImage(gfcPizza, 'PNG', 105, 94, 85, 82, undefined, 'FAST')
+  if (clubPizza) doc.addImage(clubPizza, 'PNG', 105, 94, 85, 82, undefined, 'FAST')
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(6.5)

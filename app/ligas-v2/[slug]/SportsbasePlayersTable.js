@@ -32,7 +32,7 @@ import { WYSCOUT_GROUP_LABELS, WYSCOUT_SERIE_D_METRICS } from '@/data/wyscout-se
 import WyscoutPlayersTable from './WyscoutPlayersTable'
 import PlayerMaterialLinks from '@/app/components/ligas/PlayerMaterialLinks'
 
-const GFC = '#0a66b7'
+const BRAND_PRIMARY = '#0a66b7'
 
 function canonicalPlayerPath(slug, player) {
   return player?._canonical_id ? `/database/${player._canonical_id}` : playerProfilePath(slug, player)
@@ -215,9 +215,9 @@ function PlayerDrawer({ player, metric, metricGroup, rankedPool, effectiveMinimu
             <MetricTypeBadge metric={metric}/>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8, marginTop:12 }}>
-            <div style={{ background:'#f8fdf9', borderRadius:10, padding:10 }}><p style={{ fontSize:9, color:'#64748b' }}>VALOR</p><p style={{ fontSize:20, fontWeight:950, color:GFC }}>{formatSportsbaseMetric(current[metric.key], metric)}</p></div>
-            <div style={{ background:'#f8fdf9', borderRadius:10, padding:10 }}><p style={{ fontSize:9, color:'#64748b' }}>PERCENTIL</p><p style={{ fontSize:20, fontWeight:950, color:GFC }}>P{current._percentile}</p></div>
-            <div style={{ background:'#f8fdf9', borderRadius:10, padding:10 }}><p style={{ fontSize:9, color:'#64748b' }}>RANKING</p><p style={{ fontSize:20, fontWeight:950, color:GFC }}>#{current._rank}</p></div>
+            <div style={{ background:'#f8fdf9', borderRadius:10, padding:10 }}><p style={{ fontSize:9, color:'#64748b' }}>VALOR</p><p style={{ fontSize:20, fontWeight:950, color:BRAND_PRIMARY }}>{formatSportsbaseMetric(current[metric.key], metric)}</p></div>
+            <div style={{ background:'#f8fdf9', borderRadius:10, padding:10 }}><p style={{ fontSize:9, color:'#64748b' }}>PERCENTIL</p><p style={{ fontSize:20, fontWeight:950, color:BRAND_PRIMARY }}>P{current._percentile}</p></div>
+            <div style={{ background:'#f8fdf9', borderRadius:10, padding:10 }}><p style={{ fontSize:9, color:'#64748b' }}>RANKING</p><p style={{ fontSize:20, fontWeight:950, color:BRAND_PRIMARY }}>#{current._rank}</p></div>
           </div>
           {metric.denominatorKey && <p style={{ fontSize:10, color:'#64748b', marginTop:9 }}>Base: {current[metric.denominatorKey] || 0} {metric.denominatorLabel} · mínimo exigido: {metric.minAttempts}</p>}
         </div>
@@ -242,8 +242,8 @@ function PlayerDrawer({ player, metric, metricGroup, rankedPool, effectiveMinimu
         <div style={{ background:'#fff', border:'1px solid #dbe7f2', borderRadius:14, padding:16 }}>
           <p style={{ fontSize:11, fontWeight:900, color:'#10233b', marginBottom:10 }}>Próxima ação</p>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-            <Link href={canonicalPlayerPath(slug, current)} style={{ textAlign:'center', textDecoration:'none', borderRadius:9, padding:'10px 12px', background:GFC, color:'#fff', fontSize:11, fontWeight:800 }}>📊 Perfil completo</Link>
-            <button onClick={addWatchlist} style={{ border:'none', borderRadius:9, padding:'10px 12px', background:'#eaf4fd', color:GFC, fontSize:11, fontWeight:800, cursor:'pointer' }}>⭐ Watchlist</button>
+            <Link href={canonicalPlayerPath(slug, current)} style={{ textAlign:'center', textDecoration:'none', borderRadius:9, padding:'10px 12px', background:BRAND_PRIMARY, color:'#fff', fontSize:11, fontWeight:800 }}>📊 Perfil completo</Link>
+            <button onClick={addWatchlist} style={{ border:'none', borderRadius:9, padding:'10px 12px', background:'#eaf4fd', color:BRAND_PRIMARY, fontSize:11, fontWeight:800, cursor:'pointer' }}>⭐ Watchlist</button>
             <Link href={`/comparacao?nome=${encodeURIComponent(current.nome)}&equipa=${encodeURIComponent(current.equipa || '')}&liga=${encodeURIComponent(slug)}`} style={{ textAlign:'center', textDecoration:'none', borderRadius:9, padding:'10px 12px', background:'#eef2ff', color:'#4338ca', fontSize:11, fontWeight:800 }}>⚖️ Comparar</Link>
             <Link href={`/lista-final?nome=${encodeURIComponent(current.nome)}`} style={{ textAlign:'center', textDecoration:'none', borderRadius:9, padding:'10px 12px', background:'#fef3c7', color:'#92400e', fontSize:11, fontWeight:800 }}>📋 Lista Final</Link>
           </div>
@@ -254,7 +254,7 @@ function PlayerDrawer({ player, metric, metricGroup, rankedPool, effectiveMinimu
             </select>
             <button onClick={sendToVideo} style={{ border:'1px solid #d97706', borderRadius:9, padding:'9px 11px', background:'#fff7ed', color:'#b45309', fontSize:11, fontWeight:800, cursor:'pointer' }}>🎥 Enviar p/ vídeo</button>
           </div>
-          {status && <p style={{ fontSize:10, fontWeight:700, color:status.startsWith('✓')?GFC:status.startsWith('✗')?'#dc2626':'#64748b', marginTop:8 }}>{status}</p>}
+          {status && <p style={{ fontSize:10, fontWeight:700, color:status.startsWith('✓')?BRAND_PRIMARY:status.startsWith('✗')?'#dc2626':'#64748b', marginTop:8 }}>{status}</p>}
         </div>
       </aside>
     </div>
@@ -327,7 +327,7 @@ function getExportPairedText(player,item) {
 }
 
 function drawCanvasTopFiveBlock(ctx,item,x,y,width,height) {
-  const color=item.group?.cor||GFC
+  const color=item.group?.cor||BRAND_PRIMARY
   ctx.fillStyle='#ffffff';canvasRoundRect(ctx,x,y,width,height,18);ctx.fill()
   ctx.strokeStyle='#dbe7f2';ctx.lineWidth=2;ctx.stroke()
   ctx.fillStyle=color;canvasRoundRect(ctx,x,y,width,68,18);ctx.fill()
@@ -342,7 +342,7 @@ function drawCanvasTopFiveBlock(ctx,item,x,y,width,height) {
     const rowY=y+76+index*rowHeight
     ctx.fillStyle=index%2===0?'#f8fdf9':'#ffffff';ctx.fillRect(x+1,rowY,width-2,rowHeight)
     ctx.fillStyle=index===0?color:'#e8f4ec';ctx.beginPath();ctx.arc(x+35,rowY+rowHeight/2,18,0,Math.PI*2);ctx.fill()
-    canvasText(ctx,index+1,x+35,rowY+rowHeight/2+6,30,'900 17px Arial',index===0?'#ffffff':GFC,'center')
+    canvasText(ctx,index+1,x+35,rowY+rowHeight/2+6,30,'900 17px Arial',index===0?'#ffffff':BRAND_PRIMARY,'center')
     if(!player){canvasText(ctx,'Sem jogador elegível',x+70,rowY+rowHeight/2+5,width-100,'700 16px Arial','#94a3b8');continue}
     canvasText(ctx,player.nome,x+70,rowY+25,width-510,'900 17px Arial','#10233b')
     canvasText(ctx,`${player.equipa||'—'} · ${String(player.posicao||'').split(',')[0]||'—'} · ${Math.round(player.minutos||0)} min`,x+70,rowY+47,width-510,'500 13px Arial','#64748b')
@@ -376,7 +376,7 @@ async function exportTopFivePng(items,title,fileName) {
 function drawPdfTopFivePage(doc,item,title,page,totalPages) {
   const pageWidth=doc.internal.pageSize.getWidth()
   const pageHeight=doc.internal.pageSize.getHeight()
-  const colorHex=(item.group?.cor||GFC).replace('#','')
+  const colorHex=(item.group?.cor||BRAND_PRIMARY).replace('#','')
   const color=[parseInt(colorHex.slice(0,2),16),parseInt(colorHex.slice(2,4),16),parseInt(colorHex.slice(4,6),16)]
   doc.setFillColor(0,77,38);doc.rect(0,0,pageWidth,24,'F')
   doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7);doc.text('CIC · CONFIANÇA',12,8)
@@ -472,6 +472,7 @@ export default function SportsbasePlayersTable({ slug, ligaNome = '', source = '
   const [loading, setLoading] = useState(true)
   const [uploadAt, setUploadAt] = useState(null)
   const [provider, setProvider] = useState('sportsbase')
+  const [fusionQuality, setFusionQuality] = useState(null)
   const [groupId, setGroupId] = useState('producao')
   const [metricKey, setMetricKey] = useState('gols_90')
   const [metricScope, setMetricScope] = useState('core')
@@ -497,9 +498,11 @@ export default function SportsbasePlayersTable({ slug, ligaNome = '', source = '
       setMeta(data.meta || null)
       setUploadAt(data.upload_at || null)
       setProvider(data.fonte || 'sportsbase')
+      setFusionQuality(data.fusion_quality || null)
     } catch (error) {
       console.error(error)
       setPlayers([])
+      setFusionQuality(null)
     }
     setLoading(false)
   }, [slug, source])
@@ -638,30 +641,34 @@ export default function SportsbasePlayersTable({ slug, ligaNome = '', source = '
       <div style={{ display:'flex', justifyContent:'space-between', gap:12, alignItems:'flex-start', marginBottom:12, flexWrap:'wrap' }}>
         <div>
           <p style={{ fontSize:11, color:'#64748b' }}>🔄 Upload {uploadAt ? new Date(uploadAt).toLocaleDateString('pt-BR') : '—'} · {players.length} jogadores · maior amostra {meta?.maxMinutes || Math.max(...players.map(player=>player.minutos||0))} min</p>
-          <p style={{ fontSize:10, color:'#94a3b8', marginTop:3 }}>Percentis calculados apenas dentro do contexto posicional e da amostra elegível.</p>
+          <p style={{ fontSize:10, color:'#94a3b8', marginTop:3 }}>Percentis calculados apenas dentro do contexto posicional e da amostra elegível.{provider==='combined'?' · Automático = Sportsbase + Wyscout com atualização por atleta/campo.':''}</p>
         </div>
         <div style={{ display:'flex', gap:7, flexWrap:'wrap', justifyContent:'flex-end' }}>
           <div style={{ display:'flex', gap:5, background:'#fff', border:'1px solid #dbe7f2', borderRadius:9, padding:3 }}>
-            <button onClick={()=>setView('ranking')} style={{ border:'none', borderRadius:7, padding:'6px 11px', fontSize:10, fontWeight:800, cursor:'pointer', background:view==='ranking'?GFC:'transparent', color:view==='ranking'?'#fff':'#64748b' }}>Tabela</button>
-            <button disabled={!quadrant} onClick={()=>quadrant&&setView('quadrant')} style={{ border:'none', borderRadius:7, padding:'6px 11px', fontSize:10, fontWeight:800, cursor:quadrant?'pointer':'not-allowed', opacity:quadrant?1:.4, background:view==='quadrant'?GFC:'transparent', color:view==='quadrant'?'#fff':'#64748b' }}>Volume × eficiência</button>
+            <button onClick={()=>setView('ranking')} style={{ border:'none', borderRadius:7, padding:'6px 11px', fontSize:10, fontWeight:800, cursor:'pointer', background:view==='ranking'?BRAND_PRIMARY:'transparent', color:view==='ranking'?'#fff':'#64748b' }}>Tabela</button>
+            <button disabled={!quadrant} onClick={()=>quadrant&&setView('quadrant')} style={{ border:'none', borderRadius:7, padding:'6px 11px', fontSize:10, fontWeight:800, cursor:quadrant?'pointer':'not-allowed', opacity:quadrant?1:.4, background:view==='quadrant'?BRAND_PRIMARY:'transparent', color:view==='quadrant'?'#fff':'#64748b' }}>Volume × eficiência</button>
           </div>
           <div style={{ display:'flex', gap:4, background:'#fff', border:'1px solid #dbe7f2', borderRadius:9, padding:3, flexWrap:'wrap' }}>
-            <button onClick={()=>handleExport('png','current')} disabled={Boolean(exporting)} title="Top 5 da métrica e do contexto atuais" style={{ border:'none', borderRadius:7, padding:'6px 9px', fontSize:9, fontWeight:800, cursor:exporting?'wait':'pointer', background:'#eaf4fd', color:GFC }}>{exporting==='current-png'?'Gerando...':'🖼 PNG atual'}</button>
+            <button onClick={()=>handleExport('png','current')} disabled={Boolean(exporting)} title="Top 5 da métrica e do contexto atuais" style={{ border:'none', borderRadius:7, padding:'6px 9px', fontSize:9, fontWeight:800, cursor:exporting?'wait':'pointer', background:'#eaf4fd', color:BRAND_PRIMARY }}>{exporting==='current-png'?'Gerando...':'🖼 PNG atual'}</button>
             <button onClick={()=>handleExport('pdf','current')} disabled={Boolean(exporting)} title="Top 5 da métrica e do contexto atuais" style={{ border:'none', borderRadius:7, padding:'6px 9px', fontSize:9, fontWeight:800, cursor:exporting?'wait':'pointer', background:'#f1f5f9', color:'#475569' }}>{exporting==='current-pdf'?'Gerando...':'📄 PDF atual'}</button>
-            <button onClick={()=>handleExport('png','core')} disabled={Boolean(exporting)} title="Painel PNG com o Top 5 das 12 métricas centrais" style={{ border:'none', borderRadius:7, padding:'6px 9px', fontSize:9, fontWeight:800, cursor:exporting?'wait':'pointer', background:'#eaf4fd', color:GFC }}>{exporting==='core-png'?'Gerando...':'🖼 PNG 12'}</button>
+            <button onClick={()=>handleExport('png','core')} disabled={Boolean(exporting)} title="Painel PNG com o Top 5 das 12 métricas centrais" style={{ border:'none', borderRadius:7, padding:'6px 9px', fontSize:9, fontWeight:800, cursor:exporting?'wait':'pointer', background:'#eaf4fd', color:BRAND_PRIMARY }}>{exporting==='core-png'?'Gerando...':'🖼 PNG 12'}</button>
             <button onClick={()=>handleExport('pdf','core')} disabled={Boolean(exporting)} title="PDF com uma página para cada uma das 12 métricas centrais" style={{ border:'none', borderRadius:7, padding:'6px 9px', fontSize:9, fontWeight:800, cursor:exporting?'wait':'pointer', background:'#f1f5f9', color:'#475569' }}>{exporting==='core-pdf'?'Gerando...':'📄 PDF 12'}</button>
           </div>
         </div>
       </div>
 
-      {exportStatus&&<p style={{fontSize:10,fontWeight:800,color:exportStatus.startsWith('✓')?GFC:'#dc2626',textAlign:'right',marginTop:-6,marginBottom:8}}>{exportStatus}</p>}
+      {exportStatus&&<p style={{fontSize:10,fontWeight:800,color:exportStatus.startsWith('✓')?BRAND_PRIMARY:'#dc2626',textAlign:'right',marginTop:-6,marginBottom:8}}>{exportStatus}</p>}
+
+      {provider==='combined'&&fusionQuality&&<div style={{padding:'9px 12px',marginBottom:12,borderRadius:9,background:'#eef6ff',border:'1px solid #c9ddf8',color:'#24558a',fontSize:10,lineHeight:1.45}}>
+        <strong>🔗 Integração automática ativa.</strong> {fusionQuality.paired||0} atletas pareados entre as duas fontes ({fusionQuality.high_confidence_paired||0} em alta confiança) · {fusionQuality.sportsbase_only||0} somente Sportsbase · {fusionQuality.wyscout_only||0} somente Wyscout{fusionQuality.ambiguous?` · ${fusionQuality.ambiguous} ambíguo(s) mantido(s) separado(s)`:''}. Nomes abreviados, como <b>K. Viveros</b>, são validados por sobrenome/inicial + clube + idade + posição/nacionalidade antes da fusão.
+      </div>}
 
       {!meta?.hasGoalkeepers && <div style={{ padding:'9px 12px', marginBottom:12, borderRadius:9, background:'#fff7ed', border:'1px solid #fed7aa', color:'#c2410c', fontSize:10 }}>⚠ O arquivo não contém goleiros. O ranking e a Seleção do Campeonato de GK permanecem indisponíveis até um export específico.</div>}
 
       <div style={{ display:'flex', justifyContent:'space-between', gap:10, alignItems:'center', marginBottom:10, flexWrap:'wrap' }}>
         <div style={{display:'flex',gap:4,background:'#fff',border:'1px solid #dbe7f2',borderRadius:9,padding:3}}>
-          <button onClick={()=>changeMetricScope('core')} style={{border:'none',borderRadius:7,padding:'6px 10px',fontSize:9.5,fontWeight:900,cursor:'pointer',background:metricScope==='core'?GFC:'transparent',color:metricScope==='core'?'#fff':'#64748b'}}>12 centrais</button>
-          <button onClick={()=>changeMetricScope('all')} style={{border:'none',borderRadius:7,padding:'6px 10px',fontSize:9.5,fontWeight:900,cursor:'pointer',background:metricScope==='all'?GFC:'transparent',color:metricScope==='all'?'#fff':'#64748b'}}>Catálogo completo</button>
+          <button onClick={()=>changeMetricScope('core')} style={{border:'none',borderRadius:7,padding:'6px 10px',fontSize:9.5,fontWeight:900,cursor:'pointer',background:metricScope==='core'?BRAND_PRIMARY:'transparent',color:metricScope==='core'?'#fff':'#64748b'}}>12 centrais</button>
+          <button onClick={()=>changeMetricScope('all')} style={{border:'none',borderRadius:7,padding:'6px 10px',fontSize:9.5,fontWeight:900,cursor:'pointer',background:metricScope==='all'?BRAND_PRIMARY:'transparent',color:metricScope==='all'?'#fff':'#64748b'}}>Catálogo completo</button>
         </div>
         <p style={{fontSize:9.5,color:'#94a3b8'}}>{metricScope==='core'?'Triagem rápida: 12 indicadores centrais':'Todas as métricas Sportsbase organizadas por natureza e unidade'}</p>
       </div>
@@ -685,8 +692,8 @@ export default function SportsbasePlayersTable({ slug, ligaNome = '', source = '
           </select>
           <div style={{ display:'flex', alignItems:'center', gap:4, flexWrap:'wrap' }}>
             <span style={{ fontSize:9, fontWeight:900, color:'#64748b', marginRight:2 }}>AMOSTRA</span>
-            {[['auto',`Auto (${meta?.suggestedMinimumMinutes || 0})`],['all','Todos'],['270','270'],['500','500'],['900','900']].map(([value,label])=><button key={value} onClick={()=>setSampleMode(value)} style={{ border:`1px solid ${sampleMode===value?GFC:'#dbe7f2'}`, borderRadius:7, padding:'5px 7px', background:sampleMode===value?'#eaf4fd':'#fff', color:sampleMode===value?GFC:'#64748b', fontSize:9, fontWeight:800, cursor:'pointer' }}>{label}</button>)}
-            <button onClick={()=>setSampleMode('custom')} style={{ border:`1px solid ${sampleMode==='custom'?GFC:'#dbe7f2'}`, borderRadius:7, padding:'5px 7px', background:sampleMode==='custom'?'#eaf4fd':'#fff', color:sampleMode==='custom'?GFC:'#64748b', fontSize:9, fontWeight:800, cursor:'pointer' }}>Outro</button>
+            {[['auto',`Auto (${meta?.suggestedMinimumMinutes || 0})`],['all','Todos'],['270','270'],['500','500'],['900','900']].map(([value,label])=><button key={value} onClick={()=>setSampleMode(value)} style={{ border:`1px solid ${sampleMode===value?BRAND_PRIMARY:'#dbe7f2'}`, borderRadius:7, padding:'5px 7px', background:sampleMode===value?'#eaf4fd':'#fff', color:sampleMode===value?BRAND_PRIMARY:'#64748b', fontSize:9, fontWeight:800, cursor:'pointer' }}>{label}</button>)}
+            <button onClick={()=>setSampleMode('custom')} style={{ border:`1px solid ${sampleMode==='custom'?BRAND_PRIMARY:'#dbe7f2'}`, borderRadius:7, padding:'5px 7px', background:sampleMode==='custom'?'#eaf4fd':'#fff', color:sampleMode==='custom'?BRAND_PRIMARY:'#64748b', fontSize:9, fontWeight:800, cursor:'pointer' }}>Outro</button>
             {sampleMode==='custom'&&<input type="number" value={customMinutes} onChange={event=>setCustomMinutes(event.target.value)} style={{ width:62, border:'1px solid #dbe7f2', borderRadius:7, padding:'5px 6px', fontSize:9 }}/>} 
           </div>
         </div>
@@ -712,7 +719,7 @@ export default function SportsbasePlayersTable({ slug, ligaNome = '', source = '
               <div style={{ display:'flex', alignItems:'center', gap:7 }}><div style={{ width:8, height:8, borderRadius:99, background:metricGroup.cor }}/><h3 style={{ fontSize:14, fontWeight:900, color:'#10233b' }}>{metric.label}</h3><MetricTypeBadge metric={metric}/>{metric.derived&&<span style={{ fontSize:8, fontWeight:900, color:'#92400e', background:'#fef3c7', padding:'3px 6px', borderRadius:99 }}>DERIVADA EXPLÍCITA</span>}</div>
               <p style={{ fontSize:9.5, color:'#64748b', marginTop:5 }}>Contexto: {context==='ALL'?'todas as posições':SPORTSBASE_POSITION_GROUPS[context]?.label}{exactPosition?` · ${exactPosition}`:''} · mínimo efetivo {effectiveMinimum} min{metric.denominatorKey?` · mínimo ${metric.minAttempts} ${metric.denominatorLabel}`:''}</p>
             </div>
-            <div style={{ textAlign:'right' }}><p style={{ fontSize:11, fontWeight:900, color:GFC }}>{visibleRanked.length} elegíveis</p><p style={{ fontSize:9, color:'#94a3b8' }}>{excludedMinutes} excluídos por minutos · {excludedAttempts} por tentativas</p></div>
+            <div style={{ textAlign:'right' }}><p style={{ fontSize:11, fontWeight:900, color:BRAND_PRIMARY }}>{visibleRanked.length} elegíveis</p><p style={{ fontSize:9, color:'#94a3b8' }}>{excludedMinutes} excluídos por minutos · {excludedAttempts} por tentativas</p></div>
           </div>
 
           {view==='quadrant' && quadrant ? (
@@ -740,12 +747,15 @@ export default function SportsbasePlayersTable({ slug, ligaNome = '', source = '
                 <tbody>
                   {visibleRanked.slice(0,80).map((player,index)=><tr key={`${player.nome}-${player.equipa}`} onClick={()=>setSelected(player)} style={{ borderBottom:'1px solid #f1f5f2', background:index%2?'#fcfdfc':'#fff', cursor:'pointer' }}>
                     <td style={{ padding:'9px 10px', textAlign:'center', fontSize:11, fontWeight:900, color:index===0?metricGroup.cor:'#94a3b8' }}>{player._rank}</td>
-                    <td style={{ padding:'9px 10px' }}><Link onClick={event=>event.stopPropagation()} href={canonicalPlayerPath(slug, player)} style={{ fontSize:12, fontWeight:800, color:GFC, textDecoration:'none' }}>{player.nome}</Link></td>
+                    <td style={{ padding:'9px 10px' }}><Link onClick={event=>event.stopPropagation()} href={canonicalPlayerPath(slug, player)} style={{ fontSize:12, fontWeight:800, color:BRAND_PRIMARY, textDecoration:'none' }}>{player.nome}</Link></td>
                     <td style={{ padding:'9px 10px', fontSize:10.5, color:'#475569' }}>{player.equipa || '—'}</td>
                     <td style={{ padding:'9px 10px' }}><PositionBadge posicao={player.posicao}/></td>
                     <td style={{ padding:'9px 10px', textAlign:'center' }}><FootBadge value={player.pe} showUnknown/></td>
                     <td style={{ padding:'9px 10px', textAlign:'center', fontSize:10.5, color:'#475569' }}>{player.idade || '—'}</td>
-                    <td style={{ padding:'9px 10px', textAlign:'center', fontSize:index===0?15:13, fontWeight:900, color:index===0?metricGroup.cor:'#10233b' }}>{formatSportsbaseMetric(player[metric.key],metric)}</td>
+                    <td style={{ padding:'9px 10px', textAlign:'center', fontSize:index===0?15:13, fontWeight:900, color:index===0?metricGroup.cor:'#10233b' }}>
+                      {formatSportsbaseMetric(player[metric.key],metric)}
+                      {provider==='combined'&&player._field_sources?.[metric.key]&&<span title={`Fonte do campo: ${player._field_sources[metric.key]}`} style={{display:'block',fontSize:7.5,fontWeight:900,color:'#94a3b8',marginTop:1}}>{player._field_sources[metric.key]==='wyscout'?'WY':player._field_sources[metric.key]==='sportsbase'?'SB':'MIX'}</span>}
+                    </td>
                     <td style={{ padding:'9px 10px', textAlign:'center' }}><span style={{ display:'inline-block', minWidth:38, borderRadius:99, padding:'3px 6px', background:player._percentile>=80?'#dcfce7':player._percentile<=20?'#fee2e2':'#f1f5f9', color:player._percentile>=80?'#15803d':player._percentile<=20?'#b91c1c':'#475569', fontSize:10, fontWeight:900 }}>P{player._percentile}</span></td>
                     <td style={{ padding:'9px 10px', textAlign:'center', fontSize:10, color:'#64748b' }}>{metric.denominatorKey ? `${player[metric.denominatorKey] || 0}` : <SampleBadge player={player} effectiveMinimum={effectiveMinimum}/>}</td>
                     <td style={{ padding:'9px 10px', textAlign:'center', fontSize:10, color:'#64748b' }}>{Math.round(player.minutos || 0)}</td>

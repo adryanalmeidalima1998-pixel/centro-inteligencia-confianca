@@ -32,7 +32,7 @@ const STYLE = `.bc { font-family: 'Barlow Condensed', sans-serif; }`
 const CURRENT_SEASON = '2026'
 const DEFAULT_COMPETITION = 'Brasileiro Série C'
 const AUTO_REFRESH_MS = 2 * 60 * 1000
-const LIVE_CACHE_KEY = 'guarani-serie-c-transfermarkt-live-v5'
+const LIVE_CACHE_KEY = 'clubTeam-serie-c-transfermarkt-live-v5'
 const LIVE_CACHE_MAX_AGE_MS = 60 * 60 * 1000
 
 const MODES = [
@@ -130,14 +130,14 @@ function SecondPhaseGroupCard({ group, teams }) {
           <div className="px-4 py-8 text-center text-[10px] font-semibold text-slate-400">Aguardando a classificação ao vivo do Transfermarkt.</div>
         )}
         {teams.map(row => {
-          const isGuarani = row.team.toLocaleLowerCase('pt-BR').includes('confianca')
+          const isClub = row.team.toLocaleLowerCase('pt-BR').includes('confianca')
           return (
-            <div key={row.team} className={`relative flex items-center gap-3 px-4 py-3.5 ${isGuarani ? 'bg-emerald-50/70' : 'bg-white'}`}>
-              <span className={`absolute bottom-0 left-0 top-0 w-1 ${isGuarani ? 'bg-emerald-600' : styles.accent}`} />
+            <div key={row.team} className={`relative flex items-center gap-3 px-4 py-3.5 ${isClub ? 'bg-emerald-50/70' : 'bg-white'}`}>
+              <span className={`absolute bottom-0 left-0 top-0 w-1 ${isClub ? 'bg-emerald-600' : styles.accent}`} />
               <span className={`bc flex h-9 w-9 flex-none items-center justify-center rounded-xl text-lg font-black ${styles.position}`}>{row.position}º</span>
               <TeamCrest name={row.team} size={30} />
               <div className="min-w-0 flex-1">
-                <p className={`truncate text-[11px] font-black ${isGuarani ? 'text-emerald-800' : 'text-slate-700'}`}>{row.team}</p>
+                <p className={`truncate text-[11px] font-black ${isClub ? 'text-emerald-800' : 'text-slate-700'}`}>{row.team}</p>
                 <p className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-slate-300">{row.played} jogos · SG {signed(row.goalDifference, 0)}</p>
               </div>
               <div className="text-right">
@@ -403,7 +403,7 @@ export default function SerieCClassificacaoPage() {
       .filter(Boolean),
   })), [realOrder])
   const firstPhaseComplete = standings.length === 20 && standings.every(row => Number(row.played) >= 19)
-  const guarani = standings.find(row => row.team.toLocaleLowerCase('pt-BR').includes('confianca')) || realOrder[0]
+  const clubTeam = standings.find(row => row.team.toLocaleLowerCase('pt-BR').includes('confianca')) || realOrder[0]
   const leader = realOrder[0]
   const eighth = realOrder[7]
   const seventeenth = realOrder[16]
@@ -417,7 +417,7 @@ export default function SerieCClassificacaoPage() {
 
   const kpis = [
     { label: 'Líder', value: leader?.team || '-', helper: leader ? `${leader.points} pontos em ${leader.played} jogos` : '-', icon: Award, tone: 'amber' },
-    { label: 'Confiança', value: guarani ? `${guarani.position}º` : '-', helper: guarani ? `${guarani.points} pontos · SG ${signed(guarani.goalDifference, 0)}` : '-', icon: ShieldCheck },
+    { label: 'Confiança', value: clubTeam ? `${clubTeam.position}º` : '-', helper: clubTeam ? `${clubTeam.points} pontos · SG ${signed(clubTeam.goalDifference, 0)}` : '-', icon: ShieldCheck },
     { label: 'Corte do G8', value: eighth ? `${eighth.points} pts` : '-', helper: eighth ? `${eighth.team} ocupa a 8ª posição` : '-', icon: Target, tone: 'blue' },
     { label: 'Corte do Z4', value: seventeenth ? `${seventeenth.points} pts` : '-', helper: seventeenth ? `${seventeenth.team} abre a zona` : '-', icon: TrendingDown },
     { label: 'Melhor ataque', value: `${bestAttackGoals} gols`, helper: bestAttackTeams.join(' e ') || '-', icon: Goal },
@@ -474,7 +474,7 @@ export default function SerieCClassificacaoPage() {
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
           <InsightCard icon={TrendingUp} title="Acima do xPoints" value={biggestOver?.team || '-'} description={biggestOver ? `${biggestOver.points} pontos reais contra ${formatNumberBR(biggestOver.xPoints, 1)} esperados (${signed(-biggestOver.xPointsDelta)} acima).` : '-'} tone="green" />
           <InsightCard icon={TrendingDown} title="Abaixo do xPoints" value={biggestUnder?.team || '-'} description={biggestUnder ? `${biggestUnder.points} pontos reais contra ${formatNumberBR(biggestUnder.xPoints, 1)} esperados (${signed(biggestUnder.xPointsDelta)} de diferença).` : '-'} tone="red" />
-          <InsightCard icon={Sparkles} title="Leitura Confiança" value={guarani ? `${formatNumberBR(guarani.xPoints, 1)} xPts` : '-'} description={guarani ? `A equipe está ${formatNumberBR(Math.abs(guarani.points - guarani.xPoints), 1)} ponto ${guarani.points >= guarani.xPoints ? 'acima' : 'abaixo'} do valor esperado, com saldo real ${signed(guarani.goalDifference, 0)} e saldo esperado ${signed(guarani.expectedGoalDifference)}.` : '-'} tone="amber" />
+          <InsightCard icon={Sparkles} title="Leitura Confiança" value={clubTeam ? `${formatNumberBR(clubTeam.xPoints, 1)} xPts` : '-'} description={clubTeam ? `A equipe está ${formatNumberBR(Math.abs(clubTeam.points - clubTeam.xPoints), 1)} ponto ${clubTeam.points >= clubTeam.xPoints ? 'acima' : 'abaixo'} do valor esperado, com saldo real ${signed(clubTeam.goalDifference, 0)} e saldo esperado ${signed(clubTeam.expectedGoalDifference)}.` : '-'} tone="amber" />
         </div>
 
         <section className="space-y-4">
@@ -511,11 +511,11 @@ export default function SerieCClassificacaoPage() {
                 {sorted.map((row, index) => {
                   const displayPosition = mode === 'real' ? row.position : index + 1
                   const rowZone = zone(row.position)
-                  const isGuarani = row.team.toLocaleLowerCase('pt-BR').includes('confianca')
+                  const isClub = row.team.toLocaleLowerCase('pt-BR').includes('confianca')
                   return (
-                    <tr key={row.team} className={`${isGuarani ? 'bg-emerald-50/90' : rowZone.row} hover:bg-slate-50`}>
-                      <td className="px-3 py-3 text-center"><div className="flex items-center justify-center gap-2"><span className={`h-5 w-1 rounded-full ${rowZone.bar}`} /><span className={`bc text-lg font-black ${isGuarani ? 'text-emerald-700' : 'text-slate-600'}`}>{displayPosition}</span></div></td>
-                      <td className={`sticky left-0 z-[1] px-3 py-3 ${isGuarani ? 'bg-emerald-50' : 'bg-white'}`}><div className="flex min-w-[190px] items-center gap-2.5"><TeamCrest name={row.team} size={26} /><div><p className={`text-[10px] font-black ${isGuarani ? 'text-emerald-800' : 'text-slate-700'}`}>{row.team}</p><p className="mt-0.5 text-[8px] font-bold text-slate-300">{rowZone.label}{mode !== 'real' ? ` · posição real ${row.position}º` : ''}</p></div></div></td>
+                    <tr key={row.team} className={`${isClub ? 'bg-emerald-50/90' : rowZone.row} hover:bg-slate-50`}>
+                      <td className="px-3 py-3 text-center"><div className="flex items-center justify-center gap-2"><span className={`h-5 w-1 rounded-full ${rowZone.bar}`} /><span className={`bc text-lg font-black ${isClub ? 'text-emerald-700' : 'text-slate-600'}`}>{displayPosition}</span></div></td>
+                      <td className={`sticky left-0 z-[1] px-3 py-3 ${isClub ? 'bg-emerald-50' : 'bg-white'}`}><div className="flex min-w-[190px] items-center gap-2.5"><TeamCrest name={row.team} size={26} /><div><p className={`text-[10px] font-black ${isClub ? 'text-emerald-800' : 'text-slate-700'}`}>{row.team}</p><p className="mt-0.5 text-[8px] font-bold text-slate-300">{rowZone.label}{mode !== 'real' ? ` · posição real ${row.position}º` : ''}</p></div></div></td>
                       <td className="px-3 py-3 text-right"><p className="bc text-xl font-black text-slate-900">{row.points}</p><MiniBar value={row.points} max={maxPoints} /></td>
                       <td className="px-3 py-3 text-right font-bold text-slate-500">{row.played}</td>
                       <td className="px-3 py-3 text-right font-bold text-emerald-600">{row.won ?? '-'}</td>

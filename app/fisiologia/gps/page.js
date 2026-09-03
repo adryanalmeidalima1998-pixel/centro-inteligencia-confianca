@@ -4,6 +4,7 @@ import AppShell from '../../components/layout/AppShell'
 import { usePlayerPhotos } from '../../hooks/usePlayerPhotos'
 import { PhotoSelectorModal } from '../../components/photos/PhotoSelectorModal'
 import TabCorrelacao from './TabCorrelacao'
+import { CORPO_TECNICO_DEMO_ENABLED, buildDemoGpsSessions } from '@/lib/demoCorpoTecnico'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   Legend, LabelList, ReferenceLine, Cell,
@@ -76,7 +77,7 @@ const TABS = [
   { id:'relatorio_jogo', label:'Rel. Jogo', icon:'📋' },
 ]
 
-const META_STORAGE  = 'guarani_gps_metas_v4'
+const META_STORAGE  = 'confianca_gps_metas_v4'
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 const num = v => parseFloat(v) || 0
@@ -4559,6 +4560,13 @@ export default function GpsPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
+    if (CORPO_TECNICO_DEMO_ENABLED) {
+      const s = buildDemoGpsSessions()
+      setSessions(s)
+      if (s.length && !selectedId) setSelectedId(s[0].id)
+      setLoading(false)
+      return
+    }
     try {
       const res  = await fetch('/api/gps')
       const data = await res.json()
@@ -4591,6 +4599,14 @@ export default function GpsPage() {
   // DELETE — remove da UI imediatamente e persiste no banco
   const deleteSession = async (id) => {
     setDeleteId(null)
+    if (String(id).startsWith('demo-')) {
+      setSessions(prev => {
+        const next = prev.filter(s => s.id !== id)
+        if (selectedId === id) setSelectedId(next[0]?.id || null)
+        return next
+      })
+      return
+    }
     // 1. Remove da UI na hora (optimistic)
     setSessions(prev => {
       const next = prev.filter(s => s.id !== id)
@@ -4634,6 +4650,7 @@ export default function GpsPage() {
                   <p className="text-[8px] font-black uppercase tracking-[0.4em] text-gray-400">GPS · Catapult · Fisiologia</p>
                 </div>
                 <h1 className="bc text-3xl font-black uppercase text-gray-900 leading-none">Central GPS</h1>
+                {CORPO_TECNICO_DEMO_ENABLED && <p className="mt-1 text-[8px] font-black uppercase tracking-widest text-sky-600">Modo demonstração · sessões fictícias do elenco do Confiança</p>}
               </div>
               {selectedSession && (
                 <div className="hidden md:flex items-center gap-2 pl-4 border-l border-gray-200">
@@ -4688,7 +4705,7 @@ export default function GpsPage() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 Upload CSV
               </button>
-              <span className="text-[9px] text-gray-400 hidden sm:block">{sessions.length} sessão(ões)</span>
+              <span className="text-[9px] text-gray-400 hidden sm:block">{sessions.length} sessão(ões){CORPO_TECNICO_DEMO_ENABLED ? ' · DEMO' : ''}</span>
             </div>
           </div>
 

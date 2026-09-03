@@ -9,8 +9,7 @@ import SeedBanner from './SeedBanner'
 const JogadoresDestacados = lazy(() => import('./JogadoresDestacados'))
 const ObservacaoSemanal   = lazy(() => import('./ObservacaoSemanal'))
 
-const SHEETS_CSV_URL =
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTe52rhJ1lQkLHnhHlh8Fr7lfkM22SqAN-_3MI5UCeWD7U6BknwiYp36EcRxRKqRt8zQCNhMXCsdI4/pub?output=csv'
+const SHEETS_CSV_URL = '/api/sheets-proxy?source=observacao'
 
 /* ── Configurações de status ─────────────────────────────────────── */
 const STATUS_LIST = ['Pendente', 'Assistido', 'Relatório Enviado']
@@ -24,7 +23,7 @@ const kpiColors = {
   'Assistido':         { bg:'#eff6ff', color:'#1d4ed8', border:'#bfdbfe' },
   'Relatório Enviado': { bg:'#f0fdf4', color:'#0a66b7', border:'#bbf7d0' },
 }
-const GFC = '#0a66b7'
+const BRAND_PRIMARY = '#0a66b7'
 
 /* ── Helpers de data ──────────────────────────────────────────────── */
 function parseDateBR(str) {
@@ -75,7 +74,7 @@ function fmtDate(str)   { if(!str)return'—';return new Date(str+'T12:00').toLo
 function hoursAgo(iso)  { if(!iso)return null;return Math.floor((Date.now()-new Date(iso).getTime())/3600000) }
 
 const S = {
-  btnGreen: { background:GFC, color:'#fff', border:'none', borderRadius:9, padding:'9px 18px', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'inline-flex', alignItems:'center', gap:7 },
+  btnGreen: { background:BRAND_PRIMARY, color:'#fff', border:'none', borderRadius:9, padding:'9px 18px', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'inline-flex', alignItems:'center', gap:7 },
   card:     { background:'#fff', borderRadius:14, border:'1px solid #e5edf5', boxShadow:'0 1px 6px rgba(10,102,183,0.05)' },
 }
 
@@ -284,7 +283,7 @@ export default function ObservacaoPage() {
   const abaMainStyle = (t) => ({
     padding:'9px 18px', borderRadius:10, border:'none', cursor:'pointer', fontFamily:'inherit',
     fontSize:12, fontWeight:700,
-    background: abaMain===t ? GFC : 'transparent',
+    background: abaMain===t ? BRAND_PRIMARY : 'transparent',
     color: abaMain===t ? '#fff' : '#64748b',
     display:'flex', alignItems:'center', gap:6,
   })
@@ -308,7 +307,7 @@ export default function ObservacaoPage() {
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:24, flexWrap:'wrap', gap:12 }}>
           <div>
             <p style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'3px', color:'#94a3b8', marginBottom:6 }}>Scouts em Campo</p>
-            <h1 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:36, fontWeight:900, textTransform:'uppercase', color:GFC, letterSpacing:1, lineHeight:1 }}>
+            <h1 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:36, fontWeight:900, textTransform:'uppercase', color:BRAND_PRIMARY, letterSpacing:1, lineHeight:1 }}>
               Observação de Partidas
             </h1>
             <p style={{ fontSize:12, color:'#94a3b8', marginTop:5 }}>
@@ -322,7 +321,7 @@ export default function ObservacaoPage() {
                 Nova Partida
               </button>
             )}
-            <button onClick={load} style={{ ...S.btnGreen, background:'#fff', color:GFC, border:'1.5px solid #c6def2' }}>
+            <button onClick={load} style={{ ...S.btnGreen, background:'#fff', color:BRAND_PRIMARY, border:'1.5px solid #c6def2' }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width:14, height:14 }}>
                 <path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
               </svg>
@@ -335,7 +334,7 @@ export default function ObservacaoPage() {
         <div style={{ display:'flex', gap:4, background:'#f7fcf9', border:'1px solid #e5edf5', borderRadius:14, padding:4, marginBottom:24, width:'fit-content' }}>
           <button onClick={() => setAbaMain('partidas')} style={abaMainStyle('partidas')}>
             📋 Partidas
-            <span style={{ fontSize:10, fontWeight:800, padding:'1px 7px', borderRadius:20, background: abaMain==='partidas'?'rgba(255,255,255,0.2)':'#e8f4ec', color: abaMain==='partidas'?'#fff':GFC }}>{jogos.length}</span>
+            <span style={{ fontSize:10, fontWeight:800, padding:'1px 7px', borderRadius:20, background: abaMain==='partidas'?'rgba(255,255,255,0.2)':'#e8f4ec', color: abaMain==='partidas'?'#fff':BRAND_PRIMARY }}>{jogos.length}</span>
           </button>
           <button onClick={() => setAbaMain('destaques')} style={abaMainStyle('destaques')}>
             ⭐ Jogadores Destacados
@@ -394,10 +393,10 @@ export default function ObservacaoPage() {
                   <button key={a} onClick={() => setAbaTempo(a)} style={{
                     padding:'7px 14px', borderRadius:8, border:'none', cursor:'pointer', fontFamily:'inherit',
                     fontSize:11, fontWeight:700, display:'flex', alignItems:'center', gap:6,
-                    background: abaTempo===a ? GFC : 'transparent', color: abaTempo===a ? '#fff' : '#64748b',
+                    background: abaTempo===a ? BRAND_PRIMARY : 'transparent', color: abaTempo===a ? '#fff' : '#64748b',
                   }}>
                     {a}
-                    <span style={{ fontSize:10, fontWeight:800, padding:'1px 7px', borderRadius:20, background: abaTempo===a?'rgba(255,255,255,0.2)':'#e8f4ec', color: abaTempo===a?'#fff':GFC }}>
+                    <span style={{ fontSize:10, fontWeight:800, padding:'1px 7px', borderRadius:20, background: abaTempo===a?'rgba(255,255,255,0.2)':'#e8f4ec', color: abaTempo===a?'#fff':BRAND_PRIMARY }}>
                       {counts[a]}
                     </span>
                   </button>
@@ -422,7 +421,7 @@ export default function ObservacaoPage() {
               <select value={ligaFil} onChange={e => setLigaFil(e.target.value)} style={{
                 padding:'7px 12px', borderRadius:8, border:'1px solid #d6e5f0', fontSize:11,
                 fontFamily:'inherit', background:'#fff', cursor:'pointer', outline:'none',
-                color: ligaFil !== 'Todas' ? GFC : '#52677e', fontWeight: ligaFil !== 'Todas' ? 700 : 400,
+                color: ligaFil !== 'Todas' ? BRAND_PRIMARY : '#52677e', fontWeight: ligaFil !== 'Todas' ? 700 : 400,
               }}>
                 <option value='Todas'>🏆 Todas as ligas</option>
                 {allLigas.map(l => <option key={l} value={l}>{l}</option>)}
@@ -433,7 +432,7 @@ export default function ObservacaoPage() {
                 <select value={posFil} onChange={e => setPosFil(e.target.value)} style={{
                   padding:'7px 12px', borderRadius:8, border:'1px solid #d6e5f0', fontSize:11,
                   fontFamily:'inherit', background:'#fff', cursor:'pointer', outline:'none',
-                  color: posFil ? GFC : '#52677e', fontWeight: posFil ? 700 : 400,
+                  color: posFil ? BRAND_PRIMARY : '#52677e', fontWeight: posFil ? 700 : 400,
                 }}>
                   <option value=''>⬜ Todas posições</option>
                   {allPosicoes.map(p => <option key={p} value={p}>{p}</option>)}
@@ -446,7 +445,7 @@ export default function ObservacaoPage() {
                   <button onClick={() => setScoutFil('Todos')} style={{ padding:'7px 14px', borderRadius:8, border:'none', cursor:'pointer', fontFamily:'inherit', fontSize:11, fontWeight:700, background: scoutFil==='Todos'?'#10233b':'transparent', color: scoutFil==='Todos'?'#fff':'#64748b' }}>Todos</button>
                   {allScouts.map(s => (
                     <button key={s} onClick={() => setScoutFil(s)} style={{ padding:'7px 14px', borderRadius:8, border:'none', cursor:'pointer', fontFamily:'inherit', fontSize:11, fontWeight:700, display:'flex', alignItems:'center', gap:5, background: scoutFil===s?'#10233b':'transparent', color: scoutFil===s?'#fff':'#64748b' }}>
-                      <span style={{ width:6, height:6, borderRadius:'50%', background:GFC, flexShrink:0 }}/>
+                      <span style={{ width:6, height:6, borderRadius:'50%', background:BRAND_PRIMARY, flexShrink:0 }}/>
                       {s}
                     </button>
                   ))}
@@ -503,7 +502,7 @@ export default function ObservacaoPage() {
                             {j.pais && <span style={{ fontSize:10, fontWeight:600, padding:'3px 10px', borderRadius:6, background:'#f8fafc', color:'#475569', border:'1px solid #e2e8f0' }}>🌎 {j.pais}</span>}
                             <span style={{ fontSize:10, fontWeight:600, padding:'3px 10px', borderRadius:6, background:'#f4f8fc', color:'#52677e', border:'1px solid #d6e5f0' }}>{j.comp}</span>
                             {j.manual && <span style={{ fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:6, background:'#f5f3ff', color:'#6d28d9', border:'1px solid #ddd6fe' }}>✎ Manual</span>}
-                            {isG && <span style={{ fontSize:10, fontWeight:800, padding:'3px 10px', borderRadius:6, background:GFC, color:'#fff' }}>CONFIANÇA</span>}
+                            {isG && <span style={{ fontSize:10, fontWeight:800, padding:'3px 10px', borderRadius:6, background:BRAND_PRIMARY, color:'#fff' }}>CONFIANÇA</span>}
                             {j.tem_relatorio && <span style={{ fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:6, background:'#f0fdf4', color:'#166534', border:'1px solid #86efac' }}>📋 Relatório CIC</span>}
                             {semScout && <span style={{ fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:6, background:'#fef2f2', color:'#dc2626', border:'1px solid #fecaca' }}>⚠ Sem scout</span>}
                             {alerta && <span style={{ fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:6, background:'#fff7ed', color:'#c2410c', border:'1px solid #fed7aa' }}>⏰ +48h sem relatório</span>}
@@ -515,7 +514,7 @@ export default function ObservacaoPage() {
                             <span style={{ fontSize:16, fontWeight:800, color:'#10233b' }}>{j.mandante}</span>
                             {j.gols_mandante != null && j.gols_visitante != null ? (
                               <span style={{
-                                fontSize:15, fontWeight:900, color:'#fff', background:GFC,
+                                fontSize:15, fontWeight:900, color:'#fff', background:BRAND_PRIMARY,
                                 padding:'2px 12px', borderRadius:8, letterSpacing:1,
                               }}>
                                 {j.gols_mandante} × {j.gols_visitante}
@@ -549,7 +548,7 @@ export default function ObservacaoPage() {
                           {/* Detalhes */}
                           <div style={{ display:'flex', flexWrap:'wrap', gap:16, fontSize:11, color:'#64748b' }}>
                             <span>📅 {fmtDate(j.data)}{j.hora && ` · ${j.hora}`}</span>
-                            {j.scout ? <span style={{ color:GFC, fontWeight:700 }}>👤 {j.scout}</span>
+                            {j.scout ? <span style={{ color:BRAND_PRIMARY, fontWeight:700 }}>👤 {j.scout}</span>
                                      : <span style={{ color:'#ef4444', fontWeight:700 }}>👤 Sem scout designado</span>}
                           </div>
 
@@ -562,13 +561,13 @@ export default function ObservacaoPage() {
                           )}
                           {(j.avaliacoes_resumo?.length > 0) && (
                             <div style={{ marginTop:10, background:'#f0fdf4', borderRadius:10, padding:'10px 14px', border:'1px solid #bbf7d0' }}>
-                              <p style={{ fontSize:9, fontWeight:800, color:GFC, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:8 }}>
+                              <p style={{ fontSize:9, fontWeight:800, color:BRAND_PRIMARY, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:8 }}>
                                 🏆 {j.avaliacoes_resumo.length} jogador{j.avaliacoes_resumo.length > 1 ? 'es' : ''} avaliado{j.avaliacoes_resumo.length > 1 ? 's' : ''}
                               </p>
                               <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                                 {j.avaliacoes_resumo.map((a, ai) => {
                                   const notaNum = parseInt(a.nota_jogo || '0')
-                                  const notaColor = notaNum >= 8 ? GFC : notaNum >= 6 ? '#b45309' : notaNum > 0 ? '#c62828' : '#94a3b8'
+                                  const notaColor = notaNum >= 8 ? BRAND_PRIMARY : notaNum >= 6 ? '#b45309' : notaNum > 0 ? '#c62828' : '#94a3b8'
                                   const recBg = { 'Contratar (Titular PRO)':'#dcfce7','Contratar (Elenco PRO)':'#dcfce7','Monitorar (PRO)':'#dbeafe','Contratar (Titular Base)':'#dcfce7','Contratar (Elenco Base)':'#dcfce7','Monitorar (Base)':'#dbeafe','Ver mais (sem opinião)':'#fef3c7','Arquivar':'#fee2e2' }[a.recomendacao] || '#f1f5f9'
                                   const recColor = { 'Contratar (Titular PRO)':'#166534','Contratar (Elenco PRO)':'#166534','Monitorar (PRO)':'#1e40af','Contratar (Titular Base)':'#166534','Contratar (Elenco Base)':'#166534','Monitorar (Base)':'#1e40af','Ver mais (sem opinião)':'#92400e','Arquivar':'#991b1b' }[a.recomendacao] || '#475569'
                                   return (
@@ -595,9 +594,9 @@ export default function ObservacaoPage() {
                           <div style={{ display:'flex', gap:10, marginTop:12, flexWrap:'wrap' }}>
                             <button onClick={() => setModalJogo(j)} style={{
                               display:'inline-flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:8,
-                              border:`1.5px solid ${j.tem_relatorio ? '#86efac' : GFC}`, cursor:'pointer',
+                              border:`1.5px solid ${j.tem_relatorio ? '#86efac' : BRAND_PRIMARY}`, cursor:'pointer',
                               fontFamily:'inherit', fontSize:11, fontWeight:700,
-                              background: j.tem_relatorio ? '#f0fdf4' : GFC,
+                              background: j.tem_relatorio ? '#f0fdf4' : BRAND_PRIMARY,
                               color: j.tem_relatorio ? '#166534' : '#fff',
                             }}>
                               {j.tem_relatorio
@@ -666,7 +665,7 @@ export default function ObservacaoPage() {
           onClick={e => { if(e.target===e.currentTarget) setModalNova(false) }}>
           <div style={{ background:"#fff", borderRadius:18, width:"100%", maxWidth:500, boxShadow:"0 20px 60px rgba(0,0,0,0.25)", overflow:"hidden" }}>
             {/* Header */}
-            <div style={{ background:GFC, padding:"18px 24px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            <div style={{ background:BRAND_PRIMARY, padding:"18px 24px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
               <div>
                 <p style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:3, color:"rgba(255,255,255,0.65)", marginBottom:2 }}>Cadastro Manual</p>
                 <h3 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:22, fontWeight:900, color:"#fff", textTransform:"uppercase" }}>Nova Partida</h3>
@@ -781,7 +780,7 @@ export default function ObservacaoPage() {
                   Cancelar
                 </button>
                 <button type="submit" disabled={salvandoNova || !novaForm.mandante || !novaForm.visitante}
-                  style={{ padding:"9px 20px", borderRadius:8, border:"none", background:GFC, color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit", opacity:(salvandoNova||!novaForm.mandante||!novaForm.visitante)?0.6:1 }}>
+                  style={{ padding:"9px 20px", borderRadius:8, border:"none", background:BRAND_PRIMARY, color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit", opacity:(salvandoNova||!novaForm.mandante||!novaForm.visitante)?0.6:1 }}>
                   {salvandoNova ? "Salvando..." : "✓ Cadastrar Partida"}
                 </button>
               </div>

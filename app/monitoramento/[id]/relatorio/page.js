@@ -2,8 +2,8 @@
 import { useState, useEffect, useMemo, Suspense } from 'react'
 import { useParams } from 'next/navigation'
 
-const GFC  = '#0a66b7'
-const GFC2 = '#064b82'
+const BRAND_PRIMARY  = '#0a66b7'
+const BRAND_DARK = '#064b82'
 const BLUE = '#1565c0'
 const AMB  = '#b45309'
 const RED  = '#c62828'
@@ -118,7 +118,7 @@ function calcComparisons(pg, T, m, gP, sP) {
     }
     return map[key]??null
   }
-  const row = (label, key) => ({ label, atletaV: a(key), guaraniV: gPos.length?avgMetric(gPos,key):null, serieCv: sPos.length?avgMetric(sPos,key):null })
+  const row = (label, key) => ({ label, atletaV: a(key), clubV: gPos.length?avgMetric(gPos,key):null, serieCv: sPos.length?avgMetric(sPos,key):null })
   const byPos = {
     CB:  [row('Duelos def.%','duelos_def_pct'),row('Aéreos g.%','duelos_aereos_pct'),row('Intercep/90','intercepoes_90'),row('Carrinhos%','carrinhos_pct'),row('Alívios/90','alivios_90'),row('P.Frente%','passes_prof_pct'),row('P.Longos%','passes_longos_pct'),row('Perdas inv%','perdas_inv')],
     LAT: [row('Cruzamentos%','cruzamentos_pct'),row('P.Terço%','passes_terco_pct'),row('A.Remate/90','assist_remate_90'),row('Dribles%','dribles_pct'),row('Duelos def.%','duelos_def_pct'),row('Recuper/90','recuperacoes_90'),row('Corridas/90','corridas_90'),row('P.Profund%','passes_prof_pct')],
@@ -168,13 +168,13 @@ function PizzaPlot({ title, data, color, size = 170 }) {
   )
 }
 
-function CompBar({ label, atletaV, guaraniV, serieCv }) {
-  const max=Math.max(atletaV||0,guaraniV||0,serieCv||0,0.001)
+function CompBar({ label, atletaV, clubV, serieCv }) {
+  const max=Math.max(atletaV||0,clubV||0,serieCv||0,0.001)
   const fmt=(v)=>v==null?'—':(typeof v==='number'?(v%1===0?v:v.toFixed(1)):v)
   return (
     <div style={{marginBottom:6}}>
       <div style={{fontSize:7,fontWeight:700,color:'#334155',marginBottom:2}}>{label}</div>
-      {[{l:'Atleta',val:atletaV,color:GFC},{l:'Confiança',val:guaraniV,color:BLUE},{l:'Série C',val:serieCv,color:AMB}].map(row=>(
+      {[{l:'Atleta',val:atletaV,color:BRAND_PRIMARY},{l:'Confiança',val:clubV,color:BLUE},{l:'Série C',val:serieCv,color:AMB}].map(row=>(
         <div key={row.l} style={{display:'flex',alignItems:'center',gap:5,marginBottom:2}}>
           <span style={{fontSize:6,fontWeight:700,color:row.color,width:34,flexShrink:0}}>{row.l}</span>
           <div style={{flex:1,height:5,background:'#f1f5f9',borderRadius:99,overflow:'hidden'}}>
@@ -187,7 +187,7 @@ function CompBar({ label, atletaV, guaraniV, serieCv }) {
   )
 }
 
-function Kpi({ label, value, color=GFC, dark=false }) {
+function Kpi({ label, value, color=BRAND_PRIMARY, dark=false }) {
   return (
     <div style={{background:dark?'#1a2e1a':'#f0fdf4',borderRadius:8,padding:'6px 8px',textAlign:'center',border:`1px solid ${dark?'#2a4a2a':'#bbf7d0'}`}}>
       <div style={{fontSize:7,color:dark?'#86efac':'#64748b',textTransform:'uppercase',letterSpacing:'0.04em',marginBottom:2}}>{label}</div>
@@ -199,14 +199,14 @@ function StatRow({ label, value, pctVal }) {
   return (
     <div style={{display:'flex',alignItems:'center',gap:5,padding:'3px 0',borderBottom:'1px solid #f4f8fc'}}>
       <span style={{fontSize:7.5,color:'#64748b',flex:1}}>{label}</span>
-      <span style={{fontSize:8.5,fontWeight:800,color:GFC,minWidth:36,textAlign:'right'}}>{value??'—'}</span>
-      {pctVal!=null&&<div style={{width:40,height:4,background:'#f4f8fc',borderRadius:99,overflow:'hidden',flexShrink:0}}><div style={{width:`${Math.min(100,pctVal)}%`,height:'100%',background:pctVal>=70?GFC:pctVal>=50?TEAL:AMB,borderRadius:99}}/></div>}
+      <span style={{fontSize:8.5,fontWeight:800,color:BRAND_PRIMARY,minWidth:36,textAlign:'right'}}>{value??'—'}</span>
+      {pctVal!=null&&<div style={{width:40,height:4,background:'#f4f8fc',borderRadius:99,overflow:'hidden',flexShrink:0}}><div style={{width:`${Math.min(100,pctVal)}%`,height:'100%',background:pctVal>=70?BRAND_PRIMARY:pctVal>=50?TEAL:AMB,borderRadius:99}}/></div>}
     </div>
   )
 }
 function IrcBadge({ irc, label }) {
   if (!irc) return null
-  const v=parseFloat(irc), c=v>=4?GFC:v>=3?TEAL:v>=2?AMB:RED
+  const v=parseFloat(irc), c=v>=4?BRAND_PRIMARY:v>=3?TEAL:v>=2?AMB:RED
   return (
     <div style={{display:'inline-flex',flexDirection:'column',alignItems:'center',background:c+'18',border:`1.5px solid ${c}`,borderRadius:10,padding:'7px 12px',minWidth:56}}>
       <div style={{fontSize:20,fontWeight:900,color:c,lineHeight:1}}>{v.toFixed(1)}</div>
@@ -229,7 +229,7 @@ function PrintContent() {
   const [atleta,setAtleta]=useState(null)
   const [loading,setLoading]=useState(true)
   const [lfRec,setLfRec]=useState(null)
-  const [guaraniData,setGuaraniData]=useState([])
+  const [clubData,setClubData]=useState([])
   const [serieCData,setSerieCData]=useState([])
 
   useEffect(()=>{
@@ -237,12 +237,12 @@ function PrintContent() {
     Promise.allSettled([
       fetch(`/api/monitoramento?id=${id}`).then(r=>r.json()),
       fetch('/api/lista-final').then(r=>r.json()),
-      fetch('/api/wyscout-benchmark?tipo=guarani').then(r=>r.json()).catch(()=>({players:[]})),
+      fetch('/api/wyscout-benchmark?tipo=club').then(r=>r.json()).catch(()=>({players:[]})),
       fetch('/api/wyscout-benchmark?tipo=serie_c').then(r=>r.json()).catch(()=>({players:[]})),
     ]).then(([atl,lf,g,s])=>{
       const a=atl.status==='fulfilled'?atl.value:null
       setAtleta(a)
-      setGuaraniData(g.status==='fulfilled'?(g.value.players||[]):[])
+      setClubData(g.status==='fulfilled'?(g.value.players||[]):[])
       setSerieCData(s.status==='fulfilled'?(s.value.players||[]):[])
       if(lf.status==='fulfilled'&&a){
         const pl=lf.value?.players||[]
@@ -260,23 +260,23 @@ function PrintContent() {
   const idade=calcIdade(atleta?.data_nascimento)
   const gerado=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})
   const posMetrics=useMemo(()=>getMetricsByPos(pg,T,m),[pg,T,m])
-  const compRows=useMemo(()=>calcComparisons(pg,T,m,guaraniData,serieCData),[pg,T,m,guaraniData,serieCData])
+  const compRows=useMemo(()=>calcComparisons(pg,T,m,clubData,serieCData),[pg,T,m,clubData,serieCData])
   const {fortes,fracos}=useMemo(()=>calcFortesFracos(compRows),[compRows])
-  const hasComp=guaraniData.length>0||serieCData.length>0
+  const hasComp=clubData.length>0||serieCData.length>0
 
   if(loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Inter,sans-serif',color:'#94a3b8',fontSize:14,fontWeight:700,textTransform:'uppercase'}}>Preparando relatório...</div>
   if(!atleta||atleta.error) return <div style={{padding:40,fontFamily:'sans-serif',color:RED}}>Atleta não encontrado.</div>
 
-  const stripe={position:'absolute',top:0,left:0,right:0,height:5,background:`linear-gradient(90deg,${GFC} 0%,#22c55e 55%,#1e293b 100%)`}
+  const stripe={position:'absolute',top:0,left:0,right:0,height:5,background:`linear-gradient(90deg,${BRAND_PRIMARY} 0%,#22c55e 55%,#1e293b 100%)`}
   const page={width:794,background:'white',padding:'24px 28px',position:'relative',fontFamily:"'Inter',sans-serif",color:'#10233b'}
-  const NIVEL_C={'Monitorando':GFC,'Interesse':BLUE,'Proposta':AMB,'Descartado':RED}
-  const nColor=NIVEL_C[atleta.nivel_interesse]||GFC
+  const NIVEL_C={'Monitorando':BRAND_PRIMARY,'Interesse':BLUE,'Proposta':AMB,'Descartado':RED}
+  const nColor=NIVEL_C[atleta.nivel_interesse]||BRAND_PRIMARY
 
   return (
     <>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@700;900&display=swap');*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Inter',sans-serif;background:white;-webkit-print-color-adjust:exact;print-color-adjust:exact;}@media print{@page{size:A4 portrait;margin:0;}html,body{width:210mm;}.no-print{display:none!important;}.pg{page-break-before:always;}}@media screen{body{background:#334155;padding-bottom:48px;}.a4{box-shadow:0 8px 40px rgba(0,0,0,.3);margin:32px auto;}}`}</style>
       <div className="no-print" style={{position:'fixed',top:16,right:16,zIndex:9999,display:'flex',gap:8}}>
-        <button onClick={()=>window.print()} style={{background:GFC,color:'#fff',border:'none',borderRadius:8,padding:'10px 22px',fontWeight:900,fontSize:13,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🖨️ Salvar PDF</button>
+        <button onClick={()=>window.print()} style={{background:BRAND_PRIMARY,color:'#fff',border:'none',borderRadius:8,padding:'10px 22px',fontWeight:900,fontSize:13,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🖨️ Salvar PDF</button>
         <button onClick={()=>window.close()} style={{background:'#1e293b',color:'#fff',border:'none',borderRadius:8,padding:'10px 16px',fontWeight:700,fontSize:13,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✕ Fechar</button>
       </div>
 
@@ -286,7 +286,7 @@ function PrintContent() {
         <Shield opacity={0.035} size={190}/>
 
         {/* Header */}
-        <div style={{background:GFC2,borderRadius:12,padding:'14px 18px',marginBottom:12,display:'flex',alignItems:'center',gap:14,position:'relative',zIndex:1}}>
+        <div style={{background:BRAND_DARK,borderRadius:12,padding:'14px 18px',marginBottom:12,display:'flex',alignItems:'center',gap:14,position:'relative',zIndex:1}}>
           {atleta.foto_url&&<img src={atleta.foto_url} style={{width:54,height:54,borderRadius:'50%',objectFit:'cover',border:'2px solid #22c55e',flexShrink:0}}/>}
           <div style={{flex:1}}>
             <div style={{fontSize:7,fontWeight:700,letterSpacing:'0.12em',textTransform:'uppercase',color:'rgba(255,255,255,0.45)',marginBottom:2}}>Confiança · Central de Inteligência · Monitoramento</div>
@@ -312,12 +312,12 @@ function PrintContent() {
                 <span style={{fontSize:7.5,fontWeight:700,color:'#10233b',textAlign:'right',maxWidth:100}}>{v}</span>
               </div>
             ))}
-            {lfRec&&<div style={{marginTop:7,paddingTop:7,borderTop:'1px solid #e5edf5'}}><div style={{fontSize:7,fontWeight:800,color:'#64748b',textTransform:'uppercase',marginBottom:3}}>Lista Final CIC</div><IrcBadge irc={lfRec.irc_final} label={lfRec.irc_classificacao}/>{lfRec.recomendacao&&<div style={{fontSize:8,fontWeight:800,color:GFC,marginTop:3}}>{lfRec.recomendacao}</div>}</div>}
+            {lfRec&&<div style={{marginTop:7,paddingTop:7,borderTop:'1px solid #e5edf5'}}><div style={{fontSize:7,fontWeight:800,color:'#64748b',textTransform:'uppercase',marginBottom:3}}>Lista Final CIC</div><IrcBadge irc={lfRec.irc_final} label={lfRec.irc_classificacao}/>{lfRec.recomendacao&&<div style={{fontSize:8,fontWeight:800,color:BRAND_PRIMARY,marginTop:3}}>{lfRec.recomendacao}</div>}</div>}
           </div>
           {T?(
             <div style={{display:'flex',flexDirection:'column',gap:7}}>
               <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:5}}>
-                {[{l:'Jogos',v:T.jogos,c:'#10233b'},{l:'Minutos',v:T.minutos,c:'#10233b'},{l:'Gols',v:T.gols,c:GFC},{l:'Assists',v:T.assists,c:GFC},{l:'xG',v:fmt1(T.xg),c:TEAL},{l:'xA',v:fmt1(T.xa),c:TEAL},{l:'🟨',v:T.amarelo2,c:AMB},{l:'🟥',v:T.vermelho2,c:RED}].map(({l,v,c})=><Kpi key={l} label={l} value={v} color={c}/>)}
+                {[{l:'Jogos',v:T.jogos,c:'#10233b'},{l:'Minutos',v:T.minutos,c:'#10233b'},{l:'Gols',v:T.gols,c:BRAND_PRIMARY},{l:'Assists',v:T.assists,c:BRAND_PRIMARY},{l:'xG',v:fmt1(T.xg),c:TEAL},{l:'xA',v:fmt1(T.xa),c:TEAL},{l:'🟨',v:T.amarelo2,c:AMB},{l:'🟥',v:T.vermelho2,c:RED}].map(({l,v,c})=><Kpi key={l} label={l} value={v} color={c}/>)}
               </div>
               <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:5}}>
                 {[{l:'Gols/90',v:fmt2(p90(T.gols,m))},{l:'Assists/90',v:fmt2(p90(T.assists,m))},{l:'xG/90',v:fmt2(p90(T.xg,m))},{l:'xA/90',v:fmt2(p90(T.xa,m))},{l:'Remates/90',v:fmt1(p90(T.remates_totais,m))},{l:'Dribles/90',v:fmt1(p90(T.dribbles,m))}].map(({l,v})=><Kpi key={l} label={l} value={v} dark/>)}
@@ -334,11 +334,11 @@ function PrintContent() {
               Percentile Charts — Métricas-chave · {atleta.posicao||'Posição'}
             </div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8}}>
-              <PizzaPlot title={`${atleta.posicao||'Posição'} — Métricas 1 a 4`} data={posMetrics.slice(0,4)} color={GFC}/>
+              <PizzaPlot title={`${atleta.posicao||'Posição'} — Métricas 1 a 4`} data={posMetrics.slice(0,4)} color={BRAND_PRIMARY}/>
               <PizzaPlot title={`${atleta.posicao||'Posição'} — Métricas 5 a 8`} data={posMetrics.slice(4,8)} color={AMB}/>
             </div>
             <div style={{display:'flex',gap:12,marginTop:5,justifyContent:'center'}}>
-              {[['≥80%','#16a34a','Elite'],['60–79%',GFC,'Acima da média'],['40–59%','#d97706','Na média'],['<40%','#dc2626','Abaixo']].map(([r,c,l])=>(
+              {[['≥80%','#16a34a','Elite'],['60–79%',BRAND_PRIMARY,'Acima da média'],['40–59%','#d97706','Na média'],['<40%','#dc2626','Abaixo']].map(([r,c,l])=>(
                 <div key={r} style={{display:'flex',alignItems:'center',gap:4}}>
                   <div style={{width:7,height:7,borderRadius:2,background:c}}/><span style={{fontSize:6.5,color:'#64748b'}}><strong style={{color:c}}>{r}</strong> {l}</span>
                 </div>
@@ -353,12 +353,12 @@ function PrintContent() {
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
               <div style={{fontSize:7.5,fontWeight:900,color:'#10233b',textTransform:'uppercase',letterSpacing:'0.07em'}}>📊 Comparação por posição — Atleta · Confiança · Série C</div>
               <div style={{display:'flex',gap:8,marginLeft:'auto'}}>
-                {[['Atleta',GFC],['Confiança',BLUE],['Série C',AMB]].map(([l,c])=><div key={l} style={{display:'flex',alignItems:'center',gap:3}}><div style={{width:7,height:7,borderRadius:2,background:c}}/><span style={{fontSize:6.5,color:'#64748b',fontWeight:700}}>{l}</span></div>)}
+                {[['Atleta',BRAND_PRIMARY],['Confiança',BLUE],['Série C',AMB]].map(([l,c])=><div key={l} style={{display:'flex',alignItems:'center',gap:3}}><div style={{width:7,height:7,borderRadius:2,background:c}}/><span style={{fontSize:6.5,color:'#64748b',fontWeight:700}}>{l}</span></div>)}
               </div>
               {!hasComp&&<span style={{fontSize:7.5,color:'#94a3b8',fontStyle:'italic'}}>Carregue os Excel de benchmark para ver comparação</span>}
             </div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'2px 18px'}}>
-              {compRows.map((row,i)=><CompBar key={i} label={row.label} atletaV={row.atletaV} guaraniV={row.guaraniV} serieCv={row.serieCv}/>)}
+              {compRows.map((row,i)=><CompBar key={i} label={row.label} atletaV={row.atletaV} clubV={row.clubV} serieCv={row.serieCv}/>)}
             </div>
           </div>
         )}
@@ -393,13 +393,13 @@ function PrintContent() {
           {/* Pontos Fortes e a Melhorar */}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10,position:'relative',zIndex:1}}>
             <div style={{background:'#f0fdf4',borderRadius:10,border:'1px solid #bbf7d0',padding:'11px 13px'}}>
-              <div style={{fontSize:8,fontWeight:900,color:GFC,textTransform:'uppercase',letterSpacing:'0.07em',marginBottom:8}}>✅ 4 Pontos Fortes vs Série C</div>
+              <div style={{fontSize:8,fontWeight:900,color:BRAND_PRIMARY,textTransform:'uppercase',letterSpacing:'0.07em',marginBottom:8}}>✅ 4 Pontos Fortes vs Série C</div>
               {fortes.length===0?(
                 <div style={{fontSize:9,color:'#94a3b8',fontStyle:'italic'}}>{hasComp?'Dados insuficientes':'Carregue os dados de benchmark'}</div>
               ):fortes.map((f,i)=>(
                 <div key={i} style={{display:'flex',alignItems:'center',gap:7,marginBottom:7}}>
-                  <div style={{width:20,height:20,borderRadius:'50%',background:GFC,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:9,fontWeight:900,color:'white'}}>{i+1}</span></div>
-                  <div style={{flex:1}}><div style={{fontSize:9,fontWeight:700,color:'#166534'}}>{f.label}</div><div style={{fontSize:7.5,color:'#52677e'}}>{f.atletaV?.toFixed(1)} vs {f.serieCv?.toFixed(1)} médio <span style={{marginLeft:4,color:GFC,fontWeight:800}}>+{Math.round(f.diff)}%</span></div></div>
+                  <div style={{width:20,height:20,borderRadius:'50%',background:BRAND_PRIMARY,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:9,fontWeight:900,color:'white'}}>{i+1}</span></div>
+                  <div style={{flex:1}}><div style={{fontSize:9,fontWeight:700,color:'#166534'}}>{f.label}</div><div style={{fontSize:7.5,color:'#52677e'}}>{f.atletaV?.toFixed(1)} vs {f.serieCv?.toFixed(1)} médio <span style={{marginLeft:4,color:BRAND_PRIMARY,fontWeight:800}}>+{Math.round(f.diff)}%</span></div></div>
                 </div>
               ))}
             </div>
@@ -419,7 +419,7 @@ function PrintContent() {
           {/* Tabela stats */}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,position:'relative',zIndex:1}}>
             <div style={{background:'#f7fcf9',borderRadius:10,border:'1px solid #e5edf5',padding:'11px 13px'}}>
-              <div style={{fontSize:8,fontWeight:900,color:GFC,textTransform:'uppercase',letterSpacing:'0.07em',marginBottom:7}}>⚽ Ataque</div>
+              <div style={{fontSize:8,fontWeight:900,color:BRAND_PRIMARY,textTransform:'uppercase',letterSpacing:'0.07em',marginBottom:7}}>⚽ Ataque</div>
               <StatRow label="Gols" value={T.gols}/><StatRow label="xG" value={fmt2(T.xg)}/><StatRow label="Assistências" value={T.assists}/><StatRow label="xA" value={fmt2(T.xa)}/><StatRow label="Remates totais" value={T.remates_totais}/><StatRow label="Remates bal." value={T.remates_baliza} pctVal={pct(T.remates_baliza,T.remates_totais)}/><StatRow label="Dribbles" value={T.dribbles} pctVal={pct(T.dribbles_ok,T.dribbles)}/><StatRow label="Toques área" value={T.toques_area}/><StatRow label="A.remate" value={T.assist_remate}/><StatRow label="Faltas sof." value={T.faltas_sofridas}/>
               <div style={{marginTop:5,paddingTop:4,borderTop:'1px solid #e5edf5'}}><div style={{fontSize:7,fontWeight:800,color:'#64748b',textTransform:'uppercase',marginBottom:3}}>Por 90 min</div><StatRow label="Gols/90" value={fmt2(p90(T.gols,m))}/><StatRow label="xG/90" value={fmt2(p90(T.xg,m))}/><StatRow label="Assists/90" value={fmt2(p90(T.assists,m))}/><StatRow label="Remates/90" value={fmt1(p90(T.remates_totais,m))}/></div>
             </div>
@@ -443,7 +443,7 @@ function PrintContent() {
           {/* Lista Final CIC */}
           {lfRec&&(
             <div style={{marginTop:8,background:'#f7fcf9',borderRadius:10,border:'1px solid #e5edf5',padding:'10px 12px',position:'relative',zIndex:1}}>
-              <div style={{fontSize:8,fontWeight:900,color:GFC,textTransform:'uppercase',letterSpacing:'0.07em',marginBottom:7}}>📋 Relatório Lista Final CIC</div>
+              <div style={{fontSize:8,fontWeight:900,color:BRAND_PRIMARY,textTransform:'uppercase',letterSpacing:'0.07em',marginBottom:7}}>📋 Relatório Lista Final CIC</div>
               <div style={{display:'grid',gridTemplateColumns:'auto 1fr 1fr 1fr',gap:10,alignItems:'start'}}>
                 <IrcBadge irc={lfRec.irc_final} label={lfRec.irc_classificacao}/>
                 {[['Físico',lfRec.pontos_fisicos],['Técnico',lfRec.pontos_tecnicos],['Tático',lfRec.pontos_taticos]].map(([cat,txt])=>txt?(<div key={cat}><div style={{fontSize:7,color:'#94a3b8',fontWeight:700,textTransform:'uppercase',marginBottom:2}}>{cat}</div><p style={{fontSize:8,color:'#10233b',lineHeight:1.5}}>{txt}</p></div>):<div key={cat}/>)}

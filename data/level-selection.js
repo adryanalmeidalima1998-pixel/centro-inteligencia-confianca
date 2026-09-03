@@ -3,7 +3,7 @@ import {
   buildSportsbaseRolePools,
 } from '@/data/sportsbase-selection'
 import { competitiveLevelLabel, estimateCompetitiveLevels } from '@/data/competitive-levels'
-import { evaluateGuaraniMarketContext } from '@/data/guarani-market-context'
+import { evaluateClubMarketContext } from '@/data/club-market-context'
 import { buildWyscoutRolePools } from '@/data/wyscout-selection'
 
 const clamp = value => Math.max(0, Math.min(100, Number(value) || 0))
@@ -26,7 +26,7 @@ function wyscoutRolePools(players = []) {
 
 function enrichCandidate(player, slug, source) {
   const levels = estimateCompetitiveLevels(player, slug, { source, performanceScore:player._performance_score || player._score })
-  const market = evaluateGuaraniMarketContext(player, slug)
+  const market = evaluateClubMarketContext(player, slug)
   const currentScore = num(player._nivel_atual_score, levels.current.rawScore)
   const potentialScore = num(player._nivel_potencial_score, levels.potential.rawScore)
   const provenScore = num(player._nivel_comprovado_score, levels.proven.rawScore)
@@ -92,8 +92,7 @@ function buildMode(rolePools, mode) {
   return { reference, highlight, ascent }
 }
 
-export function buildCompetitiveLeagueSelections(players = [], slug = '', source = 'sportsbase') {
-  const base = source === 'sportsbase' ? buildSportsbaseRolePools(players) : wyscoutRolePools(players)
+export function buildCompetitiveLeagueSelectionsFromPools(base = { rolePools:{}, thresholds:{} }, slug = '', source = 'sportsbase') {
   const rolePools = {}
   for (const role of SPORTSBASE_SELECTION_ROLES) {
     rolePools[role.slot] = {
@@ -113,9 +112,14 @@ export function buildCompetitiveLeagueSelections(players = [], slug = '', source
     totalEligible,
     missingRoles:SPORTSBASE_SELECTION_ROLES.filter(role => !(rolePools[role.slot]?.ranked || []).length).map(role => role.slot),
     methodology:{
-      current:`Nota estatística ${source === 'wyscout' ? 'Wyscout' : 'Sportsbase'} por função: percentis nativos 82%, robustez da amostra 10%, cobertura de métricas 5% e adequação posicional 3%.`,
-      potential:`Projeção ${source === 'wyscout' ? 'Wyscout' : 'Sportsbase'}: rendimento atual 62%, curva etária 18%, amostra 8%, cobertura 7% e combinação idade-desempenho 5%.`,
-      opportunity:`Oportunidade ${source === 'wyscout' ? 'Wyscout' : 'Sportsbase'}: rendimento por função 55%, viabilidade do mercado 20%, idade 15%, amostra 7% e cobertura estatística 3%.`,
+      current:`Rendimento por função ${source === 'combined' ? 'integrado Sportsbase + Wyscout' : source === 'wyscout' ? 'Wyscout' : 'Sportsbase'}: score funcional calibrado, robustez da amostra e adequação posicional.`,
+      potential:`Projeção ${source === 'combined' ? 'integrada' : source === 'wyscout' ? 'Wyscout' : 'Sportsbase'}: rendimento atual 62%, curva etária 18%, amostra 8%, cobertura 7% e combinação idade-desempenho 5%.`,
+      opportunity:`Oportunidade ${source === 'combined' ? 'integrada' : source === 'wyscout' ? 'Wyscout' : 'Sportsbase'}: rendimento por função 55%, viabilidade do mercado 20%, idade 15%, amostra 7% e cobertura estatística 3%.`,
     },
   }
+}
+
+export function buildCompetitiveLeagueSelections(players = [], slug = '', source = 'sportsbase') {
+  const base = source === 'sportsbase' ? buildSportsbaseRolePools(players) : wyscoutRolePools(players)
+  return buildCompetitiveLeagueSelectionsFromPools(base, slug, source)
 }

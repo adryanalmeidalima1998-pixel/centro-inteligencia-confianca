@@ -6,12 +6,12 @@ import {
   ResponsiveContainer, Legend, Cell,
 } from 'recharts'
 
-const GFC  = '#0a66b7'
+const BRAND_PRIMARY  = '#0a66b7'
 const RED  = '#c62828'
 const BLUE = '#1565c0'
 const PURP = '#6a1b9a'
 const AMB  = '#b45309'
-const GFC2 = '#eaf4fd'
+const BRAND_DARK = '#eaf4fd'
 
 /* ── PDF → Images (client-side) ──────────────────────────────── */
 async function pdfToImages(file, maxPages = 14, onProgress) {
@@ -55,14 +55,14 @@ async function safeJson(res) {
 /* ── Helpers ──────────────────────────────────────────────────── */
 function n(v, d = 1) { const f = parseFloat(v) || 0; return f % 1 === 0 ? f : f.toFixed(d) }
 function avg(arr, k) {
-  const vals = arr.map(p => parseFloat(p?.matchData?.guarani?.[k]) || 0)
+  const vals = arr.map(p => parseFloat(p?.matchData?.club?.[k]) || 0)
   return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0
 }
 function resultBadge(p) {
-  const gfc = p.matchData?.guarani?.goals ?? 0
-  const opp = p.matchData?.guarani?.goalsConceded ?? 0
-  if (gfc > opp) return { txt: 'V', bg: GFC, color: '#fff' }
-  if (gfc < opp) return { txt: 'D', bg: RED, color: '#fff' }
+  const club = p.matchData?.club?.goals ?? 0
+  const opp = p.matchData?.club?.goalsConceded ?? 0
+  if (club > opp) return { txt: 'V', bg: BRAND_PRIMARY, color: '#fff' }
+  if (club < opp) return { txt: 'D', bg: RED, color: '#fff' }
   return { txt: 'E', bg: '#f59e0b', color: '#fff' }
 }
 
@@ -71,8 +71,8 @@ const S = {
   card: { background: '#fff', borderRadius: 14, border: '1px solid #e5edf5', boxShadow: '0 1px 6px rgba(10,102,183,0.05)', overflow: 'hidden' },
   head: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: '1px solid #f4f8fc' },
   body: { padding: '16px 18px' },
-  btnGreen: { background: GFC, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 18px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 7 },
-  btnGhost: { background: '#fff', color: GFC, border: '1.5px solid #c6def2', borderRadius: 9, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 7 },
+  btnGreen: { background: BRAND_PRIMARY, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 18px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 7 },
+  btnGhost: { background: '#fff', color: BRAND_PRIMARY, border: '1.5px solid #c6def2', borderRadius: 9, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 7 },
 }
 
 function Card({ title, sub, action, children, noPad }) {
@@ -91,7 +91,7 @@ function Card({ title, sub, action, children, noPad }) {
     </div>
   )
 }
-function Chip({ label, value, sub, color = GFC, small }) {
+function Chip({ label, value, sub, color = BRAND_PRIMARY, small }) {
   return (
     <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #e5edf5', padding: small ? '10px 14px' : '14px 18px', flex: '1 1 120px', minWidth: 0 }}>
       <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.5px', color: '#94a3b8', marginBottom: 4 }}>{label}</p>
@@ -110,7 +110,7 @@ function MBar({ data, keys, colors, height = 140 }) {
         <YAxis tick={{ fontSize: 9, fill: '#94a3b8' }} />
         <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #e5edf5' }} />
         <Legend wrapperStyle={{ fontSize: 10 }} />
-        {keys.map((k, i) => <Bar key={k.key} dataKey={k.key} name={k.name} fill={colors[i] || GFC} radius={[3,3,0,0]} maxBarSize={26} />)}
+        {keys.map((k, i) => <Bar key={k.key} dataKey={k.key} name={k.name} fill={colors[i] || BRAND_PRIMARY} radius={[3,3,0,0]} maxBarSize={26} />)}
       </BarChart>
     </ResponsiveContainer>
   )
@@ -125,23 +125,23 @@ function MLine({ data, keys, colors, height = 140 }) {
         <YAxis tick={{ fontSize: 9, fill: '#94a3b8' }} />
         <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #e5edf5' }} />
         <Legend wrapperStyle={{ fontSize: 10 }} />
-        {keys.map((k, i) => <Line key={k.key} type="monotone" dataKey={k.key} name={k.name} stroke={colors[i] || GFC} strokeWidth={2} dot={{ r: 3 }} />)}
+        {keys.map((k, i) => <Line key={k.key} type="monotone" dataKey={k.key} name={k.name} stroke={colors[i] || BRAND_PRIMARY} strokeWidth={2} dot={{ r: 3 }} />)}
       </LineChart>
     </ResponsiveContainer>
   )
 }
-function BilatBar({ label, gfc, opp, cGfc = GFC, cOpp = RED }) {
-  const total = (parseFloat(gfc)||0) + (parseFloat(opp)||0) || 1
-  const pct = Math.round(((parseFloat(gfc)||0) / total) * 100)
+function BilatBar({ label, club, opp, cClub = BRAND_PRIMARY, cOpp = RED }) {
+  const total = (parseFloat(club)||0) + (parseFloat(opp)||0) || 1
+  const pct = Math.round(((parseFloat(club)||0) / total) * 100)
   return (
     <div style={{ marginBottom: 10 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: cGfc }}>{typeof gfc==='number' ? (gfc%1===0 ? gfc : gfc.toFixed(2)) : gfc}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: cClub }}>{typeof club==='number' ? (club%1===0 ? club : club.toFixed(2)) : club}</span>
         <span style={{ fontSize: 10, color: '#64748b' }}>{label}</span>
         <span style={{ fontSize: 11, fontWeight: 700, color: cOpp }}>{typeof opp==='number' ? (opp%1===0 ? opp : opp.toFixed(2)) : opp}</span>
       </div>
       <div style={{ display: 'flex', borderRadius: 99, overflow: 'hidden', height: 7 }}>
-        <div style={{ width: `${pct}%`, background: cGfc, transition: 'width 0.4s' }} />
+        <div style={{ width: `${pct}%`, background: cClub, transition: 'width 0.4s' }} />
         <div style={{ flex: 1, background: cOpp }} />
       </div>
     </div>
@@ -153,10 +153,10 @@ function DropZone({ accept, label, icon, onFile, loading, progress, done, onClea
   const ref = useRef()
   const [drag, setDrag] = useState(false)
   if (done) return (
-    <div style={{ borderRadius: 10, border: `1.5px solid ${GFC}`, background: GFC2, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+    <div style={{ borderRadius: 10, border: `1.5px solid ${BRAND_PRIMARY}`, background: BRAND_DARK, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
       <span style={{ fontSize: 18 }}>✅</span>
       <div style={{ flex: 1 }}>
-        <p style={{ fontSize: 12, fontWeight: 700, color: GFC }}>Arquivo carregado</p>
+        <p style={{ fontSize: 12, fontWeight: 700, color: BRAND_PRIMARY }}>Arquivo carregado</p>
         <p style={{ fontSize: 10, color: '#64748b', marginTop: 1 }}>{done}</p>
       </div>
       <button onClick={onClear} style={{ background: 'none', border: '1px solid #bfd8ea', borderRadius: 7, padding: '4px 10px', fontSize: 11, color: '#64748b', cursor: 'pointer' }}>Trocar</button>
@@ -168,7 +168,7 @@ function DropZone({ accept, label, icon, onFile, loading, progress, done, onClea
       onDragLeave={() => setDrag(false)}
       onDrop={e => { e.preventDefault(); setDrag(false); const f = e.dataTransfer.files[0]; if (f) onFile(f) }}
       onClick={() => !loading && ref.current?.click()}
-      style={{ borderRadius: 10, border: `1.5px dashed ${drag ? GFC : '#bfd8ea'}`, background: drag ? GFC2 : '#f7fcf9', padding: '20px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.8 : 1, transition: 'all 0.15s' }}>
+      style={{ borderRadius: 10, border: `1.5px dashed ${drag ? BRAND_PRIMARY : '#bfd8ea'}`, background: drag ? BRAND_DARK : '#f7fcf9', padding: '20px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.8 : 1, transition: 'all 0.15s' }}>
       <span style={{ fontSize: 24 }}>{loading ? '⏳' : icon}</span>
       <p style={{ fontSize: 12, fontWeight: 700, color: '#2d4a35', textAlign: 'center' }}>{loading ? (progress || 'Processando...') : label}</p>
       <p style={{ fontSize: 10, color: '#94a3b8' }}>{loading ? '' : 'Clique ou arraste o arquivo'}</p>
@@ -183,7 +183,7 @@ function TimelineCharts({ exclusive, oppName }) {
   if (!tl) return <p style={{ fontSize: 11, color: '#94a3b8', padding: '20px 0', textAlign: 'center' }}>Sem dados de timeline. Faça upload do PDF Exclusivo para esta partida.</p>
 
   const labels = tl.labels || ['1-15','16-30','31-45+','46-60','61-75','76-90+']
-  const g = tl.guarani || {}
+  const g = tl.club || {}
   const o = tl.opponent || {}
 
   function tlData(key) {
@@ -212,7 +212,7 @@ function TimelineCharts({ exclusive, oppName }) {
           <MLine
             data={tlData(c.key)}
             keys={[{ key: 'Confiança', name: 'Confiança' }, { key: oppName, name: oppName }]}
-            colors={[GFC, RED]}
+            colors={[BRAND_PRIMARY, RED]}
             height={130}
           />
         </Card>
@@ -266,7 +266,7 @@ function ShotLog({ exclusive, oppName }) {
 
   return (
     <div>
-      <ShotTable list={gfcShots} color={GFC} title="Confiança" />
+      <ShotTable list={gfcShots} color={BRAND_PRIMARY} title="Confiança" />
       <ShotTable list={oppShots} color={RED} title={oppName} />
     </div>
   )
@@ -295,9 +295,9 @@ function Corridors({ exclusive, oppName }) {
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 14 }}>
       <Card title="Corredores — Confiança">
         <div style={{ display: 'flex', gap: 12 }}>
-          <CorridorBar data={c.guarani?.left}   color={GFC} label="Esq." />
-          <CorridorBar data={c.guarani?.center} color={GFC} label="Centro" />
-          <CorridorBar data={c.guarani?.right}  color={GFC} label="Dir." />
+          <CorridorBar data={c.club?.left}   color={BRAND_PRIMARY} label="Esq." />
+          <CorridorBar data={c.club?.center} color={BRAND_PRIMARY} label="Centro" />
+          <CorridorBar data={c.club?.right}  color={BRAND_PRIMARY} label="Dir." />
         </div>
       </Card>
       <Card title={`Corredores — ${oppName}`}>
@@ -315,29 +315,29 @@ function Corridors({ exclusive, oppName }) {
 function MatchCard({ partida, onDelete }) {
   const [open, setOpen] = useState(false)
   const [tab, setTab]   = useState('stats')
-  const g = partida.matchData?.guarani || {}
+  const g = partida.matchData?.club || {}
   const o = partida.matchData?.opponent || {}
   const badge = resultBadge(partida)
   const oppName = partida.homeTeam?.toLowerCase().includes('confianca') ? partida.awayTeam : partida.homeTeam
   const hasExclusive = !!partida.exclusiveData
 
   const comparisons = [
-    { label: 'xG', gfc: g.xG, opp: o.xG },
-    { label: 'Finalizações', gfc: g.shots, opp: o.shots },
-    { label: 'No alvo', gfc: g.shotsOnTarget, opp: o.shotsOnTarget },
-    { label: 'Posse %', gfc: g.possession, opp: o.possession },
-    { label: 'Passes', gfc: g.passes, opp: o.passes },
-    { label: 'Precisão p. %', gfc: g.passAccuracy, opp: o.passAccuracy },
-    { label: 'Passes prog.', gfc: g.progressivePasses, opp: o.progressivePasses },
-    { label: 'Recuperações', gfc: g.recoveries, opp: o.recoveries },
-    { label: 'Duelos %', gfc: g.duelsPct, opp: o.duelsPct },
-    { label: 'Duelos def. %', gfc: g.duelsDefPct, opp: o.duelsDefPct },
-    { label: 'Duelos aéreos %', gfc: g.aerialDuelsPct, opp: o.aerialDuelsPct },
-    { label: 'Toques área', gfc: g.touchesInBox, opp: o.touchesInBox },
-    { label: 'Cruzamentos', gfc: g.crosses, opp: o.crosses },
-    { label: 'Cantos', gfc: g.corners, opp: o.corners },
-    { label: 'Interceções', gfc: g.interceptions, opp: o.interceptions },
-    { label: 'PPDA (↓melhor)', gfc: g.ppda, opp: o.ppda, invert: true },
+    { label: 'xG', club: g.xG, opp: o.xG },
+    { label: 'Finalizações', club: g.shots, opp: o.shots },
+    { label: 'No alvo', club: g.shotsOnTarget, opp: o.shotsOnTarget },
+    { label: 'Posse %', club: g.possession, opp: o.possession },
+    { label: 'Passes', club: g.passes, opp: o.passes },
+    { label: 'Precisão p. %', club: g.passAccuracy, opp: o.passAccuracy },
+    { label: 'Passes prog.', club: g.progressivePasses, opp: o.progressivePasses },
+    { label: 'Recuperações', club: g.recoveries, opp: o.recoveries },
+    { label: 'Duelos %', club: g.duelsPct, opp: o.duelsPct },
+    { label: 'Duelos def. %', club: g.duelsDefPct, opp: o.duelsDefPct },
+    { label: 'Duelos aéreos %', club: g.aerialDuelsPct, opp: o.aerialDuelsPct },
+    { label: 'Toques área', club: g.touchesInBox, opp: o.touchesInBox },
+    { label: 'Cruzamentos', club: g.crosses, opp: o.crosses },
+    { label: 'Cantos', club: g.corners, opp: o.corners },
+    { label: 'Interceções', club: g.interceptions, opp: o.interceptions },
+    { label: 'PPDA (↓melhor)', club: g.ppda, opp: o.ppda, invert: true },
   ]
 
   const players    = partida.playersData || []
@@ -359,16 +359,16 @@ function MatchCard({ partida, onDelete }) {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontSize: 15, fontWeight: 900, color: '#10233b', fontFamily: "'Barlow Condensed',sans-serif", letterSpacing: 0.5 }}>
-            {partida.homeTeam} <span style={{ color: GFC }}>{partida.score}</span> {partida.awayTeam}
+            {partida.homeTeam} <span style={{ color: BRAND_PRIMARY }}>{partida.score}</span> {partida.awayTeam}
           </p>
           <p style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>
             {partida.competition} · {partida.date}
-            {hasExclusive && <span style={{ marginLeft: 8, color: GFC, fontSize: 9, fontWeight: 700, background: GFC2, borderRadius: 4, padding: '1px 5px' }}>+ Timeline</span>}
+            {hasExclusive && <span style={{ marginLeft: 8, color: BRAND_PRIMARY, fontSize: 9, fontWeight: 700, background: BRAND_DARK, borderRadius: 4, padding: '1px 5px' }}>+ Timeline</span>}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 16, flexShrink: 0 }}>
           {[
-            { label: 'xG', val: n(g.xG,2), color: GFC },
+            { label: 'xG', val: n(g.xG,2), color: BRAND_PRIMARY },
             { label: 'xGA', val: n(o.xG,2), color: RED },
             { label: 'Posse', val: `${n(g.possession)}%`, color: BLUE },
             { label: 'PPDA', val: n(g.ppda), color: PURP },
@@ -393,7 +393,7 @@ function MatchCard({ partida, onDelete }) {
             {TABS.map(([k, l]) => (
               <button key={k} onClick={() => setTab(k)} style={{
                 padding: '7px 14px', fontSize: 11, fontWeight: 700, borderRadius: 8,
-                background: tab === k ? GFC : '#f4f8fc', color: tab === k ? '#fff' : '#64748b',
+                background: tab === k ? BRAND_PRIMARY : '#f4f8fc', color: tab === k ? '#fff' : '#64748b',
                 border: 'none', cursor: 'pointer', fontFamily: 'inherit',
               }}>{l}</button>
             ))}
@@ -404,23 +404,23 @@ function MatchCard({ partida, onDelete }) {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: GFC }}>Confiança</span>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: BRAND_PRIMARY }}>Confiança</span>
                     <span style={{ fontSize: 11, fontWeight: 800, color: RED }}>{oppName}</span>
                   </div>
                   {comparisons.map(c => (
-                    <BilatBar key={c.label} label={c.label} gfc={c.gfc??0} opp={c.opp??0} cGfc={c.invert?RED:GFC} cOpp={c.invert?GFC:RED} />
+                    <BilatBar key={c.label} label={c.label} club={c.club??0} opp={c.opp??0} cClub={c.invert?RED:BRAND_PRIMARY} cOpp={c.invert?BRAND_PRIMARY:RED} />
                   ))}
                 </div>
                 <div>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart layout="vertical"
                       data={[
-                        { m: 'xG', gfc: g.xG||0, opp: o.xG||0 },
-                        { m: 'Remates', gfc: g.shots||0, opp: o.shots||0 },
-                        { m: 'Passes prog.', gfc: g.progressivePasses||0, opp: o.progressivePasses||0 },
-                        { m: 'Recuperações', gfc: g.recoveries||0, opp: o.recoveries||0 },
-                        { m: 'Toques área', gfc: g.touchesInBox||0, opp: o.touchesInBox||0 },
-                        { m: 'Cantos', gfc: g.corners||0, opp: o.corners||0 },
+                        { m: 'xG', club: g.xG||0, opp: o.xG||0 },
+                        { m: 'Remates', club: g.shots||0, opp: o.shots||0 },
+                        { m: 'Passes prog.', club: g.progressivePasses||0, opp: o.progressivePasses||0 },
+                        { m: 'Recuperações', club: g.recoveries||0, opp: o.recoveries||0 },
+                        { m: 'Toques área', club: g.touchesInBox||0, opp: o.touchesInBox||0 },
+                        { m: 'Cantos', club: g.corners||0, opp: o.corners||0 },
                       ]}
                       margin={{ top: 4, right: 20, bottom: 4, left: 80 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f4f8fc" />
@@ -428,12 +428,12 @@ function MatchCard({ partida, onDelete }) {
                       <YAxis type="category" dataKey="m" tick={{ fontSize: 10, fill: '#2d4a35' }} width={80} />
                       <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8 }} />
                       <Legend wrapperStyle={{ fontSize: 10 }} />
-                      <Bar dataKey="gfc" name="Confiança" fill={GFC} radius={[0,3,3,0]} maxBarSize={16} />
+                      <Bar dataKey="club" name="Confiança" fill={BRAND_PRIMARY} radius={[0,3,3,0]} maxBarSize={16} />
                       <Bar dataKey="opp" name={oppName} fill={RED} radius={[0,3,3,0]} maxBarSize={16} />
                     </BarChart>
                   </ResponsiveContainer>
                   <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-                    {[{ label: 'Confiança', val: g.formation, color: GFC }, { label: oppName, val: o.formation, color: RED }].filter(f=>f.val).map(f => (
+                    {[{ label: 'Confiança', val: g.formation, color: BRAND_PRIMARY }, { label: oppName, val: o.formation, color: RED }].filter(f=>f.val).map(f => (
                       <div key={f.label} style={{ flex: 1, background: '#f7fcf9', borderRadius: 8, padding: '8px 12px', textAlign: 'center' }}>
                         <p style={{ fontSize: 18, fontWeight: 900, color: f.color, fontFamily: "'Barlow Condensed',sans-serif" }}>{f.val}</p>
                         <p style={{ fontSize: 9, color: '#94a3b8' }}>{f.label}</p>
@@ -462,7 +462,7 @@ function MatchCard({ partida, onDelete }) {
                   Nenhum dado de jogadores. Faça upload do PDF de Jogadores e vincule a esta partida.
                 </p>
               ) : (
-                [{ title: 'Confiança', list: gfcPlayers, color: GFC }, { title: oppName, list: oppPlayers, color: RED }].map(team => (
+                [{ title: 'Confiança', list: gfcPlayers, color: BRAND_PRIMARY }, { title: oppName, list: oppPlayers, color: RED }].map(team => (
                   <div key={team.title} style={{ marginBottom: 16 }}>
                     <p style={{ fontSize: 11, fontWeight: 700, color: team.color, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '1px' }}>{team.title}</p>
                     <div style={{ overflowX: 'auto' }}>
@@ -480,7 +480,7 @@ function MatchCard({ partida, onDelete }) {
                               <td style={{ padding: '7px 8px', fontWeight: 600, color: '#10233b' }}>{p.name}</td>
                               <td style={{ padding: '7px 8px', color: '#94a3b8', fontSize: 10, fontWeight: 700 }}>{p.position}</td>
                               <td style={{ padding: '7px 8px', color: '#64748b' }}>{p.minutes||0}'</td>
-                              <td style={{ padding: '7px 8px', fontWeight: p.goals>0?800:400, color: p.goals>0?GFC:'#64748b' }}>{p.goals||0}</td>
+                              <td style={{ padding: '7px 8px', fontWeight: p.goals>0?800:400, color: p.goals>0?BRAND_PRIMARY:'#64748b' }}>{p.goals||0}</td>
                               <td style={{ padding: '7px 8px', color: '#64748b' }}>{n(p.xG,2)}</td>
                               <td style={{ padding: '7px 8px', color: '#64748b' }}>{p.assists||0}</td>
                               <td style={{ padding: '7px 8px', color: '#64748b' }}>{p.shots||0}</td>
@@ -508,14 +508,14 @@ function MatchCard({ partida, onDelete }) {
 function SeasonCharts({ partidas }) {
   const [tab, setTab] = useState('ofensivo')
   const cd = partidas.map(p => {
-    const g = p.matchData?.guarani || {}
+    const g = p.matchData?.club || {}
     const o = p.matchData?.opponent || {}
     const label = (p.homeTeam?.toLowerCase().includes('confianca') ? p.awayTeam : p.homeTeam)?.slice(0,10) || p.score
     return { label, g, o }
   }).reverse()
 
   const TABS = [
-    { key: 'ofensivo', label: 'Ofensivo', color: GFC },
+    { key: 'ofensivo', label: 'Ofensivo', color: BRAND_PRIMARY },
     { key: 'defensivo', label: 'Defensivo', color: RED },
     { key: 'gerais', label: 'Gerais', color: PURP },
   ]
@@ -530,12 +530,12 @@ function SeasonCharts({ partidas }) {
       {tab === 'ofensivo' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14 }}>
-            <Card title="Gols e xG" sub="Por jogo"><MBar data={cd.map(d=>({ label:d.label, 'Gols':d.g.goals||0, 'xG':d.g.xG||0 }))} keys={[{key:'Gols',name:'Gols'},{key:'xG',name:'xG'}]} colors={[GFC,'#66bb6a']} /></Card>
-            <Card title="Finalizações" sub="Total e no alvo"><MBar data={cd.map(d=>({ label:d.label, 'Total':d.g.shots||0, 'No alvo':d.g.shotsOnTarget||0 }))} keys={[{key:'Total',name:'Total'},{key:'No alvo',name:'No alvo'}]} colors={[GFC,'#a5d6a7']} /></Card>
+            <Card title="Gols e xG" sub="Por jogo"><MBar data={cd.map(d=>({ label:d.label, 'Gols':d.g.goals||0, 'xG':d.g.xG||0 }))} keys={[{key:'Gols',name:'Gols'},{key:'xG',name:'xG'}]} colors={[BRAND_PRIMARY,'#66bb6a']} /></Card>
+            <Card title="Finalizações" sub="Total e no alvo"><MBar data={cd.map(d=>({ label:d.label, 'Total':d.g.shots||0, 'No alvo':d.g.shotsOnTarget||0 }))} keys={[{key:'Total',name:'Total'},{key:'No alvo',name:'No alvo'}]} colors={[BRAND_PRIMARY,'#a5d6a7']} /></Card>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14 }}>
-            <Card title="Passes e precisão"><MBar data={cd.map(d=>({ label:d.label, 'Passes':d.g.passes||0, 'Precisão %':d.g.passAccuracy||0 }))} keys={[{key:'Passes',name:'Passes'},{key:'Precisão %',name:'Precisão %'}]} colors={[GFC,'#a5d6a7']} /></Card>
-            <Card title="Passes progressivos"><MBar data={cd.map(d=>({ label:d.label, 'Progressivos':d.g.progressivePasses||0 }))} keys={[{key:'Progressivos',name:'Progressivos'}]} colors={[GFC]} /></Card>
+            <Card title="Passes e precisão"><MBar data={cd.map(d=>({ label:d.label, 'Passes':d.g.passes||0, 'Precisão %':d.g.passAccuracy||0 }))} keys={[{key:'Passes',name:'Passes'},{key:'Precisão %',name:'Precisão %'}]} colors={[BRAND_PRIMARY,'#a5d6a7']} /></Card>
+            <Card title="Passes progressivos"><MBar data={cd.map(d=>({ label:d.label, 'Progressivos':d.g.progressivePasses||0 }))} keys={[{key:'Progressivos',name:'Progressivos'}]} colors={[BRAND_PRIMARY]} /></Card>
           </div>
         </div>
       )}
@@ -543,7 +543,7 @@ function SeasonCharts({ partidas }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14 }}>
             <Card title="Gols sofridos e xGA"><MBar data={cd.map(d=>({ label:d.label, 'Gols sofridos':d.g.goalsConceded||0, 'xGA':d.o.xG||0 }))} keys={[{key:'Gols sofridos',name:'Gols sofridos'},{key:'xGA',name:'xGA'}]} colors={[RED,'#ef9a9a']} /></Card>
-            <Card title="PPDA — pressão" sub="Menor = mais intenso"><MLine data={cd.map(d=>({ label:d.label, 'ADC':d.g.ppda||0, 'Adv':d.o.ppda||0 }))} keys={[{key:'ADC',name:'Confiança'},{key:'Adv',name:'Adversário'}]} colors={[GFC,BLUE]} /></Card>
+            <Card title="PPDA — pressão" sub="Menor = mais intenso"><MLine data={cd.map(d=>({ label:d.label, 'ADC':d.g.ppda||0, 'Adv':d.o.ppda||0 }))} keys={[{key:'ADC',name:'Confiança'},{key:'Adv',name:'Adversário'}]} colors={[BRAND_PRIMARY,BLUE]} /></Card>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14 }}>
             <Card title="Recuperações"><MBar data={cd.map(d=>({ label:d.label, 'Recuperações':d.g.recoveries||0 }))} keys={[{key:'Recuperações',name:'Recuperações'}]} colors={[BLUE]} /></Card>
@@ -721,10 +721,10 @@ export default function WyscoutUploader() {
 
   const kpis = partidas.length ? {
     jogos: partidas.length,
-    vitorias: partidas.filter(p => { const g=p.matchData?.guarani; return (g?.goals||0)>(g?.goalsConceded||0) }).length,
-    empates:  partidas.filter(p => { const g=p.matchData?.guarani; return (g?.goals||0)===(g?.goalsConceded||0) }).length,
-    gols:    partidas.reduce((s,p) => s+(p.matchData?.guarani?.goals||0), 0),
-    golsSof: partidas.reduce((s,p) => s+(p.matchData?.guarani?.goalsConceded||0), 0),
+    vitorias: partidas.filter(p => { const g=p.matchData?.club; return (g?.goals||0)>(g?.goalsConceded||0) }).length,
+    empates:  partidas.filter(p => { const g=p.matchData?.club; return (g?.goals||0)===(g?.goalsConceded||0) }).length,
+    gols:    partidas.reduce((s,p) => s+(p.matchData?.club?.goals||0), 0),
+    golsSof: partidas.reduce((s,p) => s+(p.matchData?.club?.goalsConceded||0), 0),
     xgMedio: avg(partidas,'xG').toFixed(2),
     xgaMedio:(partidas.reduce((s,p) => s+(p.matchData?.opponent?.xG||0),0)/partidas.length).toFixed(2),
     ppdaMedio: avg(partidas,'ppda').toFixed(1),
@@ -765,7 +765,7 @@ export default function WyscoutUploader() {
               ].map(([k,l]) => (
                 <button key={k} onClick={() => setUploadTab(k)} style={{
                   padding:'7px 16px', fontSize:11, fontWeight:700, borderRadius:8,
-                  background: uploadTab===k ? GFC : '#f4f8fc',
+                  background: uploadTab===k ? BRAND_PRIMARY : '#f4f8fc',
                   color: uploadTab===k ? '#fff' : '#64748b',
                   border:'none', cursor:'pointer', fontFamily:'inherit',
                 }}>{l}</button>
@@ -786,10 +786,10 @@ export default function WyscoutUploader() {
                     done={null} onClear={() => {}} />
                 ) : null}
                 {excelFile && (
-                  <div style={{ borderRadius:10, border:`1.5px solid ${GFC}`, background:GFC2, padding:'12px 16px', display:'flex', alignItems:'center', gap:10 }}>
+                  <div style={{ borderRadius:10, border:`1.5px solid ${BRAND_PRIMARY}`, background:BRAND_DARK, padding:'12px 16px', display:'flex', alignItems:'center', gap:10 }}>
                     <span style={{ fontSize:18 }}>✅</span>
                     <div style={{ flex:1 }}>
-                      <p style={{ fontSize:12, fontWeight:700, color:GFC }}>Arquivo lido</p>
+                      <p style={{ fontSize:12, fontWeight:700, color:BRAND_PRIMARY }}>Arquivo lido</p>
                       <p style={{ fontSize:10, color:'#64748b', marginTop:1 }}>{excelFile}</p>
                     </div>
                     <button onClick={() => { setExcelFile(null); setExcelPreview(null); setExcelError(null) }}
@@ -894,9 +894,9 @@ export default function WyscoutUploader() {
         <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginBottom:20 }}>
           <Chip label="Jogos" value={kpis.jogos} />
           <Chip label="V / E / D" value={`${kpis.vitorias} / ${kpis.empates} / ${kpis.jogos-kpis.vitorias-kpis.empates}`} color="#2d4a35" />
-          <Chip label="Gols marcados" value={kpis.gols} color={GFC} />
+          <Chip label="Gols marcados" value={kpis.gols} color={BRAND_PRIMARY} />
           <Chip label="Gols sofridos" value={kpis.golsSof} color={RED} />
-          <Chip label="xG médio" value={kpis.xgMedio} sub="por jogo" color={GFC} />
+          <Chip label="xG médio" value={kpis.xgMedio} sub="por jogo" color={BRAND_PRIMARY} />
           <Chip label="xGA médio" value={kpis.xgaMedio} sub="por jogo" color={RED} />
           <Chip label="Posse média" value={`${kpis.posseMedio}%`} color={PURP} />
           <Chip label="PPDA médio" value={kpis.ppdaMedio} sub="↓ melhor" />
@@ -908,7 +908,7 @@ export default function WyscoutUploader() {
       {partidas.length >= 2 && (
         <div style={{ marginBottom:24 }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, margin:'0 0 14px' }}>
-            <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'2px', padding:'3px 10px', borderRadius:6, background:GFC2, color:GFC }}>TEMPORADA</span>
+            <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'2px', padding:'3px 10px', borderRadius:6, background:BRAND_DARK, color:BRAND_PRIMARY }}>TEMPORADA</span>
             <p style={{ fontSize:13, fontWeight:700, color:'#2d4a35' }}>Evolução estatística</p>
             <div style={{ flex:1, height:1, background:'#e5edf5' }} />
           </div>

@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
 import { sql } from '@vercel/postgres'
 import { ensureSerieCTables } from '../../../../lib/serieCDb'
-import { buildCompetitionMatchRecords, parseWorkbookFile } from '../../../../lib/serieCParse'
+import { buildCompetitionMatchRecords, parseCompetitionWorkbookFile } from '../../../../lib/serieCParse'
+import { matchDateKey, matchDayDistance, sameTeamName } from '../../../../lib/serieCMatch'
 import seedMatches from '../../../../lib/data/serieCMatchesSeed2026.json'
 import { normTeamName, toNumber } from '../../../../lib/serieC'
+import { isCurrentClubIdentity } from '../../../../lib/club-config'
 
 export const maxDuration = 60
 
@@ -15,43 +17,30 @@ function expectedGoals(metrics) {
   return key ? toNumber(metrics[key]) : null
 }
 
-function dateKey(value) {
-  if (!value) return ''
-  if (value instanceof Date && !Number.isNaN(value.getTime())) return value.toISOString().slice(0, 10)
-  const text = String(value)
-  if (/^\d{4}-\d{2}-\d{2}/.test(text)) return text.slice(0, 10)
-  const parsed = new Date(value)
-  return Number.isNaN(parsed.getTime()) ? text.slice(0, 10) : parsed.toISOString().slice(0, 10)
-}
 
 function normalizedMatchKey(record) {
-  return `${dateKey(record.matchDate)}|${normTeamName(record.homeTeam)}|${normTeamName(record.awayTeam)}`
+  return `${matchDateKey(record.matchDate)}|${normTeamName(record.homeTeam)}|${normTeamName(record.awayTeam)}`
 }
 
 function normalizedPairKey(record) {
   return `${normTeamName(record.homeTeam)}|${normTeamName(record.awayTeam)}`
 }
 
-function dayDistance(a, b) {
-  const first = new Date(`${dateKey(a)}T12:00:00Z`).getTime()
-  const second = new Date(`${dateKey(b)}T12:00:00Z`).getTime()
-  if (!Number.isFinite(first) || !Number.isFinite(second)) return Number.POSITIVE_INFINITY
-  return Math.abs(first - second) / 86400000
-}
 
-function isGuaraniIdentity(team, code) {
-  return normTeamName(team).includes('CONFIANÇA') || normTeamName(code) === 'CON'
-}
 
-async function syncGuaraniTimeline(records, season, competition) {
-  const guaraniRecords = records.filter(record =>
-    isGuaraniIdentity(record.homeTeam, record.homeCode) || isGuaraniIdentity(record.awayTeam, record.awayCode)
+
+function sameMatchPair(record, row) {
+  return sameTeamName(record.homeTeam, row.home_team) && sameTeamName(record.awayTeam, row.away_team)
+}
+async function syncClubTimeline(records, season, competition) {
+  const clubRecords = records.filter(record =>
+    isCurrentClubIdentity(record.homeTeam, record.homeCode) || isCurrentClubIdentity(record.awayTeam, record.awayCode)
   )
-  if (!guaraniRecords.length) return 0
+  if (!clubRecords.length) return 0
 
   const current = await sql`
     SELECT id, match_date, opponent
-    FROM serie_c_guarani_matches
+    FROM serie_c_club_matches
     WHERE season = ${season} AND competition = ${competition}
   `
   const existingByOpponent = new Map()
@@ -63,30 +52,31 @@ async function syncGuaraniTimeline(records, season, competition) {
   }
 
   let synced = 0
-  for (const record of guaraniRecords) {
-    const isHome = isGuaraniIdentity(record.homeTeam, record.homeCode)
+  for (const record of clubRecords) {
+    const isHome = isCurrentClubIdentity(record.homeTeam, record.homeCode)
     const opponentRaw = isHome ? record.awayTeam : record.homeTeam
-    const candidates = existingByOpponent.get(normTeamName(opponentRaw)) || []
+    const exactCandidates = existingByOpponent.get(normTeamName(opponentRaw)) || []
+    const candidates = exactCandidates.length ? exactCandidates : current.rows.filter(row => sameTeamName(row.opponent, opponentRaw))
     const nearest = candidates
-      .map(row => ({ row, distance: dayDistance(record.matchDate, row.match_date) }))
+      .map(row => ({ row, distance: matchDayDistance(record.matchDate, row.match_date) }))
       .filter(item => item.distance <= 2)
       .sort((a, b) => a.distance - b.distance)[0]?.row
-    const matchDate = nearest ? dateKey(nearest.match_date) : dateKey(record.matchDate)
+    const matchDate = nearest ? matchDateKey(nearest.match_date) : matchDateKey(record.matchDate)
     const opponent = nearest?.opponent || opponentRaw
     const metrics = isHome ? record.homeMetrics : record.awayMetrics
     const score = `${record.homeScore}:${record.awayScore}`
     const mando = isHome ? 'M' : 'V'
 
     await sql`
-      INSERT INTO serie_c_guarani_matches
+      INSERT INTO serie_c_club_matches
         (season, competition, match_date, mando, opponent, score, round, metrics)
       VALUES
         (${season}, ${competition}, ${matchDate}, ${mando}, ${opponent}, ${score}, ${record.round || null}, ${JSON.stringify(metrics)}::jsonb)
       ON CONFLICT (season, competition, match_date, opponent) DO UPDATE SET
         mando = EXCLUDED.mando,
         score = EXCLUDED.score,
-        round = COALESCE(serie_c_guarani_matches.round, EXCLUDED.round),
-        metrics = serie_c_guarani_matches.metrics || EXCLUDED.metrics
+        round = COALESCE(serie_c_club_matches.round, EXCLUDED.round),
+        metrics = serie_c_club_matches.metrics || EXCLUDED.metrics
     `
     synced += 1
   }
@@ -208,7 +198,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Envie a planilha de estatísticas das partidas.' }, { status: 400 })
     }
 
-    const rawRows = await parseWorkbookFile(file)
+    const rawRows = await parseCompetitionWorkbookFile(file)
     const records = buildCompetitionMatchRecords(rawRows)
     if (!records.length) {
       return NextResponse.json({ error: 'Nenhuma partida válida foi encontrada. Aceito: Data + Match + Time ou Data + Jogo + Equipa.' }, { status: 400 })
@@ -222,10 +212,11 @@ export async function POST(request) {
       FROM serie_c_competition_matches
       WHERE season = ${season} AND competition = ${competition}
     `
+    const existingRows = existingResult.rows
     const existingMap = new Map()
     const existingByPair = new Map()
-    for (const row of existingResult.rows) {
-      const date = dateKey(row.match_date)
+    for (const row of existingRows) {
+      const date = matchDateKey(row.match_date)
       const pair = `${normTeamName(row.home_team)}|${normTeamName(row.away_team)}`
       existingMap.set(`${date}|${pair}`, row)
       const bucket = existingByPair.get(pair) || []
@@ -235,16 +226,17 @@ export async function POST(request) {
     for (const record of records) {
       let existing = existingMap.get(normalizedMatchKey(record))
       if (!existing) {
-        const candidates = existingByPair.get(normalizedPairKey(record)) || []
+        const exactCandidates = existingByPair.get(normalizedPairKey(record)) || []
+        const candidates = exactCandidates.length ? exactCandidates : existingRows.filter(row => sameMatchPair(record, row))
         existing = candidates
-          .map(row => ({ row, distance: dayDistance(record.matchDate, row.match_date) }))
+          .map(row => ({ row, distance: matchDayDistance(record.matchDate, row.match_date) }))
           .filter(item => item.distance <= 2)
           .sort((a, b) => a.distance - b.distance)[0]?.row
       }
       if (!existing) continue
       // Algumas exportações Wyscout usam a data UTC e aparecem um dia depois.
       // Ao reconhecer o mesmo confronto, reutilizamos data/rodada da partida já gravada.
-      record.matchDate = dateKey(existing.match_date)
+      record.matchDate = matchDateKey(existing.match_date)
       if (existing.round) record.round = Number(existing.round)
       record.homeTeam = existing.home_team
       record.awayTeam = existing.away_team
@@ -300,12 +292,12 @@ export async function POST(request) {
     }
 
     const xgMatches = records.filter(record => expectedGoals(record.homeMetrics) !== null && expectedGoals(record.awayMetrics) !== null).length
-    const guaraniTimelineMatches = await syncGuaraniTimeline(records, season, competition)
+    const clubTimelineMatches = await syncClubTimeline(records, season, competition)
     return NextResponse.json({
       ok: true,
       imported,
       xgMatches,
-      guaraniTimelineMatches,
+      clubTimelineMatches,
       rounds: Math.max(...records.map(record => record.round || 0)),
       firstDate: records[0]?.matchDate,
       lastDate: records.at(-1)?.matchDate,

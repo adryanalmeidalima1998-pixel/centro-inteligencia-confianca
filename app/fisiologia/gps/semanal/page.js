@@ -38,7 +38,7 @@ const METRICS = [
   { key: 'maxVel',        label: 'Vel. Máxima',        unit: 'km/h', icon: '🏎️', color: '#f97316', metaKey: 'wVel',     metaDef: 32,    step: 0.5  },
 ]
 
-const WGOALS_KEY = 'guarani_gps_semanal_metas_v1'
+const WGOALS_KEY = 'confianca_gps_semanal_metas_v1'
 const COLORS = ['#0B7C3D','#0a66b7','#4ade80','#a855f7','#f59e0b','#f97316','#0ea5e9','#ec4899','#64748b','#10b981']
 
 const BarLabel = ({ x, y, width, value }) => {

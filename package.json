@@ -6,7 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "build:sub20": "node scripts/build-sub20-dataset.mjs"
+    "build:sub20": "node scripts/build-sub20-dataset.mjs",
+    "docs:api": "node scripts/generate-api-catalog.mjs",
+    "audit:repo": "node scripts/repo-audit.mjs",
+    "check:server": "node scripts/check-server-syntax.mjs",
+    "docs:inventory": "node scripts/generate-repo-inventory.mjs",
+    "docs:all": "npm run docs:api && npm run docs:inventory",
+    "check:imports": "node scripts/check-local-imports.mjs",
+    "check:all": "npm run check:server && npm run check:imports && npm run audit:repo",
+    "test": "node --experimental-default-type=module --test tests/*.test.mjs",
+    "ci": "npm run check:all && npm test && npm run build"
   },
   "dependencies": {
     "@vercel/postgres": "^0.10.0",
@@ -35,5 +44,10 @@
     "eslint-config-next": "15.3.6",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17"
-  }
+  },
+  "engines": {
+    "node": ">=20 <23",
+    "npm": ">=10"
+  },
+  "packageManager": "npm@10.9.2"
 }
