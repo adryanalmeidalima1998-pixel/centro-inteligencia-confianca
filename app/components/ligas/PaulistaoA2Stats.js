@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-const GFC = '#0a66b7'
+const CONFIANCA_BLUE = '#0a66b7'
 
 /* ── helpers ─────────────────────────────────────────────────────────── */
 function fmt(v, d = 2) {
@@ -68,7 +68,7 @@ function RankingTable({ players, cols, limit = 20 }) {
                 borderBottom: '1px solid #f8fdf9',
                 background: i % 2 === 0 ? '#fff' : '#fafcfa',
               }}>
-                <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: 12, fontWeight: 700, color: i === 0 ? GFC : '#94a3b8' }}>{i + 1}</td>
+                <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: 12, fontWeight: 700, color: i === 0 ? CONFIANCA_BLUE : '#94a3b8' }}>{i + 1}</td>
                 <td style={{ padding: '9px 10px', fontSize: 13, fontWeight: 700, color: '#1a2e1a' }}>{name}</td>
                 <td style={{ padding: '9px 10px' }}><TeamBadge team={team} /></td>
                 <td style={{ padding: '9px 10px', textAlign: 'center' }}><PosBadge pos={pos} /></td>
@@ -80,7 +80,7 @@ function RankingTable({ players, cols, limit = 20 }) {
                       padding: '9px 10px', textAlign: 'center',
                       fontSize: c.big ? 15 : 13,
                       fontWeight: c.big ? 900 : 600,
-                      color: c.big ? (i === 0 ? GFC : '#1a2e1a') : '#475569',
+                      color: c.big ? (i === 0 ? CONFIANCA_BLUE : '#1a2e1a') : '#475569',
                     }}>
                       {fmt(val, c.decimals ?? 1)}
                       {pctKey != null && (
@@ -216,7 +216,7 @@ export default function PaulistaoA2Stats() {
           <button key={t.key} onClick={() => setTab(t.key)} style={{
             padding: '7px 14px', border: 'none', borderRadius: 8, cursor: 'pointer',
             fontWeight: 700, fontSize: 11,
-            background: tab === t.key ? GFC : '#f8fdf9',
+            background: tab === t.key ? CONFIANCA_BLUE : '#f8fdf9',
             color: tab === t.key ? '#fff' : '#64748b',
             border: tab === t.key ? 'none' : '1px solid #e8f4ec',
           }}>{t.label}</button>
@@ -228,7 +228,7 @@ export default function PaulistaoA2Stats() {
         <div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14, marginBottom: 28 }}>
             <LiderCard label="Melhor Nota" icon="⭐" players={rating}     statKey="rating"      cor="#b45309" decimals={2} />
-            <LiderCard label="Artilheiro"  icon="⚽" players={goals}      statKey="goals"       cor={GFC}     />
+            <LiderCard label="Artilheiro"  icon="⚽" players={goals}      statKey="goals"       cor={CONFIANCA_BLUE}     />
             <LiderCard label="Assistências" icon="🔑" players={assists}   statKey="assists"     cor="#0369a1" />
             <LiderCard label="G+A"          icon="🏆" players={gaSum}    statKey="goalsAssistsSum" cor="#7c3aed" />
             <LiderCard label="Chutes"       icon="🎯" players={totalShots} statKey="totalShots" cor="#0891b2" />
@@ -255,7 +255,7 @@ export default function PaulistaoA2Stats() {
       {tab === 'ataque' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
           <div>
-            <h3 style={{ fontSize: 13, fontWeight: 800, color: GFC, marginBottom: 12 }}>⚽ Artilheiros</h3>
+            <h3 style={{ fontSize: 13, fontWeight: 800, color: CONFIANCA_BLUE, marginBottom: 12 }}>⚽ Artilheiros</h3>
             <RankingTable players={goals} cols={[
               { key: 'goals', label: 'Gols', big: true },
               { key: 'penaltyGoals', label: 'Pen.' },
@@ -264,7 +264,7 @@ export default function PaulistaoA2Stats() {
             ]} />
           </div>
           <div>
-            <h3 style={{ fontSize: 13, fontWeight: 800, color: GFC, marginBottom: 12 }}>📈 Frequência de Gol</h3>
+            <h3 style={{ fontSize: 13, fontWeight: 800, color: CONFIANCA_BLUE, marginBottom: 12 }}>📈 Frequência de Gol</h3>
             <RankingTable players={scoring} cols={[
               { key: 'scoringFrequency', label: 'Min/Gol', big: true },
               { key: 'goals', label: 'Gols' },

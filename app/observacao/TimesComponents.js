@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-const GFC = '#0a66b7'
+const CONFIANCA_BLUE = '#0a66b7'
 const S = {
   input: { width:'100%', padding:'7px 10px', borderRadius:8, border:'1px solid #d6e5f0', fontSize:11, fontFamily:'inherit', background:'#fff', outline:'none', boxSizing:'border-box' },
   select: { width:'100%', padding:'7px 10px', borderRadius:8, border:'1px solid #d6e5f0', fontSize:11, fontFamily:'inherit', background:'#fff', outline:'none', boxSizing:'border-box', cursor:'pointer' },
@@ -91,7 +91,7 @@ export function TimeAutocomplete({ value, onChange, placeholder, ligaFiltro }) {
           {q.length >= 2 && !exact && (
             <div
               onMouseDown={() => criar(q)}
-              style={{ padding: '8px 12px', fontSize: 11, cursor: 'pointer', color: GFC, fontWeight: 700, background: '#f0fdf4' }}
+              style={{ padding: '8px 12px', fontSize: 11, cursor: 'pointer', color: CONFIANCA_BLUE, fontWeight: 700, background: '#f0fdf4' }}
             >
               {creating ? 'Criando...' : `+ Cadastrar "${q}"`}
             </div>
